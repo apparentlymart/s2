@@ -15,7 +15,6 @@ class Color
   function builtin green() : int;
   function builtin blue(int b);
   function builtin blue() : int;
-  function builtin make_string();
   function builtin Color(string s) : Color;
 }
 

@@ -213,16 +213,16 @@ sub makeAsString {
     
     my $bt = $t->baseType;
     
-    # class has .toString() method?
-    if ($ck->classHasToString($bt)) {
+    # class has .toString() or .as_string() method?
+    if (my $methname = $ck->classHasToString($bt)) {
         # let's change this VARREF into a METHCALL!
         # warning: ugly hacks ahead...
         $this->{'type'} = $METHCALL;
-        $this->{'funcIdent'} = new S2::TokenIdent "toString";
+        $this->{'funcIdent'} = new S2::TokenIdent $methname;
         $this->{'funcClass'} = $bt;
         $this->{'funcArgs'} = new S2::NodeArguments; # empty
-        $this->{'funcID_noclass'} = "toString()";
-        $this->{'funcID'} = "${bt}::toString()";
+        $this->{'funcID_noclass'} = "$methname()";
+        $this->{'funcID'} = "${bt}::$methname()";
         $this->{'funcBuiltin'} = $ck->isFuncBuiltin($this->{'funcID'});
         return 1;
     }

@@ -1,0 +1,27 @@
+#-*-perl-*-
+
+layerinfo type = core;
+layerinfo "majorversion" = 0;
+
+class BracketWrapper
+{
+    var  string  text;
+    function builtin as_string () : string;
+}
+
+class BracketWrapper2
+{
+    var  string  text;
+    function builtin toString () : string;
+}
+
+function main()
+{
+    var BracketWrapper bw = new BracketWrapper;
+    $bw.text = "as_string";
+    print "Wrapped in brackets: $bw\n";
+
+    var BracketWrapper2 bw2 = new BracketWrapper2;
+    $bw2.text = "toString";
+    print "Wrapped in brackets: $bw2\n";
+}
