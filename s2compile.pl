@@ -18,6 +18,8 @@ use S2::BackendHTML;
 my $output;
 my $layerid;
 my $layertype;
+
+my $opt_untrusted = 0;
 my ($opt_core, $opt_layout);
 
 exit usage() unless
@@ -26,6 +28,7 @@ exit usage() unless
                "layertype=s" => \$layertype,
                "core=s" => \$opt_core,
                "layout=s" => \$opt_layout,
+               "untrusted" => \$opt_untrusted,
                );
 
 exit usage() unless @ARGV == 1;
@@ -87,7 +90,7 @@ if ($output eq "s2") {
 
 if ($output eq "perl") {
     die "No layerid specified" unless $layerid;
-    $be = new S2::BackendPerl($layerMain, $layerid);
+    $be = new S2::BackendPerl($layerMain, $layerid, $opt_untrusted);
 }
 
 unless ($be) {
@@ -137,10 +140,13 @@ Usage:
    s2compile [opts]* <file>
 Options:
    --output <format>     One of: perl, html, s2, tokens
-   --layerid <int>       For perl output format only
    --layertype <type>    One of: core, i18nc, layout, theme, i18n, user
    --core <filename>     Core S2 file, if layertype after core
    --layout <filename>   Layout S2 file, if compiling layer after layout
+
+Perl output options:
+   --layerid <int>       Set layerID for database
+   --untrusted           Source is from untrusted user; do safe (slow) prints
 
 Any file args can be '-' to read from STDIN, ending with ^D
 USAGE

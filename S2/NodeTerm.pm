@@ -499,16 +499,6 @@ sub asPerl {
         return;
     }
 
-    # FIXME: defined vs. null?  should have opposite semantics?
-    # really, what does defined() mean for S2?  perl implementation
-    # is to use hashes even for null values.  stupid.
-    if ($type == $DEFINEDTEST) {
-        $o->write("defined(");
-        $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write(")");
-        return;
-    }
-
     if ($type == $REVERSEFUNC) {
         if ($this->{'subType'}->isArrayOf()) {
             $o->write("[reverse(\@{");
@@ -532,6 +522,15 @@ sub asPerl {
             $this->{'subExpr'}->asPerl($bp, $o);
             $o->write(")");
         }
+        return;
+    }
+
+    if ($type == $DEFINEDTEST) {
+        $o->write("(ref ");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write(" eq \"HASH\" && ! ");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write("->{'_isnull'})");
         return;
     }
 
