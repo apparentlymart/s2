@@ -22,7 +22,7 @@ public class NodeProperty extends Node
 	NodeProperty n = new NodeProperty();
 	n.pairs = new LinkedList();
 
-	n.requireToken(toker, TokenKeyword.PROPERTY);
+	n.setStart(n.requireToken(toker, TokenKeyword.PROPERTY));
 
 	if (toker.peek().equals(TokenKeyword.BUILTIN)) {
 	    n.builtin = true;
@@ -105,9 +105,11 @@ public class NodeProperty extends Node
 	}
 
 	// make sure they aren't overriding a property from a lower layer
-	if (ck.propertyType(name) != null) {
-	    throw new Exception("Can't override an existing property '" + name + 
-				"' at " + getFilePos());
+        Type existing = ck.propertyType(name);
+        if (existing != null && ! type.equals(existing)) {
+	    throw new Exception("Can't override property '" + name + 
+				"' at " + getFilePos() + " of type "+existing+
+                                " with new type "+type+".");
 	}
 
         String basetype = type.baseType();
