@@ -40,5 +40,18 @@ sub setType {
     $this->{'type'} = $type;
 }
 
+sub asHTML {
+    my ($this, $o) = @_;
+    my $ident = $this->{'chars'};
+    # FIXME: TODO: Don't hardcode internal types, intelligently recognise
+    #              places where types and class references occur and
+    #              make them class="t"
+    if ($ident =~ /^(int|string|void|bool)$/) {
+        $o->write("<span class=\"t\">$ident</span>");
+    } else {
+        $o->write("<span class=\"i\">$ident</span>");
+    }
+}
+
 1;
 
