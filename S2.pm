@@ -7,7 +7,7 @@ package S2;
 use constant VTABLE => 0;
 use constant STATICS => 1;
 use constant PROPS => 2;
-use constant FUNCNUMS => 2;
+use constant FUNCNUMS => 3;
 
 my %layer;       # lid -> time()
 my %layerinfo;   # lid -> key -> value
@@ -118,11 +118,15 @@ sub load_layers_from_db
     @layers = grep { ! exists $layer{$_} } @layers;
     return 1 unless @layers;
     my $in = join(',', map { $_+0 } @layers);
-    my $sth = $db->prepare("SELECT compdata FROM s2compiled WHERE s2lid IN ($in)");
+    my $sth = $db->prepare("SELECT s2lid, compdata FROM s2compiled WHERE s2lid IN ($in)");
     $sth->execute;
-    while (my $comp = $sth->fetchrow_array) {
+    while (my ($id, $comp) = $sth->fetchrow_array) {
         eval $comp;
-        return 0 if $@;
+        if ($@) {
+            my $err = $@;
+            unregister_layer($id);
+            die "Layer \#$id: $err";
+        }
     }
     return 1;
 }
@@ -167,12 +171,18 @@ sub register_function
 {
     my ($lid, $names, $code) = @_;
 
+    # register the function names first, before we eval the code 
+    # to get the closure, because the subref might be recursive,
+    # in which case it'll die if it needs to call itself and it
+    # doesn't think it exists yet.
+    foreach my $fi (@$names) { register_func_num($fi); }
+
     # run the code to get the sub back with its closure data filled.
     my $closure = $code->();
 
     # now, remember that closure.
     foreach my $fi (@$names) {
-	my $num = get_func_num($fi);
+	my $num = register_func_num($fi);
 	$layerfunc{$lid}->{$num} = $closure;
     }
 }
@@ -196,11 +206,18 @@ sub run_code
     return 1;
 }
 
-sub get_func_num
+sub register_func_num
 {
     my $name = shift;
     return $funcnum{$name} if exists $funcnum{$name};
     return $funcnum{$name} = ++$funcnummax;
+}
+
+sub get_func_num
+{
+    my $name = shift;
+    return ($funcnum{$name} || die "Undefined function: $name\n");
+
 }
 
 # Called by NodeForeachStmt
