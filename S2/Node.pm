@@ -47,7 +47,7 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
-    $o->tabwriteln("###$this:::asPerl###");
+    $o->tabwriteln("###${this}::asPerl###");
 }
 
 sub setTokenlist {

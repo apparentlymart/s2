@@ -100,8 +100,7 @@ sub isPrimitive {
     my $t;
     if (ref $arg) { $t = $arg; }
     else {
-        my $base = shift;
-        $t = S2::Type->new($base);
+        $t = S2::Type->new($arg);
     }
     return $t->equals($STRING) ||
         $t->equals($INT) ||

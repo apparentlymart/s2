@@ -90,7 +90,7 @@ sub check {
 sub asPerl {
     my ($this, $bp, $o) = @_;
     $o->tabwrite("register_set(" .
-                 $bp->getLayerIdString() . "," .
+                 $bp->getLayerIDString() . "," .
                  $bp->quoteString($this->{'key'}) . ",");
     $this->{'value'}->asPerl($bp, $o);
     $o->writeln(");");

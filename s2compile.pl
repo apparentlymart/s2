@@ -11,6 +11,8 @@ use S2::Tokenizer;
 use S2::Checker;
 use S2::Layer;
 use S2::Util;
+use S2::OutputConsole;
+use S2::BackendPerl;
 
 my $output;
 my $layerid;

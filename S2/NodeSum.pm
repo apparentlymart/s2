@@ -35,6 +35,7 @@ sub parse {
            $toker->peek() == $S2::TokenPunct::MINUS) {
         $lhs = parseAnother($toker, $lhs);
     }
+
     return $lhs;
 }
 

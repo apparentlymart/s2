@@ -6,6 +6,7 @@ package S2::NodeTerm;
 use strict;
 use S2::Node;
 use S2::NodeExpr;
+use S2::NodeArrayLiteral;
 use vars qw($VERSION @ISA
             $INTEGER $STRING $BOOL $VARREF $SUBEXPR
             $DEFINEDTEST $SIZEFUNC $REVERSEFUNC $ISNULLFUNC
@@ -268,7 +269,7 @@ sub parse {
         my $ts = $t;
         my $ql = $ts->getQuotesLeft();
         my $qr = $ts->getQuotesRight();
-        
+
         if ($qr) {
             # whole string literal
             $nt->{'type'} = $STRING;
@@ -437,9 +438,182 @@ sub parse {
 
 sub asS2 {
     my ($this, $o) = @_;
+    die "NodeTerm::asS2(): not implemented";
 }
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
+    my $type = $this->{'type'};
+
+    if ($type == $INTEGER) {
+        $this->{'tokInt'}->asPerl($bp, $o);
+        return;
+    }
+
+    if ($type == $STRING) {
+        if (defined $this->{'nodeString'}) {
+            $o->write("(");
+            $this->{'nodeString'}->asPerl($bp, $o);
+            $o->write(")");
+            return;
+        }
+        if ($this->{'ctorclass'}) {
+            $o->write("S2::Builtin::$this->{'ctorclass'}__$this->{'ctorclass'}(");
+        }
+        $this->{'tokStr'}->asPerl($bp, $o);
+        $o->write(")") if $this->{'ctorclass'};
+        return;
+    }
+
+    if ($type == $BOOL) {
+        $o->write($this->{'boolValue'} ? "1" : "0");
+        return;
+    }
+
+    if ($type == $SUBEXPR) {
+        $o->write("(");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write(")");
+        return;
+    }
+
+    die "Incomplete";
 }
+
+__END__
+
+        if (type == ARRAY) {
+            subExpr.asPerl(bp, o);
+            return;
+        }
+	if (type == NEW) {
+	    o.write("{'_type'=>" +
+		    bp.quoteString(newClass.getIdent())+
+		    "}");
+	    return;
+	}
+	if (type == NEWNULL) {
+	    o.write("{'_type'=>" +
+		    bp.quoteString(newClass.getIdent())+
+		    ", '_isnull'=>1}");
+	    return;
+	}
+	if (type == DEFINEDTEST) {
+	    o.write("defined(");
+	    subExpr.asPerl(bp, o);
+	    o.write(")");
+	    return;
+	}
+	if (type == REVERSEFUNC) {
+	    if (subType.isArrayOf()) {
+		o.write("[reverse(");
+		o.write("@{");
+		subExpr.asPerl(bp, o);
+		o.write("})");
+		o.write("]");
+	    } else if (subType.equals(Type.STRING)) {
+		o.write("reverse(");
+		subExpr.asPerl(bp, o);
+		o.write(")");
+	    }
+	    return;
+	}
+	if (type == SIZEFUNC) {
+	    if (subType.equals(Type.STRING)) {
+		o.write("length(");
+		subExpr.asPerl(bp, o);
+		o.write(")");
+	    }
+	    else if (subType.isArrayOf()) {
+		o.write("scalar(@{");
+		subExpr.asPerl(bp, o);
+		o.write("})");
+	    }
+	    return;
+	}
+	if (type == ISNULLFUNC) {
+	    o.write("(ref ");
+	    subExpr.asPerl(bp, o);
+            o.write(" ne \"HASH\" || ");
+	    subExpr.asPerl(bp, o);
+	    o.write("->{'_isnull'})");
+	    return;
+	}
+	if (type == VARREF) {
+	    var.asPerl(bp, o);
+	    return;
+	}
+
+	if (type == FUNCCALL || type == METHCALL) {
+
+	    boolean funcDumped = false;
+
+	    // builtin functions can be optimized.
+	    if (funcBuiltin) {
+		// these built-in functions can be inlined.
+		if (funcID.equals("string(int)")) {
+		    funcArgs.asPerl(bp, o, false);
+		    return;
+		}
+		if (funcID.equals("int(string)")) {
+		    // cast from string to int by adding zero to it
+		    o.write("(0+");
+		    funcArgs.asPerl(bp, o, false);
+		    o.write(")");
+		    return;
+		}
+
+		// otherwise, call the builtin function (avoid a layer
+		// of indirection), unless it's for a class that has
+		// children (won't know until run-time which class to call)
+		if(funcClass == null || (funcClass != null && ! parentMethod)) {
+		    o.write("S2::Builtin::");
+		    if (funcClass != null) {
+			o.write(funcClass + "__");
+		    }
+		    o.write(funcIdent.getIdent());
+		    funcDumped = true;
+		}
+	    }
+
+	    if (funcDumped == false) {
+		if (type == METHCALL && ! funcClass.equals("string")) {
+		    o.write("$_ctx->[VTABLE]->{get_object_func_num(");
+		    o.write(bp.quoteString(funcClass));
+		    o.write(",");
+                    var.asPerl(bp, o);
+		    o.write(",");
+		    o.write(bp.quoteString(funcID_noclass));
+		    o.write(",");
+                    o.write(bp.getLayerID());
+		    o.write(",");
+                    o.write(derefLine);
+                    if (var.isSuper()) {
+                        o.write(",1");
+                    }
+		    o.write(")}->");
+		} else if (type == METHCALL || callFromSet) {
+                    o.write("$_ctx->[VTABLE]->{get_func_num(");
+                    o.write(bp.quoteString(funcID));
+                    o.write(")}->");
+		} else {
+		    o.write("$_ctx->[VTABLE]->{$_l2g_func["+funcNum+"]}->");
+		}
+	    }
+
+	    o.write("($_ctx, ");
+
+	    // this pointer
+	    if (type == METHCALL) {
+		var.asPerl(bp, o);
+		o.write(", ");
+	    }
+
+	    funcArgs.asPerl(bp, o, false);
+
+	    o.write(")");
+	    return;
+	}
+    }
+
 
