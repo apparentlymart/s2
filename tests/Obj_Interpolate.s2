@@ -15,6 +15,16 @@ class BracketWrapper2
     function builtin toString () : string;
 }
 
+class Foo
+{
+    var string text;
+    function as_string() : string;
+}
+
+function Foo::as_string() : string {
+    return "_${.text}_";
+}
+
 function main()
 {
     var BracketWrapper bw = new BracketWrapper;
@@ -24,4 +34,14 @@ function main()
     var BracketWrapper2 bw2 = new BracketWrapper2;
     $bw2.text = "toString";
     print "Wrapped in brackets: $bw2\n";
+
+    var BracketWrapper bnull;
+    print "Null BracketWrapper (builtin): {$bnull}\n";
+
+    var Foo fcontent = new Foo;
+    $fcontent.text = "underscores";
+    print "Defined local as_string: {$fcontent}\n";
+
+    var Foo fnull;
+    print "Null local as_string: {$fnull}\n";
 }

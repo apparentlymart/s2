@@ -22,7 +22,8 @@ my $TESTDIR = "tests";
 my @files;
 if ($runwhat) { 
     $runwhat =~ s!^.*\/!!;
-    @files = ($runwhat);
+    $runwhat .= ".s2" unless $runwhat =~ /s2$/;
+    @files = ($runwhat);    
 } else {
     opendir(D, $TESTDIR) || die "Can't open 'tests' directory.\n";
     while (my $f = readdir(D)) {
@@ -379,12 +380,14 @@ sub string__repeat
 sub BracketWrapper__as_string
 {
     my ($ctx, $this) = @_;
+    return undef unless S2::check_defined($this);
     return "[$this->{'text'}]";
 }
 
 sub BracketWrapper2__toString
 {
     my ($ctx, $this) = @_;
+    return undef unless S2::check_defined($this);
     return "[$this->{'text'}]";
 }
 

@@ -370,6 +370,17 @@ sub get_characters
     return split(//,$string);
 }
 
+sub check_defined {
+    my $obj = shift;
+    return ref $obj eq "HASH" && ! $obj->{'_isnull'};
+}
+
+sub interpolate_object {
+    my ($ctx, $cname, $obj, $method) = @_;
+    return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return $ctx->[VTABLE]->{get_object_func_num($cname,$obj,$method)}->($ctx, $obj);
+}
+
 package S2::Builtin;
 
 # generic S2 has no built-in functionality

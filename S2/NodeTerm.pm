@@ -12,7 +12,7 @@ use S2::NodeArguments;
 use vars qw($VERSION @ISA
             $INTEGER $STRING $BOOL $VARREF $SUBEXPR
             $DEFINEDTEST $SIZEFUNC $REVERSEFUNC $ISNULLFUNC
-            $NEW $NEWNULL $FUNCCALL $METHCALL $ARRAY);
+            $NEW $NEWNULL $FUNCCALL $METHCALL $ARRAY $OBJ_INTERPOLATE);
 
 $VERSION = '1.0';
 @ISA = qw(S2::NodeExpr);
@@ -31,6 +31,7 @@ $NEWNULL = 13;
 $FUNCCALL = 10;
 $METHCALL = 11;
 $ARRAY = 14;
+$OBJ_INTERPOLATE = 15;
 
 sub new {
     my ($class, $n) = @_;
@@ -204,6 +205,7 @@ sub isLValue {
     return 0;
 }
 
+# make the object interpolate in a string
 sub makeAsString {
     my ($this, $ck) = @_;
     return 0 unless $this->{'type'} == $VARREF;
@@ -217,13 +219,26 @@ sub makeAsString {
     if (my $methname = $ck->classHasToString($bt)) {
         # let's change this VARREF into a METHCALL!
         # warning: ugly hacks ahead...
-        $this->{'type'} = $METHCALL;
-        $this->{'funcIdent'} = new S2::TokenIdent $methname;
-        $this->{'funcClass'} = $bt;
-        $this->{'funcArgs'} = new S2::NodeArguments; # empty
-        $this->{'funcID_noclass'} = "$methname()";
-        $this->{'funcID'} = "${bt}::$methname()";
-        $this->{'funcBuiltin'} = $ck->isFuncBuiltin($this->{'funcID'});
+        my $funcID = "${bt}::$methname()";
+        if ($ck->isFuncBuiltin($funcID)) {
+            # builtins map to a normal function call.
+            # the builtin function is responsible for checking if the
+            # object is S2::check_defined() and then returning nothing.
+            $this->{'type'} = $METHCALL;
+            $this->{'funcIdent'} = new S2::TokenIdent $methname;
+            $this->{'funcClass'} = $bt;
+            $this->{'funcArgs'} = new S2::NodeArguments; # empty
+            $this->{'funcID_noclass'} = "$methname()";
+            $this->{'funcID'} = $funcID;
+            $this->{'funcBuiltin'} = 1;
+        } else {
+            # if it's S2-level as_string(), then we call
+            # S2::interpolate_object($ctx, "ClassName", $obj, $methname)
+            $this->{'type'} = $OBJ_INTERPOLATE;
+            $this->{'funcClass'} = $bt;
+            $this->{'objint_method'} = $methname;
+
+        }
         return 1;
     }
 
@@ -527,11 +542,9 @@ sub asPerl {
     }
 
     if ($type == $DEFINEDTEST) {
-        $o->write("(ref ");
+        $o->write("S2::check_defined(");
         $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write(" eq \"HASH\" && ! ");
-        $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write("->{'_isnull'})");
+        $o->write(")");
         return;
     }
 
@@ -546,6 +559,13 @@ sub asPerl {
 
     if ($type == $VARREF) {
         $this->{'var'}->asPerl($bp, $o);
+        return;
+    }
+
+    if ($type == $OBJ_INTERPOLATE) {
+        $o->write("S2::interpolate_object(\$_ctx, '$this->{'funcClass'}', ");
+        $this->{'var'}->asPerl($bp, $o);
+        $o->write(", '$this->{'objint_method'}()')");
         return;
     }
 
