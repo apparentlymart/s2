@@ -31,7 +31,7 @@ sub parse {
     my $n = new S2::NodeForeachStmt;
     $n->setStart($n->requireToken($toker, $S2::TokenKeyword::FOREACH));
 
-    if (S2::NodeVarDecl::canStart($toker)) {
+    if (S2::NodeVarDecl->canStart($toker)) {
         $n->addNode($n->{'vardecl'} = S2::NodeVarDecl->parse($toker));
     } else {
         $n->addNode($n->{'varref'} = S2::NodeVarRef->parse($toker));
@@ -51,13 +51,84 @@ sub parse {
 sub check {
     my ($this, $l, $ck) = @_;
 
+    my $ltype = $this->{'listexpr'}->getType($ck);
+
+    if ($ltype->isHashOf()) {
+        $this->{'isHash'} = 1;
+    } elsif ($ltype->equals($S2::Type::STRING)) {
+        $this->{'isString'} = 1;
+    } elsif (! $ltype->isArrayOf()) {
+        S2::error($this, "Must use an array, hash, or string in a foreach");
+    }
+
+    my $itype;
+    if ($this->{'vardecl'}) {
+        $this->{'vardecl'}->populateScope($this->{'stmts'});
+        $itype = $this->{'vardecl'}->getType();
+    }
+    $itype = $this->{'varref'}->getType($ck) if $this->{'varref'};
+
+    if ($this->{'isHash'}) {
+        unless ($itype->equals($S2::Type::STRING) ||
+                $itype->equals($S2::Type::INT)) {
+            S2::error($this, "Foreach iteration variable must be a ".
+                      "string or int when interating over the keys ".
+                      "in a hash");
+        }
+    } elsif ($this->{'isString'}) {
+        unless ($itype->equals($S2::Type::STRING)) {
+            S2::error($this, "Foreach iteration variable must be a ".
+                      "string when interating over the characters ".
+                      "in a string");
+        }
+    } else {
+        # iter type must be the same as the list type minus
+        # the final array ref
+        
+        # figure out the desired type
+        my $dtype = $ltype->clone();
+        $dtype->removeMod();
+
+        unless ($dtype->equals($itype)) {
+            S2::error("Foreach iteration variable is of type ".
+                      $itype->toString . ", not the expected type of ".
+                      $dtype->toString);
+        }
+    }
+
+    $ck->pushLocalBlock($this->{'stmts'});
+    $this->{'stmts'}->check($l, $ck);
+    $ck->popLocalBlock();
 }
 
 sub asS2 {
     my ($this, $o) = @_;
+    die "unported";
 }
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
+
+    $o->tabwrite("foreach ");
+    $this->{'vardecl'}->asPerl($bp, $o) if $this->{'vardecl'};
+    $this->{'varder'}->asPerl($bp, $o) if $this->{'varder'};
+    if ($this->{'isHash'}) {
+        $o->write(" (keys %{");
+    } elsif ($this->{'isString'}) {
+        $o->write(" (S2::get_characters(");
+    } else {
+        $o->write(" (\@{");
+    }
+
+    $this->{'listexpr'}->asPerl($bp, $o);
+
+    if ($this->{'isString'}) {
+        $o->write(")) ");
+    } else {
+        $o->write("}) ");
+    }
+
+    $this->{'stmts'}->asPerl($bp, $o);
+    $o->newline();
 }
 

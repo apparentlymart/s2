@@ -51,13 +51,13 @@ sub parse {
 
             my $t = $toker->peek();
             unless ($t->isa('S2::TokenIdent')) {
-                die "Expecting identifier after $ident at " .
-                    $t->getFilePos()->toString() . "\n";
+                S2::error($t, "Expecting identifier after $ident");
             }
             
             $n->{'uhName'} = $t->getIdent();
             $n->eatToken($toker);
             $n->requireToken($toker, $S2::TokenPunct::SCOLON);
+            return $n;
         }
     }
 
@@ -167,7 +167,7 @@ sub asPerl {
 
     if ($this->{'hide'}) {
         $o->tabwriteln("register_property_hide(" .
-                       $bp->getLayerIDString() . "," +
+                       $bp->getLayerIDString() . "," .
                        $bp->quoteString($this->{'uhName'}) . ");");
         return;
     }

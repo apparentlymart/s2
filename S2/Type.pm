@@ -8,17 +8,18 @@ use S2::Node;
 use S2::Type;
 use vars qw($VOID $STRING $INT $BOOL);
 
-$VOID   = new S2::Type("void");
-$STRING = new S2::Type("string");
-$INT    = new S2::Type("int");
-$BOOL   = new S2::Type("bool");
+$VOID   = new S2::Type("void", 1);
+$STRING = new S2::Type("string", 1);
+$INT    = new S2::Type("int", 1);
+$BOOL   = new S2::Type("bool", 1);
 
 sub new {
-    my ($class, $base) = @_;
+    my ($class, $base, $final) = @_;
     my $this = {
         'baseType' => $base,
         'typeMods' => "",
     };
+    $this->{'final'} = 1 if $final;
     bless $this, $class;
 }
 
@@ -63,9 +64,8 @@ sub subTypes {
 
 sub equals {
     my ($this, $o) = @_;
-    return 0 unless $o->isa('S2::Type');
-    return
-        $o->{'baseType'} eq $this->{'baseType'} &&
+    return unless $o->isa('S2::Type');
+    return $o->{'baseType'} eq $this->{'baseType'} &&
         $o->{'typeMods'} eq $this->{'typeMods'};
 }
 
@@ -76,16 +76,19 @@ sub sameMods {
 
 sub makeArrayOf {
     my ($this) = @_;
+    S2::error('', "Internal error") if $this->{'final'};
     $this->{'typeMods'} .= "[]";
 }
 
 sub makeHashOf {
     my ($this) = @_;
+    S2::error('', "Internal error") if $this->{'final'};
     $this->{'typeMods'} .= "{}";
 }
 
 sub removeMod {
     my ($this) = @_;
+    S2::error('', "Internal error") if $this->{'final'};
     $this->{'typeMods'} =~ s/..$//;
 }
 
@@ -131,6 +134,7 @@ sub isReadOnly {
 
 sub setReadOnly {
     my ($this, $v) = @_;
+    S2::error('', "Internal error") if $this->{'final'};
     $this->{'readOnly'} = $v;
 }
 

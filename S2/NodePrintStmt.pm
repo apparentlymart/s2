@@ -47,8 +47,8 @@ sub parse {
 sub check {
     my ($this, $l, $ck) = @_;
     my $t = $this->{'expr'}->getType($ck);
-    return if $t == $S2::Type::INT ||
-        $t == $S2::Type::STRING;
+    return if $t->equals($S2::Type::INT) ||
+        $t->equals($S2::Type::STRING);
     S2::error($this, "Print statement must print an expression of type int or string, not " .
               $t->toString);
 }

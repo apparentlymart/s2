@@ -70,9 +70,8 @@ sub getType {
         if ($this->{'lhs'}->makeAsString($ck)) {
             $lt = $S2::Type::STRING;
         } else {
-            die "Left hand side of " . $this->{'op'}->getPunct() . " operator is " .
-                $lt->toString() . ", not a string or integer at " .
-                lhs->getFilePos()->toString() . "\n";
+            S2::error($this->{'lhs'}, "Left hand side of " . $this->{'op'}->getPunct() . 
+                      " operator is " . $lt->toString() . ", not a string or integer");
         }
     }
 
@@ -82,9 +81,8 @@ sub getType {
         if ($this->{'rhs'}->makeAsString($ck)) {
             $rt = $S2::Type::STRING;
         } else {
-            die "Right hand side of " . $this->{'op'}->getPunct() . " operator is " .
-                $lt->toString() . ", not a string or integer at " .
-                lhs->getFilePos()->toString() . "\n";
+            S2::error($this->{'rhs'}, "Right hand side of " . $this->{'op'}->getPunct() . 
+                      " operator is " . $rt->toString() . ", not a string or integer");
         }
     }
 

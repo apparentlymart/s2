@@ -248,6 +248,8 @@ sub scan
     return undef;
 }
 
+sub getPunct { shift->{'punct'}; }
+
 sub asHTML
 {
     my ($this, $o) = @_;
