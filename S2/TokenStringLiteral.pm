@@ -42,8 +42,8 @@ sub new
 
 sub getQuotesLeft { shift->{'quotesLeft'}; }
 sub getQuotesRight { shift->{'quotesRight'}; }
-sub setQuotesLeft { shift->{'quotesLeft'} = shift; }
-sub setQuotesRight { shift->{'quotesRight'} = shift; }
+sub setQuotesLeft { my $this = shift; $this->{'quotesLeft'} = shift; }
+sub setQuotesRight { my $this = shift; $this->{'quotesRight'} = shift; }
 
 sub clone {
     my $this = shift;

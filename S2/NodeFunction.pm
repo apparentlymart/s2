@@ -87,7 +87,105 @@ sub getReturnType {
 
 sub check {
     my ($this, $l, $ck) = @_;
+
+    # keep a reference to the checker for later
     $this->{'ck'} = $ck;
+    $ck->setInFunction(1);
+
+    # reset the functionID -> local funcNum mappings
+    $ck->resetFunctionNums();
+
+    # only core and layout layers can define functions
+    S2::error($this, "Only core and layout layers can define new functions.")
+        unless $l->isCoreOrLayout();
+    
+    # tell the checker we've seen a function now so it knows
+    # later to complain if it then sees a new class declaration.
+    # (builtin functions are okay)
+    $ck->setHitFunction(1) unless $this->{'builtin'};
+    
+    my $cname = $this->className();
+    my $funcID = S2::Checker::functionID($cname, $this->{'name'}->getIdent(), $this->{'formals'});
+    my $t = $this->getReturnType();
+
+    if ($cname && $cname eq $this->{'name'}->getIdent()) {
+        $this->{'isCtor'} = 1;
+    }
+
+    # if this function is global, no declaration is done, but if
+    # this is class-scoped, we must check the class exists and
+    # that it declares this function.
+    if ($cname) {
+        my $nc = $ck->getClass($cname);
+        unless ($nc) {
+            S2::error($this, "Can't declare function $funcID for ".
+                      "non-existent class '$cname'");
+        }
+
+        my $et = $ck->functionType($funcID);
+        unless ($et) {
+            S2::error($this, "Can't define undeclared object function $funcID");
+        }
+
+        # find & register all the derivative names by which this function
+        # could be called.
+        my $dercs = $nc->getDerClasses();
+        foreach my $dc (@$dercs) {  # DerItem
+            my $c = $dc->{'nc'}; # NodeClass
+            my $fvs = S2::NodeFormals::variations($this->{'formals'}, $ck);
+            foreach my $fv (@$fvs) {
+                my $derFuncID = S2::Checker::functionID($c->getName(), $this->getName(), $fv);
+                $ck->setFuncDistance($derFuncID, { 'nf' => $this, 'dist' => $dc->{'dist'} });
+                $ck->addFunction($derFuncID, $t, $this->{'builtin'});
+            }
+        }
+    } else {
+        # non-class function.  register all variations of the formals.
+        my $fvs = S2::NodeFormals::variations($this->{'formals'}, $ck);
+        foreach my $fv (@$fvs) {
+            my $derFuncID = S2::Checker::functionID($cname, $this->getName(), $fv);
+            $ck->setFuncDistance($derFuncID, { 'nf' => $this, 'dist' => 0 });
+            $ck->addFunction($derFuncID, $t, $this->{'builtin'});
+        }
+    }
+	
+    # check the formals
+    $this->{'formals'}->check($l, $ck) if $this->{'formals'};
+
+    
+    # check the statement block
+    if ($this->{'stmts'}) {
+        # prepare stmts to be checked
+        $this->{'stmts'}->setReturnType($t);
+        
+        # make sure $this is accessible in a class method
+        # FIXME: not in static functions, once we have static functions
+        if ($cname) {
+            $this->{'stmts'}->addLocalVar("this", new S2::Type($cname));
+        } else {
+            $this->{'stmts'}->addLocalVar("this", $S2::Type::VOID);  # prevent its use
+        }
+        
+        # make sure $this is accessible in a class method 
+        # that has a parent.
+        my $pname = $ck->getParentClassName($cname); # String
+        if (defined $pname) {
+            $this->{'stmts'}->addLocalVar("super", new S2::Type($pname));
+        } else {
+            $this->{'stmts'}->addLocalVar("super", $S2::Type::VOID);  # prevent its use
+        }
+        
+        $this->{'formals'}->populateScope($this->{'stmts'}) if $this->{'formals'};
+        
+        $ck->setCurrentFunctionClass($cname);   # for $.member lookups
+        $ck->pushLocalBlock($this->{'stmts'});
+        $this->{'stmts'}->check($l, $ck);
+        $ck->popLocalBlock();
+    }
+
+    # remember the funcID -> local funcNum mappings for the backend
+    $this->{'funcNames'} = $ck->getFuncNames();
+    
 }
 
 sub asS2 {
@@ -169,133 +267,46 @@ sub asPerl {
     $o->tabwriteln("});");
 }
 
+sub toString {
+    my $this = shift;
+    return $this->className() . "...";
+}
 
+sub isBuiltin { shift->{'builtin'}; }
+
+# private
+sub className {
+    my $this = shift;
+    return undef unless $this->{'classname'};
+    return $this->{'classname'}->getIdent();
+        
+}
+
+# private
+sub totalName {
+    my $this = shift;
+    my $sb;
+    my $clas = $this->className();
+    $sb .= "${clas}::" if $clas;
+    $sb .= $this->{'name'}->getIdent();
+    return $sb;
+}
 
 __END__
 
 
-    public void check (Layer l, Checker ck) throws Exception
-    {
-	// keep a reference to the checker for later
-	this.ck = ck;
-        ck.setInFunction(true);
-
-	// reset the functionID -> local funcNum mappings
-	ck.resetFunctionNums();
-
-	// only core and layout layers can define functions
-	if (! l.isCoreOrLayout()) {
-	    throw new Exception("Only core and layout layers can define new functions.");
-	}
-
-	// tell the checker we've seen a function now so it knows
-	// later to complain if it then sees a new class declaration.
-	// (builtin functions are okay)
-	if (! builtin) 
-	    ck.setHitFunction(true);    
-
-	String cname = className();
-	String funcID = Checker.functionID(cname, name.getIdent(), formals);
-	Type t = getReturnType();
-
-	if (cname != null && cname.equals(name.getIdent())) {
-	    isCtor = true;
-	}
-
-	// if this function is global, no declaration is done, but if
-	// this is class-scoped, we must check the class exists and
-	// that it declares this function.
-	if (cname != null) {
-	    NodeClass nc = ck.getClass(cname);
-	    if (nc == null) {
-		throw new Exception("Can't declare function "+funcID+" for "+
-				    "non-existent class '"+cname+"' at "+
-				    getFilePos());
-	    }
-
-	    Type et = ck.functionType(funcID);
-	    if (et == null) {
-		throw new Exception("Can't define undeclared object function "+funcID+" at "+
-				    getFilePos());
-	    }
-
-	    // find & register all the derivative names by which this function
-	    // could be called.
-	    ListIterator li = nc.getDerClasses().listIterator();
-	    while (li.hasNext()) {
-		DerItem dc = (DerItem) li.next();
-		NodeClass c = dc.nc;
-		
-		ListIterator fi = NodeFormals.variationIterator(formals, ck);
-		while (fi.hasNext()) {
-		    NodeFormals fv = (NodeFormals) fi.next();
-		    String derFuncID = Checker.functionID(c.getName(), getName(), fv);
-		    ck.setFuncDistance(derFuncID, new DerItem(this, dc.dist));
-		    ck.addFunction(derFuncID, t, builtin);
-		}
-	    }
-	} else {
-	    // non-class function.  register all variations of the formals.
-	    ListIterator fi = NodeFormals.variationIterator(formals, ck);
-	    while (fi.hasNext()) {
-		NodeFormals fv = (NodeFormals) fi.next();
-		String derFuncID = Checker.functionID(cname, getName(), fv);
-		ck.setFuncDistance(derFuncID, new DerItem(this, 0));
-		ck.addFunction(derFuncID, t, builtin);
-	    }
-	}
-	
-	// check the formals
-	if (formals != null) 
-	    formals.check(l, ck);
-	
-	// check the statement block
-	if (stmts != null) {
-	    // prepare stmts to be checked
-	    stmts.setReturnType(t);
-
-	    // make sure $this is accessible in a class method
-	    // FIXME: not in static functions, once we have static functions
-	    if (cname != null) {
-		stmts.addLocalVar("this", new Type(cname));
-	    } else {
-		stmts.addLocalVar("this", Type.VOID);  // prevent its use
-	    }
-
-            // make sure $this is accessible in a class method 
-            // that has a parent.
-            String pname = ck.getParentClassName(cname);
-            if (pname != null) {
-		stmts.addLocalVar("super", new Type(pname));
-	    } else {
-		stmts.addLocalVar("super", Type.VOID);  // prevent its use
-            }
-
-	    if (formals != null) 
-		formals.populateScope(stmts);
-	    
-	    ck.setCurrentFunctionClass(cname);   // for $.member lookups
-	    ck.pushLocalBlock(stmts);
-	    stmts.check(l, ck);
-	    ck.popLocalBlock();
-	}
-
-	// remember the funcID -> local funcNum mappings for the backend
-	funcNames = ck.getFuncNames();
-    }
-
-    // called by NodeClass
+    # called by NodeClass
     public void registerFunction (Checker ck, String cname)
 	throws Exception
     {
 	String funcID = Checker.functionID(cname, getName(), formals);
-	Type et = ck.functionType(funcID);
+	Type et = $ck->functionType(funcID);
 	Type rt = getReturnType();
 
-	// check that function is either currently undefined or 
-	// defined with the same type, otherwise complain
+	# check that function is either currently undefined or 
+	# defined with the same type, otherwise complain
 	if (et == null || et.equals(rt)) {
-	    ck.addFunction(funcID, rt, builtin);  // Register
+	    $ck->addFunction(funcID, rt, builtin);  # Register
 	} else {
 	    throw new Exception("Can't redefine function '"+getName()+"' with return "+
 				"type of '"+rt+"' at "+getFilePos()+" masking "+
@@ -325,34 +336,3 @@ __END__
 
 
 
-    public String toString ()
-    {
-	return (className() + "...");
-    }
-
-    public boolean isBuiltin () {
-	return builtin;
-    }
-
-    //-----------------------------
-
-    private String className () 
-    {
-	if (classname != null)
-	    return classname.getIdent();
-	return null;
-    }
-
-    private String totalName ()
-    {
-	StringBuffer sb = new StringBuffer(50);
-
-	String clas = className(); 
-	if (clas != null) {
-	    sb.append(clas);
-	    sb.append("::");
-	}
-	sb.append(name.getIdent());
-
-	return sb.toString();
-    }

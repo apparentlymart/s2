@@ -164,11 +164,28 @@ sub getDerClasses {
     return $this->{'derclass'}->{$clas};
 }
 
-# TODO: public void setFuncDistance
+sub setFuncDistance {
+    my ($this, $funcID, $df) = @_; # df = hashref with 'dist' and 'nf' key
+
+    my $existing = $this->{'funcDist'}->{$funcID};
+
+    if (! defined $existing || $df->{'dist'} < $existing->{'dist'}) {
+        $this->{'funcDist'}->{$funcID} = $df;
+
+        # keep the funcIDs hashes -> FuncID set up-to-date
+        # removing the existing funcID from the old set first
+        if ($existing) {
+            delete $this->{'funcIDs'}->{$existing->{'nf'}}->{$funcID};
+        }
+        
+        # add to new set
+        $this->{'funcIDs'}->{$df->{'nf'}}->{$funcID} = 1;
+    }
+}
 
 sub getFuncIDs {
     my ($this, $nf) = @_;
-    return [ sort keys %{$this->{'funcIDs'}} ];
+    return [ sort keys %{$this->{'funcIDs'}->{$nf}} ];
 }
 
 # per function

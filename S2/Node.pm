@@ -50,7 +50,7 @@ sub asPerl {
     $o->tabwriteln("###${this}::asPerl###");
 }
 
-sub setTokenlist {
+sub setTokenList {
     my ($this, $newlist) = @_;
     $this->{'tokenlist'} = $newlist;
 }

@@ -7,11 +7,11 @@ use strict;
 use S2::Node;
 use S2::NodePrintStmt;
 use S2::NodeIfStmt;
-#use S2::NodeReturnStmt;
-#use S2::NodeDeleteStmt;
-#use S2::NodeForeachStmt;
-#use S2::NodeVarDeclStmt;
-#use S2::NodeExprStmt;
+use S2::NodeReturnStmt;
+use S2::NodeDeleteStmt;
+use S2::NodeForeachStmt;
+use S2::NodeVarDeclStmt;
+use S2::NodeExprStmt;
 use vars qw($VERSION @ISA);
 
 $VERSION = '1.0';

@@ -45,6 +45,7 @@ sub setType
 sub canStart
 {
     my ($class, $t) = @_;
+    S2::error() unless $t;
     my $nextchar = $t->peekChar();
     return $nextchar =~ /[a-zA-Z_]/;
 }

@@ -32,7 +32,7 @@ sub getVarTokenizer # () method : Tokenizer
 {
     my $this = shift;
     my $vt = new S2::Tokenizer undef;
-    $vt->{'inString'} = 0;
+    $vt->{'inString'} = 0; # parsing a variable in a string, not text in a string
     $vt->{'varToker'} = 1;
     
     # clone everything else

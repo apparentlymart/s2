@@ -7,8 +7,13 @@ use S2;
 
 my $opt_output;
 my $opt_warn;
+my $opt_perl;
+my $opt_force;
 GetOptions("output" => \$opt_output,
-	   "warnings" => \$opt_warn);
+	   "warnings" => \$opt_warn,
+           "perl" => \$opt_perl,
+           "force" => \$opt_force,
+           );
 
 my $runwhat = shift;
 
@@ -29,7 +34,10 @@ if ($runwhat) {
     @files = sort @files;
 }
 
-my $jtime = (stat("s2compile.jar"))[9];
+my ($to_stat, $to_run) = ("s2compile.jar", "./s2compile");
+($to_stat, $to_run) = ("s2compile.pl", "./s2compile.pl") if $opt_perl;
+
+my $jtime = (stat($to_stat))[9];
 my @errors;
 
 foreach my $f (@files)
@@ -39,7 +47,7 @@ foreach my $f (@files)
     my $stime = (stat("$TESTDIR/$f"))[9];
     my $ptime = (stat($pfile))[9];
 
-    my $build = 0;
+    my $build = $opt_force ? 1 : 0;
     if ($opt_warn) { $build = 1; }
     unless ($ptime > $stime && $ptime > $jtime) {
 	if ($stime > $ptime || $jtime > $ptime) {
@@ -50,7 +58,7 @@ foreach my $f (@files)
     if ($build) {
 	my $no_warn = "2> /dev/null ";
 	if ($opt_warn) { $no_warn = ""; }
-	my $cmd = "./s2compile -output perl -layerid 1 -layertype core $TESTDIR/$f $no_warn> $pfile";
+	my $cmd = "$to_run -output perl -layerid 1 -layertype core $TESTDIR/$f $no_warn> $pfile";
 	print STDERR "# $cmd\n";
 	my $ret = system($cmd);
         if ($ret) { die "Failed to run!\n"; } 
