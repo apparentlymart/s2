@@ -293,3 +293,9 @@ sub isProperty {
     my $this = shift;
     return $this->{'type'} == $PROPERTY;
 }
+
+sub propName {
+    my $this = shift;
+    return "" unless $this->{'type'} == $PROPERTY;
+    return $this->{'levels'}->[0]->{'var'};
+}

@@ -26,6 +26,9 @@ my %layerprophide; # lid -> prop -> 1
 my %layerfunc;   # lid -> funcnum -> sub{}
 my %layerclass;  # lid -> classname -> hashref
 my %layerglobal; # lid -> signature -> hashref
+my %layerpropgroups; # lid -> [ group_ident* ]
+my %layerpropgroupname; # lid -> group_ident -> text_name
+my %layerpropgroupprops; # lid -> group_ident -> [ prop_ident* ]
 my %funcnum;     # funcID -> funcnum
 my $funcnummax;  # maxnum in use already by funcnum, above.
 
@@ -40,6 +43,9 @@ sub get_layer_all
         'prop' => $layerprop{$lid},
         'class' => $layerclass{$lid},
         'global' => $layerglobal{$lid},
+        'propgroupname' => $layerpropgroupname{$lid},
+        'propgroups' => $layerpropgroups{$lid},
+        'propgroupprops' => $layerpropgroupprops{$lid},
     };
 }
 
@@ -118,6 +124,9 @@ sub unregister_layer
     delete $layerfunc{$lid};
     delete $layerclass{$lid};
     delete $layerglobal{$lid};
+    delete $layerpropgroups{$lid};
+    delete $layerpropgroupprops{$lid};
+    delete $layerpropgroupname{$lid};
 }
 
 sub load_layer
@@ -226,6 +235,19 @@ sub register_property_hide
     $layerprophide{$lid}->{$propname} = 1;
 }
 
+sub register_propgroup_name
+{
+    my ($lid, $gname, $name) = @_;
+    $layerpropgroupname{$lid}->{$gname} = $name;
+}
+
+sub register_propgroup_props
+{
+    my ($lid, $gname, $list) = @_;
+    $layerpropgroupprops{$lid}->{$gname} = $list;
+    push @{$layerpropgroups{$lid}}, $gname;
+}
+
 sub is_property_hidden
 {
     my ($lids, $propname) = @_;
@@ -240,11 +262,32 @@ sub get_property
     my ($lid, $propname) = @_;
     return $layerprop{$lid}->{$propname};
 }
+
 sub get_properties
 {
     my ($lid) = @_;
     return () unless $layerprops{$lid};
     return @{$layerprops{$lid}};
+}
+
+sub get_property_groups
+{
+    my $lid = shift;
+    return @{$layerpropgroups{$lid} || []};
+}
+
+sub get_property_group_props
+{
+    my ($lid, $group) = @_;
+    return () unless $layerpropgroupprops{$lid};
+    return @{$layerpropgroupprops{$lid}->{$group} || []};
+}
+
+sub get_property_group_name
+{
+    my ($lid, $group) = @_;
+    return unless $layerpropgroupname{$lid};
+    return $layerpropgroupname{$lid}->{$group};
 }
 
 sub register_set

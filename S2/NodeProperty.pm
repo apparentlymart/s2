@@ -36,7 +36,7 @@ sub parse {
 
     $n->setStart($n->requireToken($toker, $S2::TokenKeyword::PROPERTY));
     
-    if ($toker->peek() == $S2::TokenKeyword::PROPERTY) {
+    if ($toker->peek() == $S2::TokenKeyword::BUILTIN) {
         $n->{'builtin'} = 1;
         $n->eatToken($toker);
     }
@@ -129,7 +129,7 @@ sub check {
     }
 
     # all is well, so register this property with its type
-    $ck->addProperty($name, $type);
+    $ck->addProperty($name, $type, $this->{'builtin'});
 }
 
 sub asS2 {
@@ -153,6 +153,11 @@ sub asS2 {
     } else {
         $o->writeln(";");
     }
+}
+
+sub getName {
+    my $this = shift;
+    $this->{'uhName'} || $this->{'nt'}->getName();
 }
 
 sub asPerl {
