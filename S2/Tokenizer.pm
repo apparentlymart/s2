@@ -2,7 +2,6 @@
 #
 
 use strict;
-use S2::Scanner;
 use S2::FilePos;
 use S2::TokenPunct;
 use S2::TokenWhitespace;
