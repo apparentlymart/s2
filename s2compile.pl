@@ -37,7 +37,7 @@ unless ($output) {
 }
 
 if ($output eq "tokens") {
-    my $toker = S2::Tokenizer->new(getFileHandle($filename));
+    my $toker = S2::Tokenizer->new(getFileBody($filename));
     while (my $tok = $toker->getToken()) {
         print $tok->toString(), "\n";
     }
@@ -101,7 +101,7 @@ if ($output eq "html" || $output eq "s2") {
 
 ###################### functions
 
-sub getFileHandle {
+sub getFileBody {
     my $filename = shift;
     my $fh;
 
@@ -110,9 +110,11 @@ sub getFileHandle {
         return $fh if $fh->fdopen(fileno(STDIN),"r");
         die "Couldn't open STDIN?\n";
     }
-        $fh = new IO::File $filename, "r";
-    return $fh if defined $fh;
-    die "Can't open file: $filename\n";
+    $fh = new IO::File $filename, "r";
+    die "Can't open file: $filename\n" unless $fh;
+
+    my $body = join('', <$fh>);
+    return \$body;
 }
 
 sub makeLayer {
@@ -121,7 +123,7 @@ sub makeLayer {
         die "Undefined filename for '$type' layer.\n";
     }
     
-    my $toker = S2::Tokenizer->new(getFileHandle($filename));
+    my $toker = S2::Tokenizer->new(getFileBody($filename));
     my $s2l = S2::Layer->new($toker, $type);
     # now check the layer, since it must have parsed fine (otherwise
     # the Layer constructor would have thrown an exception

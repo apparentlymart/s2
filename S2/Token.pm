@@ -6,14 +6,10 @@ package S2::Token;
 use strict;
 
 sub getFilePos {
-    my $this = shift;
-    return $this->{'pos'};
+    return $_[0]->{'pos'};
 }
 
-sub isNecessary {
-    my $this = shift;
-    return 1;
-}
+sub isNecessary { 1; }
 
 sub toString {
     die "Abstract! " . Data::Dumper::Dumper(@_);

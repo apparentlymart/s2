@@ -16,160 +16,175 @@ package S2::Tokenizer;
 
 sub new # (fh) class method
 {
-    my ($class, $fh) = @_;
+    my ($class, $content) = @_;
 
     my $this = {};
     bless $this, $class;
     
-    if ($fh) { $this->{'sc'} = new S2::Scanner $fh; }
+    if (ref $content eq "SCALAR") {
+        $this->{'content'} = $content;
+        $this->{'length'} = length $$content;
+    }
+    $this->{'pos'} = 0;
+    $this->{'line'} = 1;
+    $this->{'col'} = 1;
     $this->{'inString'} = 0;  # (accessed directly elsewhere)
+    $this->{'inStringStack'} = [];
     $this->{'peekedToken'} = undef;
-    $this->{'masterTokenizer'} = $this;
     return $this;
 }
 
-sub getVarTokenizer # () method : Tokenizer
-{
-    my $this = shift;
-    my $vt = new S2::Tokenizer undef;
-    $vt->{'inString'} = 0; # parsing a variable in a string, not text in a string
-    $vt->{'varToker'} = 1;
-    
-    # clone everything else
-    $vt->{'masterTokenizer'} = $this->{'masterTokenizer'};
-    $vt->{'sc'} = $this->{'sc'};
-    
-    # but don't clone this...
-    if ($this->{'peekedToken'}) {
-        die "Request to instantiate sub-tokenizer failed because " .
-            "master tokenizer has a peeked token loaded already.\n";
-    }
-
-    return $vt;
+sub pushInString {
+    my ($this, $val) = @_;
+    push @{$this->{'inStringStack'}}, $this->{'inString'};
+    $this->{'inString'} = $val;
+    #print STDERR "PUSH: $val Stack: @{$this->{'inStringStack'}}\n";
 }
 
-sub release # () method : void
-{
-    my $this = shift;
-    if ($this->{'peekedToken'}) {
-        die "Sub-tokenizer had a peeked token when releasing.\n";
+sub popInString {
+    my ($this) = @_;
+    my $was = $this->{'inString'};
+    $this->{'inString'} = pop @{$this->{'inStringStack'}};
+    #print STDERR "POP: $this->{'inString'} Stack: @{$this->{'inStringStack'}}\n";
+    if ($was != $this->{'inString'} && $this->{'peekedToken'}) {
+        # back tokenizer up and discard our peeked token
+        pos(${$this->{'content'}}) = $this->{'peekedToken'}->{'pos_re'};
+        $this->{'peekedToken'} = undef;
     }
 }
 
 sub peek # () method : Token
 {
-    my $this = shift;
-    $this->{'peekedToken'} ||= $this->getToken();
-    return $this->{'peekedToken'};
+    $_[0]->{'peekedToken'} ||= $_[0]->getToken(1);
 }
 
 sub getToken # () method : Token
 {
-    my $this = shift;
+    my ($this, $just_peek) = @_;
 
     # return peeked token if we have one
     if (my $t = $this->{'peekedToken'}) {
         $this->{'peekedToken'} = undef;
+        $this->moveLineCol($t) unless $just_peek;
         return $t;
     }
 
     my $pos = $this->getPos();
+    my $pos_re = pos(${$this->{'content'}});
     my $nxtoken = $this->makeToken();
-    $nxtoken->{'pos'} = $pos if $nxtoken;
+    if ($nxtoken) {
+        $nxtoken->{'pos'} = $pos;
+        $nxtoken->{'pos_re'} = $pos_re;
+        $this->moveLineCol($nxtoken) unless $just_peek;
+    }
+#    print STDERR "Token: ", $nxtoken->toString, "\n";
     return $nxtoken;
 }
 
 sub getPos # () method : FilePos
 {
-    my $this = shift;
-    return new S2::FilePos($this->{'sc'}->{'line'},
-                           $this->{'sc'}->{'col'});
+    return new S2::FilePos($_[0]->{'line'},
+                           $_[0]->{'col'});
+}
+
+sub moveLineCol {
+    my ($this, $t) = @_;
+    if (my $newlines = ($t->{'chars'} =~ tr/\n/\n/)) {
+#        print STDERR "Chars: $t [$t->{'chars'}] Lines: $newlines\n";
+        $this->{'line'} += $newlines;
+        $t->{'chars'} =~ /\n(.+)$/m;
+        $this->{'col'} = 1 + length $1;
+    } else {
+#        print STDERR "Chars: $t [$t->{'chars'}]\n";
+        $this->{'col'} += length $t->{'chars'};
+    }
 }
 
 sub makeToken # () method private : Token
 {
     my $this = shift;
+    my $c = $this->{'content'};
 
-    my $nextChar = $this->{'sc'}->peek();
-    return undef unless defined $nextChar;
-
-    if ($nextChar eq '$') {
-        return S2::TokenPunct->scan($this);
+    # finishing or trying to finish an open quoted string
+    if ($this->{'inString'} == 1 &&
+        $$c =~ /\G((\\\"|\\\$|[^\"\$])*)(\")?/sgc) {
+        my $source = $1;
+        my $closed = $3 ? 1 : 0;
+        return S2::TokenStringLiteral->new(undef, $source, 0, $closed);
     }
 
-    if ($this->{'inString'}) {
-        return S2::TokenStringLiteral->scan($this);
+    # finishing a triple quoted string
+    if ($this->{'inString'} == 3) {
+        if ($$c =~ /\G((\\\"|\\\$|[^\$])*?)\"\"\"/sgc) {
+            my $source = $1;
+            return S2::TokenStringLiteral->new(undef, $source, 0, 3);
+        }
+
+        # not finishing a triple quoted string (end in $)
+        if ($$c =~ /\G((\\\"|\\\$|[^\$])*)/sgc) {
+            my $source = $1;
+            return S2::TokenStringLiteral->new(undef, $source, 0, 0);
+        }
     }
 
-    if ($nextChar eq " " || $nextChar eq "\t" || 
-        $nextChar eq "\n" || $nextChar eq "\r") {
-        return S2::TokenWhitespace->scan($this);
+    # not in a string, but one's starting
+    if ($this->{'inString'} == 0 && $$c =~ /\G\"/gc) {
+        # triple start and triple end
+        if ($$c =~ /\G\"\"((\\\"|\\\$|[^\$])*?)\"\"\"/gc) {
+            my $source = $1;
+            return S2::TokenStringLiteral->new(undef, $source, 3, 3);
+        }
+        
+        # triple start and variable end
+        if ($$c =~ /\G\"\"((\\\"|\\\$|[^\$])*)/gc) {
+            my $source = $1;
+            return S2::TokenStringLiteral->new(undef, $source, 3, 0);
+        }
+        
+        # single start and maybe end
+        if ($$c =~ /\G((\\\"|\\\$|[^\"\$])*)(\")?/gc) {
+            my $source = $1;
+            my $closed = $3 ? 1 : 0;
+            return S2::TokenStringLiteral->new(undef, $source, 1, $closed);
+        }
+    }
+
+    if ($$c =~ /\G\s+/gc) {
+        my $ws = $&;
+        return S2::TokenWhitespace->new($ws);
+    }
+
+    if ($$c =~ /\G(<=?|>=?|==|=>?|!=|\+\+?|->|--?|;|::?|&&?|\|\|?|\*|\/|%|!|\.\.?|\{|\}|\[|\]|\(|\)|,|\?|\$)/gc) {
+        return S2::TokenPunct->new($1);
+    }
+
+    if ($$c =~ /\G[a-zA-Z\_]\w*/gc) {
+        my $ident = $&;
+        return S2::TokenIdent->new($ident);
+    }
+
+    if ($$c =~ /\G(\d+)/gc) {
+        my $iv = $1;
+        return S2::TokenIntegerLiteral->new($iv);
     }
     
-    if (S2::TokenIdent->canStart($this)) {
-        return S2::TokenIdent->scan($this);
+    if ($$c =~ /\G\#.*\n/gc) {
+        return S2::TokenComment->new($&);
     }
 
-    if ($nextChar =~ /\d/) {
-        return S2::TokenIntegerLiteral->scan($this);
-    }
-
-    if ($nextChar eq '<' || $nextChar eq '>' ||
-        $nextChar eq '=' || $nextChar eq '!' ||
-        $nextChar eq ';' || $nextChar eq ':' ||
-        $nextChar eq '+' || $nextChar eq '-' ||
-        $nextChar eq '*' || $nextChar eq '/' ||
-        $nextChar eq '&' || $nextChar eq '|' ||
-        $nextChar eq '{' || $nextChar eq '}' ||
-        $nextChar eq '[' || $nextChar eq ']' ||
-        $nextChar eq '(' || $nextChar eq ')' ||
-        $nextChar eq '.' || $nextChar eq ',' ||
-        $nextChar eq '?' || $nextChar eq '%') {
-        return S2::TokenPunct->scan($this);
+    if ($$c =~ /.+/gc) {
+        die "Parse error!  Unknown next token ($&) at " . $this->getPos->toString . "\n";
     }
     
-    if ($nextChar eq '#') {
-        return S2::TokenComment->scan($this);
-    }
-    
-    if ($nextChar eq '"') {
-        return S2::TokenStringLiteral->scan($this);
-    }
-    
-    die "Parse error!  Unknown character '" . $nextChar .
-        "' (" . (ord $nextChar) . ") encountered at " .
-        $this->locationString();
+    return undef;
 }
 
-sub locationString # () : string 
-{
+sub peekChar {
     my $this = shift;
-    return $this->{'sc'}->locationString();
+    my $pos = pos(${$this->{'content'}});
+    my $ch = substr(${$this->{'content'}}, $pos, 1);
+    #print STDERR "pos = $pos, char = $ch\n";
+    return $ch;
 }
-
-sub peekChar # () : char
-{
-    my $this = shift;
-    return $this->{'sc'}->peek();
-}
-
-sub getChar # () : char
-{
-    my $this = shift;
-    return $this->{'sc'}->getChar();
-}
-
-sub getRealChar # () : char
-{
-    my $this = shift;
-    return $this->{'sc'}->getRealChar();
-}
-
-sub forceNextChar # (ch) : void
-{
-    my ($this, $ch) = @_;
-    return $this->{'sc'}->forceNextChar($ch);
-}
-
 
 1;

@@ -14,13 +14,13 @@ sub new
 {
     my ($class, $com) = @_;
     bless {
-        'com' => $com,
+        'chars' => $com,
     }, $class;
 }
 
 sub getComment
 {
-    shift->{'com'};
+    shift->{'chars'};
 }
 
 sub toString
@@ -30,21 +30,10 @@ sub toString
 
 sub isNecessary { return 0; }
 
-sub scan
-{
-    my ($class, $t) = @_;
-    my $buf;
-    my $pc;
-    while (defined ($pc = $t->peekChar()) && ($pc ne "\n")) {
-        $buf .= $t->getChar();
-    }
-    return S2::TokenComment->new($buf);
-}
-
 sub asHTML
 {
     my ($this, $o) = @_;
-    $o->write("<span class=\"c\">$this->{'com'}</span>");
+    $o->write("<span class=\"c\">$this->{'chars'}</span>");
 }
 
 1;
