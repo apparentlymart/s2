@@ -75,38 +75,16 @@ public class NodeSet extends Node
             throw new Exception("Can't set property of unknown type at "+
                                 getFilePos());
         }
-
-	// more complex case... calling a constructor to generate
-	// the value
-	//nodevalue = NodeTerm.makeStringCtorCall(type.baseType(), val);
-	//nodevalue.getType(ck);
     }
 
     public void asPerl (BackendPerl bp, Indenter o)
     {
-
 	o.tabwrite("register_set("+
 		   bp.getLayerIDString() + "," +
 		   bp.quoteString(key) + ",");
 	value.asPerl(bp, o);
         o.writeln(");");
         return;
-
-	// Second case: setting a property that's a class, so code
-	// must be run to invoke the class constructor with that string.
-	// however, the raw string value still needs to be accessible easily
-	// to things like the GUI configurator, so the "value" here is
-	// really an arrayref with [ realvalue, coderef ].
-	/*
-	o.writeln("[" + bp.quoteString(val) + ", sub {");
-	o.tabIn();
-	o.tabwriteln("my $_ctx = shift;");
-	o.tabwrite("return ");
-	nodevalue.asPerl(bp, o);
-	o.writeln(";");
-	o.tabOut();
-	o.tabwriteln("}]);");
-        */
     }
 
 };

@@ -18,19 +18,18 @@ class TokenComment extends Token {
 	return ("[TokenComment]");
     }
 
-    public static Token scan (Tokenizer t) 
+    public static Token scan (Tokenizer t)
     {
 	StringBuffer tbuf = new StringBuffer(80);
-	
+
 	while ((t.peekChar() != '\n')) {
 	    tbuf.append(t.getChar());
 	}
 	return new TokenComment(tbuf.toString());
     }
 
-    public void asHTML (Output o) 
+    public void asHTML (Output o)
     {
-	o.write("<font color=" + BackendHTML.CommentColor + ">" + 
-		com + "</font>");
+	o.write("<span class=\"c\">" + com + "</span>");
     }
 }

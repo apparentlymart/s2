@@ -29,11 +29,11 @@ public class NodeVarDeclStmt extends Node
     public void check (Layer l, Checker ck) throws Exception
     {
 	nvd.populateScope(ck.getLocalScope());
-	
+
 	// check that the variable type is a known class
 	Type t = nvd.getType();
 	String bt = t.baseType();
-	
+
 	if (! Type.isPrimitive(bt) &&
 	    ck.getClass(bt) == null) {
 	    throw new Exception("Unknown type or class '"+bt+"' at "+

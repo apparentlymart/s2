@@ -64,8 +64,7 @@ class TokenKeyword extends TokenIdent {
 
     public void asHTML (Output o)
     {
-	o.write("<b><font color=" + BackendHTML.KeywordColor + ">" +
-		ident + "</font></b>");
+	o.write("<span class=\"k\">" + ident + "</span>");
     }
 
 }

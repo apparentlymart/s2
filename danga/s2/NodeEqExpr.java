@@ -8,12 +8,12 @@ public class NodeEqExpr extends Node
 
     // use this for the backend to decide which add operator to use
     private Type myType;
-    
+
     public static boolean canStart (Tokenizer toker) throws Exception
     {
 	return NodeRelExpr.canStart(toker);
     }
-    
+
     public static Node parse (Tokenizer toker) throws Exception
     {
 	NodeEqExpr n = new NodeEqExpr();
@@ -32,6 +32,7 @@ public class NodeEqExpr extends Node
 	}
 
 	n.rhs = NodeRelExpr.parse(toker);
+        n.addNode(n.rhs);
 	n.skipWhite(toker);   
 
 	return n;
@@ -41,7 +42,7 @@ public class NodeEqExpr extends Node
     {
 	Type lt = lhs.getType(ck);
 	Type rt = rhs.getType(ck);
-	if (! lt.equals(rt)) 
+	if (! lt.equals(rt))
 	    throw new Exception("The types of the left and right hand side of "+
 				"equality test expression don't match at "+getFilePos());
 	myType = lt;
@@ -52,7 +53,7 @@ public class NodeEqExpr extends Node
 			     "equality at "+getFilePos());
     }
 
-    public void asS2 (Indenter o) 
+    public void asS2 (Indenter o)
     {
 	lhs.asS2(o);
 	if (op != null) {
@@ -61,19 +62,19 @@ public class NodeEqExpr extends Node
 	}
     }
 
-    public void asPerl (BackendPerl bp, Indenter o) 
+    public void asPerl (BackendPerl bp, Indenter o)
     {
 	lhs.asPerl(bp, o);
 	if (op != null) {
 	    if (op.equals(TokenPunct.EQ)) {
 		if (myType.equals(Type.STRING))
 		    o.write(" eq ");
-		else 
+		else
 		    o.write(" == ");
 	    } else {
 		if (myType.equals(Type.STRING))
 		    o.write(" ne ");
-		else 
+		else
 		    o.write(" != ");
 	    }
 	    rhs.asPerl(bp, o);

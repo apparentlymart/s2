@@ -67,7 +67,7 @@ class TokenPunct extends Token {
 		return TokenPunct.LT;
 	    }
 	}
-    
+
 	if (t.peekChar() == '>') {
 	    t.getChar();
 	    if (t.peekChar() == '=') {
@@ -162,7 +162,7 @@ class TokenPunct extends Token {
 	    t.getChar();
 	    return TokenPunct.MOD;
 	}
-    
+
 	if (t.peekChar() == '!') {
 	    t.getChar();
 	    if (t.peekChar() == '=') {
@@ -225,17 +225,23 @@ class TokenPunct extends Token {
 	return null;
     }
 
-    public void asHTML (Output o) 
+    public void asHTML (Output o)
     {
-	o.write("<font color=" + BackendHTML.PunctColor + ">" + 
-		punct + "</font>");
+	if (punct.equals("[") || punct.equals("]") ||
+	    punct.equals("(") || punct.equals(")") ||
+	    punct.equals("{") || punct.equals("}")) {
+
+	    o.write("<span class=\"b\">" + punct + "</span>");
+	} else {
+	    o.write("<span class=\"p\">" + punct + "</span>");
+	}
     }
 
-    public void asS2 (Output o) 
+    public void asS2 (Output o)
     {
 	o.write(punct);
     }
-    
+
 }
 
 
