@@ -319,10 +319,15 @@ sub run_code
         die "S2::run_code: Undefined function $entry ($fnum $code)\n";
     }
     eval {
+        local $SIG{__DIE__} = undef;
+        local $SIG{ALRM} = sub { die "Style code didn't finish running in a timely fashion.  ".
+                                     "Possible causes: <ul><li>Infinite loop in style or layer</li>\n".
+                                     "<li>Database busy</li></ul>\n" };
+        alarm 4;
         $code->($ctx, @args);
+        alarm 0;
     };
     if ($@) {
-        use Data::Dumper;
         die "Died in S2::run_code running $entry: $@\n";
     }
     return 1;
