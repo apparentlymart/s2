@@ -32,7 +32,7 @@ sub parse {
     if ($toker->peek() == $S2::TokenPunct::MINUS) {
         $n->{'bNegative'} = 1;
         $n->eatToken($toker);
-    } elsif ($toker->peek() == $S2::TokenPunct::NOT) {
+    } elsif ($toker->peek() == $S2::TokenKeyword::NOT) {
         $n->{'bNot'} = 1;
         $n->eatToken($toker);
     }

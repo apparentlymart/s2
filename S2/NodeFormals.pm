@@ -86,7 +86,7 @@ sub getVariations {
         return;
     }
     
-    my $nt = $this->{'listFormals'}->[$col-1]; # NodeNamedType
+    my $nt = $this->{'listFormals'}->[$col]; # NodeNamedType
     my $t = $nt->getType();
 
     foreach my $st (@{$t->subTypes($ck)}) {

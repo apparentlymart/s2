@@ -74,17 +74,18 @@ sub asPerl {
     my ($this, $bp, $o) = @_;
     $this->{'lhs'}->asPerl($bp, $o);
     if ($this->{'op'} == $S2::TokenPunct::EQ) {
-        if ($this->{'myType'} == $S2::Type::STRING) {
+        if ($this->{'myType'}->equals($S2::Type::STRING)) {
             $o->write(" eq ");
         } else {
             $o->write(" == ");
         }
     } else {
-        if ($this->{'myType'} == $S2::Type::STRING) {
+        if ($this->{'myType'}->equals($S2::Type::STRING)) {
             $o->write(" ne ");
         } else {
             $o->write(" != ");
         }
     }
+    $this->{'rhs'}->asPerl($bp, $o);
 }
 

@@ -30,7 +30,7 @@ sub parse {
     $n->addNode($n->{'lhs'});
 
     return $n->{'lhs'} unless
-        $toker->peek() == $S2::TokenPunct::AND;
+        $toker->peek() == $S2::TokenKeyword::AND;
 
     $n->eatToken($toker);
 

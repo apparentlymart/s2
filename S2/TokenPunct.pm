@@ -6,7 +6,7 @@ package S2::TokenPunct;
 use strict;
 use S2::Token;
 use vars qw($VERSION @ISA
-            $LT $LTE $GTE $GT $EQ $NE $ASSIGN $INC $PLUS
+            $LT $LTE $GTE $GT $EQ $NE $ASSIGN $INCR $PLUS
             $DEC $MINUS $DEREF $SCOLON $COLON $DCOLON $LOGAND
             $BITAND $LOGOR $BITOR $MULT $DIV $MOD $NOT $DOT
             $DOTDOT $LBRACE $RBRACE $LBRACK $RBRACK $LPAREN
@@ -23,7 +23,7 @@ $GT     = new S2::TokenPunct '>';
 $EQ     = new S2::TokenPunct "==";
 $NE     = new S2::TokenPunct "!=";
 $ASSIGN = new S2::TokenPunct "=";
-$INC    = new S2::TokenPunct "++";
+$INCR   = new S2::TokenPunct "++";
 $PLUS   = new S2::TokenPunct "+";
 $DEC    = new S2::TokenPunct "--";
 $MINUS  = new S2::TokenPunct "-";
@@ -106,7 +106,7 @@ sub scan
         $t->getChar();
         if ($t->peekChar() eq '+') {
             $t->getChar();
-            return $INC;
+            return $INCR;
         } else {
             return $PLUS;
         }
@@ -116,7 +116,7 @@ sub scan
         $t->getChar();
         if ($t->peekChar() eq '+') {
             $t->getChar();
-            return $INC;
+            return $INCR;
         } else {
             return $PLUS;
         }

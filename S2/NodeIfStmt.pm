@@ -81,7 +81,7 @@ sub check {
 
     foreach my $ne (@{$this->{'elseifexprs'}}) {
         $t = $ne->getType($ck);
-        S2::error($ne, "Non-boolean if test") unless $ne->isBoolable();
+        S2::error($ne, "Non-boolean if test") unless $t->isBoolable();
     }
 
     foreach my $sb (@{$this->{'elseifblocks'}}) {

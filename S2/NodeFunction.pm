@@ -143,7 +143,9 @@ sub check {
         # non-class function.  register all variations of the formals.
         my $fvs = S2::NodeFormals::variations($this->{'formals'}, $ck);
         foreach my $fv (@$fvs) {
-            my $derFuncID = S2::Checker::functionID($cname, $this->getName(), $fv);
+            my $derFuncID = S2::Checker::functionID($cname, 
+                                                    $this->getName(), 
+                                                    $fv);
             $ck->setFuncDistance($derFuncID, { 'nf' => $this, 'dist' => 0 });
             $ck->addFunction($derFuncID, $t, $this->{'builtin'});
         }

@@ -77,25 +77,25 @@ sub asPerl {
     my ($this, $bp, $o) = @_;
     $this->{'lhs'}->asPerl($bp, $o);
 
-    if ($this->{'op'}->equals($S2::TokenPunct::LT)) {
+    if ($this->{'op'} == $S2::TokenPunct::LT) {
         if ($this->{'myType'}->equals($S2::Type::STRING)) {
             $o->write(" lt ");
         } else {
             $o->write(" < ");
         }
-    } elsif ($this->{'op'}->equals($S2::TokenPunct::LTE)) {
+    } elsif ($this->{'op'} == $S2::TokenPunct::LTE) {
         if ($this->{'myType'}->equals($S2::Type::STRING)) {
             $o->write(" le ");
         } else {
             $o->write(" <= ");
         }
-    } elsif ($this->{'op'}->equals($S2::TokenPunct::GT)) {
+    } elsif ($this->{'op'} == $S2::TokenPunct::GT) {
         if ($this->{'myType'}->equals($S2::Type::STRING)) {
             $o->write(" gt ");
         } else {
             $o->write(" > ");
         }
-    } elsif ($this->{'op'}->equals($S2::TokenPunct::GTE)) {
+    } elsif ($this->{'op'} == $S2::TokenPunct::GTE) {
         if ($this->{'myType'}->equals($S2::Type::STRING)) {
             $o->write(" ge ");
         } else {
