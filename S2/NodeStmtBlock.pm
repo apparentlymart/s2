@@ -101,8 +101,11 @@ sub check {
         $ns->check($l, $ck);
     }
 
-    if ($this->{'returnType'} && ! $this->willReturn()) {
-        S2::error($this, "Statement block isn't guaranteed to return");
+    if ($this->{'returnType'} && 
+        ! $this->{'returnType'}->equals($S2::Type::VOID) &&
+        ! $this->willReturn()) {
+        S2::error($this, "Statement block isn't guaranteed to return (should return " .
+                  $this->{'returnType'}->toString . ")");
     }
 }
 

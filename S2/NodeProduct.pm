@@ -85,16 +85,19 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
+
+    $o->write("int(") if $this->{'op'} == $S2::TokenPunct::DIV;
     $this->{'lhs'}->asPerl($bp, $o);
 
-    if ($this->{'myType'} == $S2::Type::STRING) {
-        $o->write(" . ");
-    } elsif ($this->{'op'} == $S2::TokenPunct::PLUS) {
-        $o->write(" + ");
-    } elsif ($this->{'op'} == $S2::TokenPunct::MINUS) {
-        $o->write(" - ");
+    if ($this->{'op'} == $S2::TokenPunct::MULT) {
+        $o->write(" * ");
+    } elsif ($this->{'op'} == $S2::TokenPunct::DIV) {
+        $o->write(" / ");
+    } elsif ($this->{'op'} == $S2::TokenPunct::MOD) {
+        $o->write(" % ");
     }
-     
+    
     $this->{'rhs'}->asPerl($bp, $o);
+    $o->write(")") if $this->{'op'} == $S2::TokenPunct::DIV;     
 }
 

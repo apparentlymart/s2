@@ -46,8 +46,8 @@ sub quoteString {
 
 sub quoteStringInner {
     my $s = shift;
-    $s =~ s/\n/\\n/g;
     $s =~ s/([\\\$\"\@])/\\$1/g;
+    $s =~ s/\n/\\n/g;
     return $s;
 }
 

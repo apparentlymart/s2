@@ -33,9 +33,6 @@ $ARRAY = 14;
 sub new {
     my ($class, $n) = @_;
     my $node = new S2::NodeExpr;
-
-    $node->{''} = 2;
-
     bless $node, $class;
 }
 
@@ -300,14 +297,14 @@ sub parse {
                 $rhs->{'tokStr'} = $rhs->eatToken($toker);
                 push @$toklist, $rhs->{'tokStr'}->clone();
 
-                $loop = 0 if $ts.getQuotesLeft() == $ql;
+                $loop = 0 if $ts->getQuotesRight() == $ql;
                 $ts->setQuotesRight($ql);
                 $ts->setQuotesLeft($ql);
             } elsif ($tok == $S2::TokenPunct::DOLLAR) {
                 $rhs = parse S2::NodeTerm $toker;
                 push @$toklist, $rhs;
             } else {
-                S2::error($filepos, "Error parsing interpolated string");
+                S2::error($tok, "Error parsing interpolated string: " . $tok->toString);
             }
             
             # don't make a sum out of a blank string on either side
@@ -405,7 +402,7 @@ sub parse {
         $nt->addNode($nt->{'var'});
 
         # check for -> after, like: $object->method(arg1, arg2, ...)
-        if ($toker->peek()->equals($S2::TokenPunct::DEREF)) {
+        if ($toker->peek() == $S2::TokenPunct::DEREF) {
             $nt->{'derefLine'} = $toker->peek()->getFilePos()->{'line'};
             $nt->eatToken($toker);
             $nt->{'type'} = $METHCALL;

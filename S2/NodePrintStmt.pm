@@ -10,6 +10,12 @@ use vars qw($VERSION @ISA);
 $VERSION = '1.0';
 @ISA = qw(S2::Node);
 
+sub new {
+    my ($class) = @_;
+    my $n = new S2::Node;
+    bless $n, $class;
+}
+
 sub canStart {
     my ($class, $toker) = @_;
     my $p = $toker->peek();

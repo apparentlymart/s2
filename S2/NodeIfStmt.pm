@@ -10,6 +10,12 @@ use vars qw($VERSION @ISA);
 $VERSION = '1.0';
 @ISA = qw(S2::Node);
 
+sub new {
+    my ($class) = @_;
+    my $n = new S2::Node;
+    bless $n, $class;
+}
+
 sub canStart {
     my ($class, $toker) = @_;
     return $toker->peek() == $S2::TokenKeyword::IF;
@@ -67,6 +73,23 @@ sub willReturn {
 
 sub check {
     my ($this, $l, $ck) = @_;
+
+    my $t = $this->{'expr'}->getType($ck);
+    S2::error($this, "Non-boolean if test") unless $t->isBoolable();
+
+    $this->{'thenblock'}->check($l, $ck);
+
+    foreach my $ne (@{$this->{'elseifexprs'}}) {
+        $t = $ne->getType($ck);
+        S2::error($ne, "Non-boolean if test") unless $ne->isBoolable();
+    }
+
+    foreach my $sb (@{$this->{'elseifblocks'}}) {
+        $sb->check($l, $ck);
+    }
+
+    $this->{'elseblock'}->check($l, $ck) if
+        $this->{'elseblock'};
 }
 
 sub asS2 {

@@ -65,6 +65,55 @@ sub toString {
 
 sub getFormals { shift->{'listFormals'}; }
 
-# FIXME: much not converted yet
+# static
+sub variations {
+    my ($nf, $ck) = @_;
+    my $l = [];
+    $nf->getVariations($ck, $l, [], 0) if $nf;
+    return $l;
+}
+
+sub getVariations {
+    my ($this, $ck, $vars, $temp, $col) = @_;
+    my $size = @{$this->{'listFormals'}};
+
+    if ($col == $size) {
+        push @$vars, new S2::NodeFormals($temp);
+        return;
+    }
+    
+    my $nt = $this->{'listFormals'}->[$col-1]; # NodeNamedType
+    my $t = $nt->getType();
+
+    foreach my $st ($t->subTypes($ck)) {
+        my $newtemp = [ @$temp ];  # hacky clone (not cloning member objects)
+        push @$newtemp, new S2::NodeNamedType($nt->getName(), $st);
+        $this->getVariations($ck, $vars, $newtemp, $col+1);
+    }
+}
+
+sub typeList {
+    my $this = shift;
+    return join(',', map { $_->getType->toString } 
+                @{$this->{'listFormals'}});
+}
+
+
+# adds all these variables to the stmtblock's symbol table
+sub populateScope {
+    my ($this, $nb) = @_;  # NodeStmtBlock
+    foreach my $nt (@{$this->{'listFormals'}}) {
+	$nb->addLocalVar($nt->getName(), $nt->getType());
+     }
+}
+
+
+__END__
+
+    public ListIterator iterator() {
+	return listFormals.listIterator();
+    }
+
+
 
 
