@@ -9,6 +9,7 @@ use strict;
 use constant VTABLE => 0;
 use constant STATICS => 1;
 use constant PROPS => 2;
+use constant SCRATCH => 3;  # embedder-defined use
 
 my %layer;       # lid -> time()
 my %layercomp;   # lid -> compiled time (when loaded from database)
@@ -299,6 +300,15 @@ sub set_output
 {
     my $code = shift;
     $output_sub = $code;
+}
+
+sub function_exists
+{
+    my ($ctx, $func) = @_;
+    my $fnum = get_func_num($func);
+    my $code = $ctx->[VTABLE]->{$fnum};
+    return 1 if ref $code eq "CODE";
+    return 0;
 }
 
 sub run_code
