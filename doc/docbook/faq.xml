@@ -1,5 +1,5 @@
 <title>FAQ</title>
-<qandaset defaultlable='qanda'>
+<qandaset defaultlabel='qanda'>
   <qandaentry id='&s2.idroot;faq.xslt'>
     <question><simpara>Why didn't you just use XML and let style authors use XSLT?</simpara></question>
     <answer><simpara><ulink url="http://www.livejournal.com/users/evan/601685.html">Because XSLT is ugly and difficult.</ulink></simpara></answer>

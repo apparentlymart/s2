@@ -136,8 +136,8 @@
   <para>S2 operators have the following associativity and precedence, listed from highest precedence to lowest.</para>
   <informaltable frame='none'>
     <tgroup cols='2'>
+      <colspec colwidth="2*" />
       <tbody>
-        <colspec colwidth="2*" />
         <row><entry>left</entry><entry>Terms (literals, expressions in parentheses, variables, function/method calls, named unary operators)</entry></row>
         <row><entry>nonassoc</entry><entry>++ --</entry></row>
         <row><entry>right</entry><entry>not -</entry></row>
@@ -163,8 +163,8 @@
   </section>
   <section id="&s2.idroot;langref.operators.unary">
     <title>Named Unary Operators</title>
-  <variablelist>
     <simpara>The following are the built-in named operators. You do not have to wrap the following term in parentheses.</simpara>
+  <variablelist>
     <varlistentry>
       <term><function>isnull</function> <varname>$object</varname></term>
       <listitem><simpara>returns a boolean: true if <varname>$object</varname> is null (has no value)</simpara></listitem>
@@ -210,9 +210,8 @@
   <para>The <function>print</function> instruction will cause the string or numeric expression supplied as its parameter to be output to the client. The <function>uprint</function> instruction does similarly, but forces the output to be checked for <quote>safety</quote>. In the case of LiveJournal and FotoBilder, this means running a <acronym>HTML</acronym> cleaner. All untrusted (non-system) layers always run through the checker, reglardless of which print instuction is used.</para>
   <section id='&s2.idroot;langref.statements.flow'>
     <title>Flow Control</title>
-  <variablelist>
-    <title>Flow control</title>
     <para>A limited subset of the flow control constructs normally present in high-level programming languages is available in S2. Each includes at least one code block enclosed in curly braces.</para>
+  <variablelist>
     <varlistentry>
       <term><literal>if ( expr ) block</literal></term>
       <listitem><simpara>Simple conditional. If <literal>expr</literal> evaluates to true, <literal>block</literal> will be executed, otherwise it will be skipped.</simpara></listitem>
