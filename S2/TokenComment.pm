@@ -34,7 +34,8 @@ sub scan
 {
     my ($class, $t) = @_;
     my $buf;
-    while ($t->peekChar() != '\n') {
+    my $pc;
+    while (defined ($pc = $t->peekChar()) && ($pc ne "\n")) {
         $buf .= $t->getChar();
     }
     return S2::TokenComment->new($buf);
