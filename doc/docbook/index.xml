@@ -11,6 +11,9 @@
   <chapter id='&s2.idroot;overview'>
     &s2.overview;
   </chapter>
+  <chapter id='&s2.idroot;langref'>
+    &s2.langref;
+  </chapter>
   <chapter id='&s2.idroot;notes'>
     &s2.notes;
   </chapter>

@@ -47,3 +47,96 @@
     </listitem>
   </varlistentry>
 </variablelist>
+<section id='&s2.idroot;layers.caps'>
+  <title>Layer Capabilities</title>
+  <para>The following table summarizes what each layer type is permitted to do:</para>
+  <informaltable frame='all'>
+    <tgroup cols='7' align='center' colsep='1' rowsep='1'>
+      <thead>
+        <row>
+          <entry></entry>
+          <entry>core</entry>
+          <entry>i18nc</entry>
+          <entry>layout</entry>
+          <entry>i18n</entry>
+          <entry>theme</entry>
+          <entry>user</entry>
+        </row>
+      </thead>
+      <tbody>
+        <row>
+          <entry>Define classes</entry>
+          <entry>X</entry>
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+        </row>
+        <row>
+          <entry>Define global functions</entry>
+          <entry>X</entry>
+          <entry />
+          <entry>X</entry>
+          <entry />
+          <entry />
+          <entry />
+        </row>
+        <row>
+          <entry>Define <function>builtin</function> functions/methods</entry>
+          <entry>X</entry>
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+        </row>
+        <row>
+          <entry>Define properties</entry>
+          <entry>X</entry>
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+        </row>
+        <row>
+          <entry>Expose properties to graphical wizard</entry>
+          <entry />
+          <entry />
+          <entry>X</entry>
+          <entry />
+          <entry />
+          <entry />
+        </row>
+        <row>
+          <entry>Override name/description of properties</entry>
+          <entry>-</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry />
+          <entry />
+        </row>
+        <row>
+          <entry>Override functions/methods</entry>
+          <entry>-</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry />
+        </row>
+        <row>
+          <entry>Set properties</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+          <entry>X</entry>
+        </row>
+      </tbody>
+    </tgroup>
+  </informaltable>
+</section>

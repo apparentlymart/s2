@@ -1,7 +1,7 @@
 <bookinfo>
   <title>S2 Manual</title>
   <authorgroup>
-    <author>
+    <editor>
       <firstname>Jesse</firstname>
       <surname>Proulx</surname>
       <affiliation>
@@ -9,7 +9,7 @@
           <email>jproulx@livejournal.com</email>
         </address>
       </affiliation>
-    </author>
+    </editor>
     <author>
       <firstname>Brad</firstname>
       <surname>Fitzpatrick</surname>
@@ -19,12 +19,19 @@
         </address>
       </affiliation>
     </author>
+    <author>
+      <firstname>Martin</firstname>
+      <surname>Atkins</surname>
+      <affiliation>
+        <address>
+          <email>mart@livejournal.com</email>
+        </address>
+      </affiliation>
+    </author>
   </authorgroup>
   <abstract>
     <para>
-      This documentation intends to cover everything related to
-      installing, administrating, and programming the LiveJournal
-      Server software.
+      An all inclusive manual on using S2.
     </para>
   </abstract>
   <legalnotice>

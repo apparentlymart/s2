@@ -1,0 +1,99 @@
+<title>Language Reference</title>
+<section id='&s2.idroot;langref.operators'>
+  <title>Operators</title>
+  <variablelist>
+    <title>Named unary operators</title>
+    <simpara>The following are the built-in named operators. You do not have to wrap the following term in parentheses.</simpara>
+    <varlistentry>
+      <term><function>isnull</function> <varname>$object</varname></term>
+      <listitem><simpara>returns a boolean: true if <varname>$object</varname> is null (has no value)</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>defined</function> <varname>$object</varname></term>
+      <listitem><simpara>opposite of <function>isnull</function>. might be prettier than negating <function>isnull</function></simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>new</function> <varname>ClassName</varname></term>
+      <listitem><simpara>returns an instance of <varname>ClassName</varname> with all members empty or zero</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>newnull</function> <varname>ClassName</varname></term>
+      <listitem><simpara>returns an undefined value of type <varname>ClassName</varname></simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>reverse</function> <varname>$string</varname></term>
+      <listitem><simpara>returns copy of <varname>$string</varname> with characters reversed</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>reverse</function> <varname>$array</varname></term>
+      <listitem><simpara>returns shallow copy of <varname>$array</varname> with elements reversed.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>size</function> <varname>$string</varname></term>
+      <listitem><para>returns number of bytes in <varname>$string</varname>.
+          <note><simpara>this operator is deprecated and will be removed or updated without notice. use the string class's length
+            method to get the number of characters. (internal representation is UTF-8)</simpara></note></para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><function>size</function> <varname>$array</varname></term>
+      <listitem><simpara>returns number of elements in <varname>$array</varname></simpara></listitem>
+    </varlistentry>
+  </variablelist>
+</section>
+<section id='&s2.idroot;langref.layerinfo'>
+  <title><varname>layerinfo</varname> declarations</title>
+  <para>You can use the <varname>layerinfo</varname> declaration to set arbitrary meta-data for a layer. However, certain meta-data keys and values are required for each type of layer.</para>
+  <para>The syntax of <varname>layerinfo</varname> is:</para>
+  <programlisting><![CDATA["layerinfo" <Text> "=" <Text> ";"
+<Text> ::= <identifier> | <string literal> | <integer literal>]]></programlisting>
+  <para>At minimum, all that's required to create a valid layer is one layerinfo declaration with name "type", stating the type of the layer. Depending on the layer type, more declarations may be required. Valid types are those listed in the Layers section.</para>
+  <para>Example:</para>
+  <programlisting><![CDATA[layerinfo type = theme;
+layerinfo name = "Polka-dotted yellow sunrise";
+layerinfo author_name = "Jon Doe";
+layerinfo author_email = "jondoe@email.addr";
+layerinfo des = "A beautiful polka-dotted yellow sunrise with lots of yellow & orange.";
+set bgcolor = "#ffff00";
+set fgcolor = "#ffc000";]]></programlisting>
+  <variablelist>
+    <title>Required <varname>layerinfo</varname> keys:</title>
+    <varlistentry>
+      <term><varname>type</varname></term>
+      <listitem><simpara></simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><varname>majorvesion</varname></term>
+      <listitem><simpara>for core layers only</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><varname>langcode</varname></term>
+      <listitem><simpara>for i18n/i18nc layers only</simpara></listitem>
+    </varlistentry>
+  </variablelist>
+  <variablelist>
+    <title>Recommended <varname>layerinfo</varname> keys:</title>
+    <varlistentry>
+      <term><varname>name</varname></term>
+      <listitem><simpara>name of layer, shown on website to users if supplied</simpara></listitem>
+    </varlistentry>
+  </variablelist>
+  <variablelist>
+    <title>Supported layerinfo keys:</title>
+    <varlistentry>
+      <term><varname>des</varname></term>
+      <listitem><simpara>longer description of layer</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><varname>author_name</varname></term>
+      <listitem><simpara>author's name</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><varname>author_email</varname></term>
+      <listitem><simpara>author's email address</simpara></listitem>
+    </varlistentry>
+  </variablelist>
+</section>
+<section id='&s2.idroot;langref.properties'>
+  <title><varname>property</varname> declarations</title>
+  <remark>FIXME: describe all property attributes</remark>
+</section>
