@@ -37,10 +37,12 @@ public class NodeAssignExpr extends Node
 	return n;
     }
 
-    public Type getType (Checker ck) throws Exception 
+    public Type getType (Checker ck, Type wanted) throws Exception 
     {
 	Type lt = lhs.getType(ck);
-	Type rt = rhs.getType(ck);
+        Type want = Type.STRING.equals(lt) ? Type.STRING : null;
+	Type rt = rhs.getType(ck, want);
+
 	if (! (lhs instanceof NodeTerm) ||
 	    ! lhs.isLValue()) {
 	    throw new Exception("Left-hand side of assignment at "+getFilePos()+

@@ -35,7 +35,12 @@ public class NodeExpr extends Node
 
     public Type getType (Checker ck) throws Exception
     {
-	return expr.getType(ck);
+	return expr.getType(ck, null);
+    }
+
+    public Type getType (Checker ck, Type wanted) throws Exception
+    {
+	return expr.getType(ck, wanted);
     }
 
     public Node getExpr () {

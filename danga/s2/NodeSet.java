@@ -59,8 +59,7 @@ public class NodeSet extends Node
 	}
 
 	// simple case... assigning a primitive
-	if (type.equals(Type.INT) || type.equals(Type.BOOL) ||
-	    type.equals(Type.STRING)) {
+	if (type.isPrimitive()) {
 	    nodevalue = null;
 	    return;
 	}

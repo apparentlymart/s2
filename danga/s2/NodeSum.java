@@ -56,8 +56,13 @@ public class NodeSum extends Node
 
     public Type getType (Checker ck) throws Exception
     {
-	Type lt = lhs.getType(ck);
-	Type rt = rhs.getType(ck);
+        return getType(ck, null);
+    }
+
+    public Type getType (Checker ck, Type wanted) throws Exception
+    {
+	Type lt = lhs.getType(ck, wanted);
+	Type rt = rhs.getType(ck, wanted);
 	if (! (lt.equals(Type.INT) || lt.equals(Type.STRING))) {
 	    if (lhs.makeAsString(ck)) 
 		lt = Type.STRING;

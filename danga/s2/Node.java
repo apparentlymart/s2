@@ -193,6 +193,11 @@ public abstract class Node
 	throw new Exception("FIXME: getType(ck) not implemented in "+this);
     }    
 
+    public Type getType (Checker ck, Type wanted) throws Exception
+    {
+	return getType(ck);
+    }    
+
     // kinda a crappy part to put this, perhaps.  but all expr
     // nodes don't inherit from NodeExpr.  maybe they should?
     public boolean isLValue () 

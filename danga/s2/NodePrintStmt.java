@@ -35,8 +35,8 @@ public class NodePrintStmt extends Node
 
     public void check (Layer l, Checker ck) throws Exception
     {
-	Type t = expr.getType(ck);
-	if (t.equals(Type.INT) || t.equals(Type.STRING)) {
+        Type t = expr.getType(ck);
+        if (t.equals(Type.INT) || t.equals(Type.STRING)) {
 	    return;
 	}
 	throw new Exception("Print statement must print an expression of type "
