@@ -44,7 +44,7 @@ public class NodeTerm extends NodeExpr
     boolean parentMethod;  // is this a method call on a super class?  if so,
                            // can't optimize method call since instance class won't
                            // necessarily be known until run-time (without a lot of analysis)
-    boolean callFromSet;    // if so, then lookup by funcID, if
+
     String funcID;         // used by backend; set after getType()
     String funcID_noclass;
     int funcNum;    // used by perl backend for function vtables
@@ -689,7 +689,7 @@ public class NodeTerm extends NodeExpr
                         o.write(",1");
                     }
 		    o.write(")}->");
-		} else if (type == METHCALL || callFromSet) {
+		} else if (type == METHCALL) {
                     o.write("$_ctx->[VTABLE]->{get_func_num(");
                     o.write(bp.quoteString(funcID));
                     o.write(")}->");
