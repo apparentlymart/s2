@@ -17,7 +17,8 @@ class s2compile
         Hashtable hargs = new Hashtable();
         int i = 0;
         while (args[i].startsWith("-") && i != args.length-1) {
-            String key = args[i].substring(1, args[i].length());
+            int offset = args[i].startsWith("--") ? 2 : 1;
+            String key = args[i].substring(offset, args[i].length());
             String val = args[i+1];
             i += 2;
             hargs.put(key, val);
@@ -118,11 +119,11 @@ class s2compile
 	System.err.println("Usage: ");
 	System.err.println("   s2compile [opts]* <file>\n");
         System.err.println("Options:");
-        System.err.println("   -output <format>     One of: perl, html, s2, tokens");
-        System.err.println("   -layerid <int>       For perl output format only");
-        System.err.println("   -layertype <type>    One of: core, i18nc, layout, theme, i18n, user");
-        System.err.println("   -core <filename>     Core S2 file, if layertype after core");
-        System.err.println("   -layout <filename>   Layout S2 file, if compiling layer after layout");
+        System.err.println("   --output <format>     One of: perl, html, s2, tokens");
+        System.err.println("   --layerid <int>       For perl output format only");
+        System.err.println("   --layertype <type>    One of: core, i18nc, layout, theme, i18n, user");
+        System.err.println("   --core <filename>     Core S2 file, if layertype after core");
+        System.err.println("   --layout <filename>   Layout S2 file, if compiling layer after layout");
 	System.err.println("\nAny file args can be '-' to read from STDIN, ending with ^D");
 	return 1;
     }
