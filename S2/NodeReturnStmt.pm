@@ -37,6 +37,10 @@ sub check {
     my $rettype = $this->{'expr'} ?
         $this->{'expr'}->getType($ck) : 
         $S2::Type::VOID;
+
+    if ($ck->checkFuncAttr($ck->getInFunction(), "notags")) {
+        $this->{'notags_func'} = 1;
+    }
     
     unless ($ck->typeIsa($rettype, $exptype)) {
         S2::error($this, "Return type of " . $rettype->toString . " doesn't match expected type of " . $exptype->toString);
@@ -57,8 +61,11 @@ sub asPerl {
     my ($this, $bp, $o) = @_;
     $o->tabwrite("return");
     if ($this->{'expr'}) {
+        my $need_notags = $bp->untrusted() && $this->{'notags_func'};
         $o->write(" ");
+        $o->write("S2::notags(") if $need_notags;
         $this->{'expr'}->asPerl($bp, $o);
+        $o->write(")") if $need_notags;
     }
     $o->writeln(";");
 }

@@ -216,5 +216,8 @@ sub makeAsString {
     die "Node::makeAsString() on $this\n";
 }
 
+sub isProperty {
+    0;
+}
 
 1;

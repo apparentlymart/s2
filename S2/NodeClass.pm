@@ -252,6 +252,9 @@ sub asPerl {
         if ($nf->getDocString()) {
             $o->write(", 'docstring' => " . $bp->quoteString($nf->getDocString()));
         }
+        if (my $attrs = $nf->attrsJoined) {
+            $o->write(", 'attrs' => " . $bp->quoteString($attrs));
+        }
         $o->writeln(" },");
     }        
     $o->tabOut();

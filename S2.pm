@@ -262,9 +262,10 @@ sub get_set
 }
 
 # the whole point here is just to get the docstring.
+# attrs is a comma-delimited list of attributes
 sub register_global_function
 {
-    my ($lid, $func, $rtype, $docstring) = @_;
+    my ($lid, $func, $rtype, $docstring, $attrs) = @_;
 
     # need to make the signature:  foo(int a, int b) -> foo(int,int)
     return unless 
@@ -276,6 +277,7 @@ sub register_global_function
         'returntype' => $rtype,
         'docstring' => $docstring,
         'args' => $func,
+        'attrs' => $attrs,
     };    
 }
 
@@ -389,6 +391,13 @@ sub interpolate_object {
     my ($ctx, $cname, $obj, $method) = @_;
     return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
     return $ctx->[VTABLE]->{get_object_func_num($cname,$obj,$method)}->($ctx, $obj);
+}
+
+sub notags {
+    my $a = shift;
+    $a =~ s/</&lt;/g;
+    $a =~ s/>/&gt;/g;
+    return $a;
 }
 
 package S2::Builtin;
