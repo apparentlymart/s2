@@ -533,6 +533,7 @@ set fgcolor = "#ffc000";]]></programlisting>
               <row><entry><literal>des</literal></entry><entry>A longer description of the layer.</entry></row>
               <row><entry><literal>author_name</literal></entry><entry>The name of the author.</entry></row>
               <row><entry><literal>author_email</literal></entry><entry>The email address of the author.</entry></row>
+              <row><entry><literal>source_viewable</literal></entry><entry>Source of the layer is available to all users on the host site.</entry></row>
             </tbody>
           </tgroup>
         </informaltable>
