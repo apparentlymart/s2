@@ -7,7 +7,8 @@ public class NodeProperty extends Node
 {
     NodeNamedType nt;
     LinkedList pairs;
-    boolean builtin = false;
+    boolean builtin = false, use = false, hide = false;
+    String uhName;    // if use or hide, then this is property to use/hide
 
     public static boolean canStart (Tokenizer toker) throws Exception
     {
@@ -27,6 +28,25 @@ public class NodeProperty extends Node
 	    n.builtin = true;
 	    n.eatToken(toker);
 	}
+
+        // parse the use/hide case
+        if (toker.peek() instanceof TokenIdent) {
+            String ident = ((TokenIdent) toker.peek()).getIdent();
+            if (ident.equals("use") || ident.equals("hide")) {
+                if (ident.equals("use")) n.use = true;
+                if (ident.equals("hide")) n.hide = true;
+                n.eatToken(toker);
+                
+                Token t = toker.peek();
+                if (! (t instanceof TokenIdent)) {
+                    throw new Exception("Expecting identifer after "+ident+" at "+t.getFilePos());
+                }
+                n.uhName = ((TokenIdent) toker.peek()).getIdent();
+                n.eatToken(toker);
+                n.requireToken(toker, TokenPunct.SCOLON);
+                return n;
+            }
+        }
 
 	n.addNode(n.nt = (NodeNamedType) NodeNamedType.parse(toker));
 
@@ -49,6 +69,26 @@ public class NodeProperty extends Node
 
     public void check (Layer l, Checker ck) throws Exception 
     {
+        if (use) {
+            if (! l.getType().equals("layout")) {
+                throw new Exception("Can't declare property usage in non-layout layer at"
+                                    + getFilePos());
+            }
+            if (ck.propertyType(uhName) == null) {
+                throw new Exception("Can't declare usage of non-existent property at"
+                                    + getFilePos());
+            }
+            return;
+        }
+
+        if (hide) {
+            if (ck.propertyType(uhName) == null) {
+                throw new Exception("Can't hide non-existent property at"
+                                    + getFilePos());
+            }
+            return;
+        }
+
 	String name = nt.getName();
 	Type type = nt.getType();
 
@@ -91,6 +131,13 @@ public class NodeProperty extends Node
     {
 	o.tabwrite("property ");
 	if (builtin) { o.write("builtin "); }
+        if (use || hide) {
+            if (use) o.write("use ");
+            if (hide) o.write("hide ");
+            o.write(uhName);
+            o.writeln(";");
+            return;               
+        }
 	nt.asS2(o);
 	if (pairs.size() > 0) {
 	    o.writeln(" {");
@@ -109,6 +156,20 @@ public class NodeProperty extends Node
 
     public void asPerl (BackendPerl bp, Indenter o)
     {
+        if (use) {
+            o.tabwriteln("register_property_use("+
+                         bp.getLayerIDString() + "," +
+                         bp.quoteString(uhName) + ");");
+            return;               
+        }
+
+        if (hide) {
+            o.tabwriteln("register_property_hide("+
+                         bp.getLayerIDString() + "," +
+                         bp.quoteString(uhName) + ");");
+            return;               
+        }
+
 	o.tabwriteln("register_property("+
 		     bp.getLayerIDString() + "," +
 		     bp.quoteString(nt.getName()) + ",{");

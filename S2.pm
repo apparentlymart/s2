@@ -16,6 +16,7 @@ my %layerinfo;   # lid -> key -> value
 my %layerset;    # lid -> key -> value
 my %layerprop;   # lid -> prop -> { type/key => "string"/val }
 my %layerprops;  # lid -> arrayref of hashrefs
+my %layerprophide; # lid -> prop -> 1
 my %layerfunc;   # lid -> funcnum -> sub{}
 my %funcnum;     # funcID -> funcnum
 my $funcnummax;  # maxnum in use already by funcnum, above.
@@ -31,7 +32,7 @@ sub pout
     }
 }
 
-sub get_property
+sub get_property_value
 {
     my ($ctx, $k) = @_;
     return $ctx->[PROPS]->{$k};
@@ -83,6 +84,7 @@ sub make_context
 sub register_layer
 {
     my ($lid) = @_;
+    unregister_layer($lid) if $layer{$lid};
     $layer{$lid} = time();
 }
 
@@ -95,6 +97,7 @@ sub unregister_layer
     delete $layerset{$lid};
     delete $layerprop{$lid};
     delete $layerprops{$lid};
+    delete $layerprophide{$lid};
     delete $layerfunc{$lid};
 }
 
@@ -138,10 +141,12 @@ sub load_layers_from_db
         }
     }
     return $maxtime unless @to_load;
-    my $where = join(' OR ', @layers);
+    my $where = join(' OR ', @to_load);
+    Apache->request->log_error("Where: $where");
     my $sth = $db->prepare("SELECT s2lid, compdata, comptime FROM s2compiled WHERE $where");
     $sth->execute;
     while (my ($id, $comp, $comptime) = $sth->fetchrow_array) {
+        Apache->request->log_error("s2lid = $id");
         eval $comp;
         if ($@) {
             my $err = $@;
@@ -186,6 +191,32 @@ sub register_property
     push @{$layerprops{$lid}}, $props;
 }
 
+sub register_property_use
+{
+    my ($lid, $propname) = @_;
+    push @{$layerprops{$lid}}, $propname;
+}
+
+sub register_property_hide
+{
+    my ($lid, $propname) = @_;
+    $layerprophide{$lid}->{$propname} = 1;
+}
+
+sub is_property_hidden
+{
+    my ($lids, $propname) = @_;
+    foreach (@$lids) {
+        return 1 if $layerprophide{$_}->{$propname};
+    }
+    return 0;
+}
+
+sub get_property
+{
+    my ($lid, $propname) = @_;
+    return $layerprop{$lid}->{$propname};
+}
 sub get_properties
 {
     my ($lid) = @_;
