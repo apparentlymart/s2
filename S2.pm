@@ -187,7 +187,12 @@ sub run_code
 {
     my ($ctx, $entry, @args) = @_;
     my $fnum = get_func_num($entry);
-    $ctx->[VTABLE]->{$fnum}->($ctx, @args);
+    eval {
+        $ctx->[VTABLE]->{$fnum}->($ctx, @args);
+    };
+    if ($@) {
+        die "Died in S2::run_code running $entry(@args)\n";
+    }
 }
 
 sub get_func_num
