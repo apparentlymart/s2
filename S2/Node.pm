@@ -16,10 +16,10 @@ sub new {
 
 sub setStart {
     my ($this, $arg) = @_;
-    if (isa($arg, 'S2::Token')) {
+    if ($arg->isa('S2::Token')) {
         $this->{'startPos'} =
             $arg->getFilePos()->clone();
-    } elsif (isa($arg, 'S2::FilePos')) {
+    } elsif ($arg->isa('S2::FilePos')) {
         $this->{'startPos'} =
             $arg->clone();
     } else {
@@ -73,6 +73,7 @@ sub eatToken {
     if ($ignoreSpace) {
         $this->skipWhite($toker);
     }
+    return $t;
 }
 
 sub requireToken {
@@ -99,7 +100,7 @@ sub getStringLiteral {
 
     my $t = $toker->getToken();
     die "Expected string literal at " . $t->getFilePos()->toString()
-        unless isa($t, "S2::TokenStringLiteral");
+        unless $t->isa("S2::TokenStringLiteral");
     
     $this->addToken($t);
     return $t;
@@ -111,7 +112,7 @@ sub getIdent {
     $ignoreSpace = 1 unless defined $ignoreSpace;
     
     my $id = $toker->peek();
-    unless (isa($id, "S2::TokenIdent")) {
+    unless ($id->isa("S2::TokenIdent")) {
         die "Expected identifier at " . $id->getFilePos()->toString() . "\n";
     }
     if ($addToList) {
@@ -151,9 +152,9 @@ sub getType {
 sub isLValue {
     my ($this) = @_;
     # hack:  only NodeTerms inside NodeExprs can be true
-    if (isa($this, 'S2::NodeExpr')) {
+    if ($this->isa('S2::NodeExpr')) {
         my $n = $this->getExpr();
-        if (isa($n, 'S2::NodeTerm')) {
+        if ($n->isa('S2::NodeTerm')) {
             return $n->isLValue();
         }
     }

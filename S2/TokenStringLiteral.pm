@@ -41,9 +41,9 @@ sub new
 }
 
 sub getQuotesLeft { shift->{'quotesLeft'}; }
-sub getQuotesRight { shift->{'quotesRights'}; }
+sub getQuotesRight { shift->{'quotesRight'}; }
 sub setQuotesLeft { shift->{'quotesLeft'} = shift; }
-sub setQuotesRight { shift->{'quotesRights'} = shift; }
+sub setQuotesRight { shift->{'quotesRight'} = shift; }
 
 sub clone {
     my $this = shift;
@@ -154,7 +154,7 @@ sub scan
                 $sbuf .= $t->getRealChar(); # skip the backslash.  next thing will be literal.
                 $sbuf .= $t->peekChar();
                 if ($t->peekChar() eq 'n') {
-                    $t->forceNextChar('\n');
+                    $t->forceNextChar("\n");
                 }
                 $tbuf .= $t->getRealChar();
             } else {

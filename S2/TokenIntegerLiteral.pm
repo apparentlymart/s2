@@ -50,7 +50,7 @@ sub toString
 
 sub scan
 {
-    my $t = shift;
+    my ($class, $t) = @_;
     my $buf;
     while ($t->peekChar() =~ /\d/) {
         $buf .= $t->getChar();
