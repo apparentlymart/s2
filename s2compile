@@ -1,0 +1,5 @@
+#!/usr/bin/perl
+#
+
+system($ENV{'JAVABIN'} || "java", "-jar", 
+       "s2compile.jar", @ARGV);
