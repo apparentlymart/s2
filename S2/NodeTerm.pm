@@ -458,7 +458,8 @@ sub asPerl {
             return;
         }
         if ($this->{'ctorclass'}) {
-            $o->write("S2::Builtin::$this->{'ctorclass'}__$this->{'ctorclass'}(");
+            my $pkg = $bp->getBuiltinPackage() || "S2::Builtin";
+            $o->write("${pkg}::$this->{'ctorclass'}__$this->{'ctorclass'}(");
         }
         $this->{'tokStr'}->asPerl($bp, $o);
         $o->write(")") if $this->{'ctorclass'};
@@ -569,8 +570,8 @@ sub asPerl {
             # otherwise, call the builtin function (avoid a layer
             # of indirection), unless it's for a class that has
             # children (won't know until run-time which class to call)
-
-            $o->write("S2::Builtin::");
+            my $pkg = $bp->getBuiltinPackage() || "S2::Builtin";
+            $o->write("${pkg}::");
             if ($this->{'funcClass'}) {
                 $o->write("$this->{'funcClass'}__");
             }
