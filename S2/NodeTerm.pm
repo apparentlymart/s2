@@ -646,4 +646,8 @@ sub asPerl {
     die "Unknown term type";
 }
 
-
+sub isProperty {
+    my $this = shift;
+    return 0 unless $this->{'type'} == $VARREF;
+    return $this->{'var'}->isProperty();
+}

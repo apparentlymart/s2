@@ -49,7 +49,7 @@ foreach my $f (@files)
     my $ptime = (stat($pfile))[9];
 
     my $build = $opt_force ? 1 : 0;
-    if ($opt_warn) { $build = 1; }
+    if ($opt_warn || -s $pfile == 0) { $build = 1; }
     unless ($ptime > $stime && $ptime > $jtime) {
 	if ($stime > $ptime || $jtime > $ptime) {
 	    $build = 1;

@@ -16,7 +16,7 @@ $VERSION = '1.0';
 #    private Hashtable classes;      // class name    -> NodeClass
 #    private Hashtable props;        // property name -> Type
 #    private Hashtable funcs;        // FuncID -> return type
-#    private Hashtable funcBuiltin;  // FuncID -> Boolean (is builtin)
+#    private Hashtable funcAttr;     // FuncID -> attr string -> Boolean (has attr)
 #    private LinkedList localblocks; // NodeStmtBlock scopes .. last is deepest (closest)
 #    private Type returnType;
 #    private String funcClass;       // current function class
@@ -40,7 +40,7 @@ sub new
         'classes' => {},
         'props' => {},
         'funcs' => {},
-        'funcBuiltin' => {},
+        'funcAttr' => {},
         'derclass' => {},   # classname -> arrayref<classname>
         'localblocks' => [],
     };
@@ -125,13 +125,21 @@ sub getReturnType {
 
 # funtion functions
 sub addFunction {
-    my ($this, $funcid, $t, $builtin) = @_;
+    my ($this, $funcid, $t, $attrs) = @_;
     my $existing = $this->functionType($funcid);
     if ($existing && ! $existing->equals($t)) {
         S2::error(undef, "Can't override function '$funcid' with new return type.");
     }
     $this->{'funcs'}->{$funcid} = $t;
-    $this->{'funcBuiltin'}->{$funcid} = $builtin;
+
+    # enable all attributes specified
+    if (defined $attrs) {
+        die "Internal error.  \$attrs is defined, but not a hashref."
+            if ref $attrs ne "HASH";
+        foreach my $k (keys %$attrs) {
+            $this->{'funcAttr'}->{$funcid}->{$k} = 1;
+        }
+    }
 }
 
 sub functionType {
@@ -139,9 +147,14 @@ sub functionType {
     $this->{'funcs'}->{$funcid};
 }
 
+sub checkFuncAttr {
+    my ($this, $funcid, $attr) = @_;
+    $this->{'funcAttr'}->{$funcid}->{$attr};
+}
+
 sub isFuncBuiltin {
     my ($this, $funcid) = @_;
-    $this->{'funcBuiltin'}->{$funcid};
+    return $this->checkFuncAttr($funcid, "builtin");
 }
 
 # returns true if there's a string -> t class constructor

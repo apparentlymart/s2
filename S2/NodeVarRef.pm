@@ -289,3 +289,7 @@ sub asPerl {
     }
 }
 
+sub isProperty {
+    my $this = shift;
+    return $this->{'type'} == $PROPERTY;
+}

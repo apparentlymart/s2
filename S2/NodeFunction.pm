@@ -41,8 +41,10 @@ sub parse {
     $n->setStart($n->requireToken($toker, $S2::TokenKeyword::FUNCTION));
 
     # is the builtin keyword on?
+    # this is the old way, but still supported.  the new way
+    # is function attributes in brackets.
     if ($toker->peek() == $S2::TokenKeyword::BUILTIN) {
-        $n->{'builtin'} = 1;
+        $n->{'attr'}->{'builtin'} = 1;
         $n->eatToken($toker);
     }
 
@@ -62,6 +64,25 @@ sub parse {
         $n->addNode($n->{'formals'} = S2::NodeFormals->parse($toker));
     }
 
+    # Attribute list is optional
+    if ($toker->peek() == $S2::TokenPunct::LBRACK) {
+        $n->eatToken($toker);
+        while ($toker->peek() && $toker->peek() != $S2::TokenPunct::RBRACK) {
+            my $t = $n->eatToken($toker);
+            next if $t == $S2::TokenPunct::COMMA;
+            S2::error($t, "Expecting an identifer for an attribute")
+                unless $t->isa("S2::TokenIdent");
+            my $attr = $t->getIdent();
+            unless ($attr eq "builtin" ||   # implemented by system, not in S2
+                    $attr eq "fixed" ||     # can't be overridden in derived or same layers
+                    $attr eq "notags") {    # return from untrusted layers pass through S2::notags()
+                S2::error($t, "Unknown function attribute '$attr'");
+            }
+            $n->{'attr'}->{$attr} = 1;
+        }
+        $n->requireToken($toker, $S2::TokenPunct::RBRACK);
+    }
+
     # return type is optional too.
     if ($toker->peek() == $S2::TokenPunct::COLON) {
         $n->requireToken($toker, $S2::TokenPunct::COLON);
@@ -74,7 +95,7 @@ sub parse {
     }
 
     # if inside a class declaration, only a declaration now.
-    if ($isDecl || $n->{'builtin'}) {
+    if ($isDecl || $n->{'attr'}->{'builtin'}) {
         $n->requireToken($toker, $S2::TokenPunct::SCOLON);
         return $n;
     }
@@ -98,7 +119,6 @@ sub check {
 
     # keep a reference to the checker for later
     $this->{'ck'} = $ck;
-    $ck->setInFunction(1);
 
     # reset the functionID -> local funcNum mappings
     $ck->resetFunctionNums();
@@ -106,19 +126,29 @@ sub check {
     # tell the checker we've seen a function now so it knows
     # later to complain if it then sees a new class declaration.
     # (builtin functions are okay)
-    $ck->setHitFunction(1) unless $this->{'builtin'};
+    $ck->setHitFunction(1) unless $this->{'attr'}->{'builtin'};
     
     my $funcName = $this->{'name'}->getIdent();
     my $cname = $this->className();
     my $funcID = S2::Checker::functionID($cname, $funcName, $this->{'formals'});
     my $t = $this->getReturnType();
 
+    $ck->setInFunction($funcID);
+
     if ($cname && $cname eq $funcName) {
         $this->{'isCtor'} = 1;
     }
-    
+
     if ($ck->isFuncBuiltin($funcID)) {
         S2::error($this, "Can't override built-in functions");
+    }
+
+    if ($ck->checkFuncAttr($funcID, "fixed") && $l->getType() ne "core") {
+        S2::error($this, "Can't override functions with the 'fixed' attribute.");
+    }
+
+    if ($this->{'attr'}->{'builtin'} && $l->getType() ne "core") {
+        S2::error($this, "Only core layers can declare builtin functions");
     }
 
     # if this function is global, no declaration is done, but if
@@ -146,7 +176,7 @@ sub check {
             foreach my $fv (@$fvs) {
                 my $derFuncID = S2::Checker::functionID($c->getName(), $this->getName(), $fv);
                 $ck->setFuncDistance($derFuncID, { 'nf' => $this, 'dist' => $dc->{'dist'} });
-                $ck->addFunction($derFuncID, $t, $this->{'builtin'});
+                $ck->addFunction($derFuncID, $t, $this->{'attr'});
             }
         }
     } else {
@@ -163,7 +193,7 @@ sub check {
                 S2::error($this, "Only core and layout layers can define new functions.");
             }
     
-            $ck->addFunction($derFuncID, $t, $this->{'builtin'});
+            $ck->addFunction($derFuncID, $t, $this->{'attr'});
         }
     }
 	
@@ -203,12 +233,17 @@ sub check {
 
     # remember the funcID -> local funcNum mappings for the backend
     $this->{'funcNames'} = $ck->getFuncNames();
-    
+    $ck->setInFunction(0);
 }
 
 sub asS2 {
     my ($this, $o) = @_;
     die "not done";
+}
+
+sub attrsJoined {
+    my $this = shift;
+    return join(',', keys %{$this->{'attr'} || {}});
 }
 
 sub asPerl {
@@ -218,13 +253,13 @@ sub asPerl {
                      $bp->getLayerIDString() . "," .
                      $bp->quoteString($this->{'name'}->getIdent() . ($this->{'formals'} ? $this->{'formals'}->toString() : "()")) . "," .
                      $bp->quoteString($this->getReturnType()->toString()));
-        if ($this->{'docstring'}) {
-            $o->write(", " . $bp->quoteString($this->{'docstring'}));
-        }
+        $o->write(", " . $bp->quoteString($this->{'docstring'}));
+        $o->write(", " . $bp->quoteString($this->attrsJoined));
+
         $o->writeln(");");
     }
 
-    return if $this->{'builtin'};
+    return if $this->{'attr'}->{'builtin'};
 
     $o->tabwrite("register_function(" . $bp->getLayerIDString() .
                  ", [");
@@ -328,7 +363,7 @@ sub registerFunction {
                   "earlier definition of type '". $et->toString ."'.");
     }
 
-    $ck->addFunction($funcID, $rt, $this->{'builtin'});  # Register
+    $ck->addFunction($funcID, $rt, $this->{'attr'});  # Register
 }
 
 __END__

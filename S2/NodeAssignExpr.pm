@@ -80,10 +80,18 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
+    die "INTERNAL ERROR: no op?" unless $this->{'op'};
+
     $this->{'lhs'}->asPerl($bp, $o);
-    if ($this->{'op'}) {
-        $o->write(" = ");
-        $this->{'rhs'}->asPerl($bp, $o);
-    }
+
+    my $need_notags = $bp->untrusted() && 
+        $this->{'lhs'}->isProperty() &&
+        $this->{'lhs'}->getType()->equals($S2::Type::STRING);
+
+    $o->write(" = ");
+    $o->write("S2::notags(") if $need_notags;
+    $this->{'rhs'}->asPerl($bp, $o);
+    $o->write(")") if $need_notags;
+
 }
 
