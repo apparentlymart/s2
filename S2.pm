@@ -56,11 +56,8 @@ sub make_context
 	## ignore further stuff for layer IDs of 0
 	next unless $lid;
 
-	## try to load the layer
-	unless (load_layer($lid)) {
-	    $@ = "Error loading layer \#$lid: $@";
-	    return undef;
-	}
+        ## FIXME: load the layer if not loaded, using registered
+        ## loader sub.
 
 	## setup the property values
 	foreach my $p (keys %{$layerset{$lid}}) {
