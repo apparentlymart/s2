@@ -60,8 +60,8 @@ sub new
 
         # ...
 
-die "Unknown token encountered while parsing layer: " .
-            $t->toString() . "\n";
+    S2::error($t, "Unknown token encountered while parsing layer: " .
+              $t->toString());
     }
 
     bless $this, $class;

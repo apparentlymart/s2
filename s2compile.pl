@@ -9,6 +9,8 @@ use IO::File;
 use Getopt::Long;
 use S2::Tokenizer;
 use S2::Checker;
+use S2::Layer;
+use S2::Util;
 
 my $output;
 my $layerid;
