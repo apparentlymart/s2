@@ -50,9 +50,9 @@
       <holder><ulink url="http://www.danga.com/">Danga Interactive</ulink></holder>
     </copyright>
   </bookinfo>
-  <preface id='&s2.idroot;preface'>
+  <chapter id='&s2.idroot;preface'>
     &s2.preface;
-  </preface>
+  </chapter>
   <chapter id='&s2.idroot;overview'>
     &s2.overview;
   </chapter>
