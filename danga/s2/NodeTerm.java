@@ -395,6 +395,7 @@ public class NodeTerm extends Node
             NodeTerm rnt = new NodeTerm();
             rnt.type = NodeTerm.STRING;
             rnt.nodeString = lhs;
+            rnt.addNode(lhs);
             return rnt;
 	}
 
