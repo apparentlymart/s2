@@ -497,7 +497,7 @@ sub Color__average {
     };
     Color__make_string($new);
     return $new;
-
+}
 
 1;
 
