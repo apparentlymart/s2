@@ -89,6 +89,7 @@ sub unregister_layer
 {
     my ($lid) = @_;
     delete $layer{$lid};
+    delete $layercomp{$lid};
     delete $layerinfo{$lid};
     delete $layerset{$lid};
     delete $layerprop{$lid};
@@ -125,16 +126,18 @@ sub load_layers_from_db
     my ($db, @layers) = @_;
     my $maxtime = 0;
     my @to_load;
-    foreach (@layers) {
-        if (exists $layer{$_}) {
-            $maxtime = $layercomp{$_} if $layercomp{$_} > $maxtime;
+    foreach my $lid (@layers) {
+        $lid += 0;
+        if (exists $layer{$lid}) {
+            $maxtime = $layercomp{$lid} if $layercomp{$lid} > $maxtime;
+            push @to_load, "(s2lid=$lid AND comptime>$layercomp{$lid})";
         } else {
-            push @to_load, $_;
+            push @to_load, "s2lid=$lid";
         }
     }
     return $maxtime unless @to_load;
-    my $in = join(',', map { $_+0 } @layers);
-    my $sth = $db->prepare("SELECT s2lid, compdata, comptime FROM s2compiled WHERE s2lid IN ($in)");
+    my $where = join(' OR ', @layers);
+    my $sth = $db->prepare("SELECT s2lid, compdata, comptime FROM s2compiled WHERE $where");
     $sth->execute;
     while (my ($id, $comp, $comptime) = $sth->fetchrow_array) {
         eval $comp;
@@ -276,37 +279,39 @@ sub Color__Color
 {
     my ($ctx, $s) = @_;
     my $this = { '_type' => 'Color' };
-    $this->{'r'} = hex(substr($s, 1, 2));
-    $this->{'g'} = hex(substr($s, 3, 2));
-    $this->{'b'} = hex(substr($s, 5, 2));
-    Color__makeString($ctx, $this);
+    $this->{'_r'} = hex(substr($s, 1, 2));
+    $this->{'_g'} = hex(substr($s, 3, 2));
+    $this->{'_b'} = hex(substr($s, 5, 2));
+    Color__make_string($ctx, $this);
     return $this;
 }
 
 
-sub Color__makeString
+sub Color__make_string
 {
     my ($ctx, $this) = @_;
-    $this->{'asString'} = sprintf("\#%02x%02x%02x",
-				  $this->{'r'},
-				  $this->{'g'},
-				  $this->{'b'});
+    $this->{'as_string'} = sprintf("\#%02x%02x%02x",
+				  $this->{'_r'},
+				  $this->{'_g'},
+				  $this->{'_b'});
 }
 
-sub Color__setRed {
+sub Color__red {
     my ($ctx, $this, $v) = @_;
-    $this->{'r'} = $v;
-    Color__makeString($ctx, $this);
+    if ($v) { $this->{'_r'} = $v; Color__make_string($ctx, $this); }
+    $this->{'_r'};
 }
-sub Color__setGreen {
+
+sub Color__green {
     my ($ctx, $this, $v) = @_;
-    $this->{'g'} = $v;
-    Color__makeString($ctx, $this);
+    if ($v) { $this->{'_g'} = $v; Color__make_string($ctx, $this); }
+    $this->{'_g'};
 }
-sub Color__setBlue {
+
+sub Color__blue {
     my ($ctx, $this, $v) = @_;
-    $this->{'b'} = $v;
-    Color__makeString($ctx, $this);
+    if ($v) { $this->{'_b'} = $v; Color__make_string($ctx, $this); }
+    $this->{'_b'};
 }
 
 
