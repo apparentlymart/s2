@@ -34,7 +34,7 @@ sub parse {
 
     $n->eatToken($toker);
 
-    $n->{'rhs'} = parse S2::NodeEqExpr $toker;
+    $n->{'rhs'} = parse S2::NodeLogAndExpr $toker;
     $n->addNode($n->{'rhs'});
 
     return $n;
