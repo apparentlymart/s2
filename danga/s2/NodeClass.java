@@ -257,6 +257,9 @@ public class NodeClass extends Node
 	    Type vt = nnt.getType();
 	    Type et = getMemberType(vn);
             o.tabwrite(bp.quoteString(vn) + " => { 'type' => " + bp.quoteString(vt.toString()));
+            if (vt.isReadOnly()) {
+                o.write(", 'readonly' => 1");
+            }
             if (nnt.getDocString() != null) {
                 o.write(", 'docstring' => " + bp.quoteString(nnt.getDocString()));
             }

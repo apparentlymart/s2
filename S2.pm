@@ -366,9 +366,9 @@ sub Color__Color
 {
     my ($ctx, $s) = @_;
     my $this = { '_type' => 'Color' };
-    $this->{'_r'} = hex(substr($s, 1, 2));
-    $this->{'_g'} = hex(substr($s, 3, 2));
-    $this->{'_b'} = hex(substr($s, 5, 2));
+    $this->{'r'} = hex(substr($s, 1, 2));
+    $this->{'g'} = hex(substr($s, 3, 2));
+    $this->{'b'} = hex(substr($s, 5, 2));
     Color__make_string($ctx, $this);
     return $this;
 }
@@ -378,27 +378,27 @@ sub Color__make_string
 {
     my ($ctx, $this) = @_;
     $this->{'as_string'} = sprintf("\#%02x%02x%02x",
-				  $this->{'_r'},
-				  $this->{'_g'},
-				  $this->{'_b'});
+				  $this->{'r'},
+				  $this->{'g'},
+				  $this->{'b'});
 }
 
 sub Color__red {
     my ($ctx, $this, $v) = @_;
-    if ($v) { $this->{'_r'} = $v; Color__make_string($ctx, $this); }
-    $this->{'_r'};
+    if ($v) { $this->{'r'} = $v; Color__make_string($ctx, $this); }
+    $this->{'r'};
 }
 
 sub Color__green {
     my ($ctx, $this, $v) = @_;
-    if ($v) { $this->{'_g'} = $v; Color__make_string($ctx, $this); }
-    $this->{'_g'};
+    if ($v) { $this->{'g'} = $v; Color__make_string($ctx, $this); }
+    $this->{'g'};
 }
 
 sub Color__blue {
     my ($ctx, $this, $v) = @_;
-    if ($v) { $this->{'_b'} = $v; Color__make_string($ctx, $this); }
-    $this->{'_b'};
+    if ($v) { $this->{'b'} = $v; Color__make_string($ctx, $this); }
+    $this->{'b'};
 }
 
 

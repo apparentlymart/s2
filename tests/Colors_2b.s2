@@ -5,9 +5,9 @@ layerinfo "majorversion" = 0;
 
 class Color
 {
-  var  int _r;
-  var  int _g;
-  var  int _b;
+  var readonly int r;
+  var readonly int g;
+  var readonly int b;
   var  string as_string;
   function builtin red(int r);
   function builtin red() : int;
