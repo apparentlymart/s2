@@ -1,0 +1,21 @@
+#-*-c++-*-
+
+layerinfo "type" = "core";
+layerinfo "majorversion" = 0;
+
+property string blah;
+set "blah" = "foo";
+
+function main ()
+{
+  "hi.\n";
+  print "hi.\n";
+  println "hi.";
+  """triple quote print\n""";
+  print """triple quote print2\n""";
+  """<div id="comments">\n""";
+  """<div class="topiclinks">\n""";
+}
+
+
+
