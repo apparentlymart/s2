@@ -61,6 +61,11 @@ sub setTokenList {
     $this->{'tokenlist'} = $newlist;
 }
 
+sub getTokenList {
+    my ($this) = @_;
+    $this->{'tokenlist'};
+}
+
 sub addNode {
     my ($this, $subnode) = @_;
     push @{$this->{'tokenlist'}}, $subnode;

@@ -306,25 +306,25 @@ sub parse {
                 $ts->setQuotesLeft($ql);
             } elsif ($tok == $S2::TokenPunct::DOLLAR) {
                 $rhs = parse S2::NodeTerm $toker;
-                push @$toklist, $rhs;
+                push @$toklist, @{$rhs->getTokenList()};
             } else {
                 S2::error($tok, "Error parsing interpolated string: " . $tok->toString);
             }
             
             # don't make a sum out of a blank string on either side
             my $join = 1;
-            if ($lhs->isa('S2::NodeTerm')) {
-                if ($lhs->{'type'} == $STRING &&
-                    length($lhs->{'tokStr'}->getString()) == 0) {
-                    $lhs = $rhs;
-                    $join = 0;
-                }
+            if ($lhs->isa('S2::NodeTerm') &&
+                $lhs->{'type'} == $STRING &&
+                length($lhs->{'tokStr'}->getString()) == 0) 
+            {
+                $lhs = $rhs;
+                $join = 0;
             }
-            if ($rhs->isa('S2::NodeTerm')) {
-                if ($rhs->{'type'} == $STRING &&
-                    length($rhs->{'tokStr'}->getString()) == 0) {
-                    $join = 0;
-                }
+            if ($rhs->isa('S2::NodeTerm') &&
+                $rhs->{'type'} == $STRING &&
+                length($rhs->{'tokStr'}->getString()) == 0)
+            {
+                $join = 0;
             }
 
             if ($join) {

@@ -13,6 +13,7 @@ use S2::Layer;
 use S2::Util;
 use S2::OutputConsole;
 use S2::BackendPerl;
+use S2::BackendHTML;
 
 my $output;
 my $layerid;
@@ -56,45 +57,47 @@ if ($output eq "html" || $output eq "s2") {
     $ck = undef;
 } else {
     $ck = new S2::Checker;
-    if (! defined $layertype) {
-        die "Unspecified layertype.\n";
-    } elsif ($layertype eq "core") {
-        # nothing.
-    } elsif ($layertype eq "i18nc" || $layertype eq "layout") {
-        makeLayer($opt_core, "core", $ck);
-    } elsif ($layertype eq "theme" || $layertype eq "i18n" || $layertype eq "user") {
-        makeLayer($opt_core, "core", $ck);
-        makeLayer($opt_layout, "layout", $ck);
-    } else {
-        die "Invalid layertype.\n";
-    }
-
-    $layerMain = makeLayer($filename, $layertype, $ck);
-        
-    my $o = new S2::OutputConsole();
-    my $be = undef;
-        
-    if ($output eq "html") {
-        $be = new S2::BackendHTML($layerMain);
-    }
-        
-    if ($output eq "s2") {
-        $be = new S2::BackendS2($layerMain);
-    }
-        
-    if ($output eq "perl") {
-        die "No layerid specified" unless $layerid;
-        $be = new S2::BackendPerl($layerMain, $layerid);
-    }
-
-    unless ($be) {
-        die("No backend found for '$output'\n'");
-    }
-
-    $be->output($o);
-    $o->flush();
-    exit 0;
 }
+
+if (! defined $layertype) {
+    die "Unspecified layertype.\n";
+} elsif ($layertype eq "core") {
+    # nothing.
+} elsif ($layertype eq "i18nc" || $layertype eq "layout") {
+    makeLayer($opt_core, "core", $ck);
+} elsif ($layertype eq "theme" || $layertype eq "i18n" || $layertype eq "user") {
+    makeLayer($opt_core, "core", $ck);
+    makeLayer($opt_layout, "layout", $ck);
+} else {
+    die "Invalid layertype.\n";
+}
+
+$layerMain = makeLayer($filename, $layertype, $ck);
+
+my $o = new S2::OutputConsole();
+my $be = undef;
+
+if ($output eq "html") {
+    $be = new S2::BackendHTML($layerMain);
+}
+
+if ($output eq "s2") {
+    $be = new S2::BackendS2($layerMain);
+}
+
+if ($output eq "perl") {
+    die "No layerid specified" unless $layerid;
+    $be = new S2::BackendPerl($layerMain, $layerid);
+}
+
+unless ($be) {
+    die("No backend found for '$output'\n'");
+}
+
+$be->output($o);
+$o->flush();
+exit 0;
+
 
 ###################### functions
 

@@ -25,13 +25,14 @@ sub parse {
 
     if ($t->isa('S2::TokenIdent')) {
         my $ti = $toker->getToken();
+        $nt->addToken($ti);
         $nt->{'text'} = $ti->getIdent();
         $ti->setType($S2::TokenIdent::STRING);
     } elsif ($t->isa('S2::TokenIntegerLiteral')) {
-        $toker->getToken();
+        $nt->addToken($toker->getToken());
         $nt->{'text'} = $t->getInteger();
     } elsif ($t->isa('S2::TokenStringLiteral')) {
-        $toker->getToken();
+        $nt->addToken($toker->getToken());
         $nt->{'text'} = $t->getString();
     } else {
         die "Expecting text (integer, string, or identifer)\n";

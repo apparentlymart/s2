@@ -16,7 +16,8 @@ sub toString {
 }
 
 sub asHTML {
-    die "Abstract";
+    my $this = shift;
+    die "No asHTML defined for " . ref $this;
 }
 
 sub asS2 {
