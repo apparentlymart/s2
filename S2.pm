@@ -375,6 +375,16 @@ sub check_defined {
     return ref $obj eq "HASH" && ! $obj->{'_isnull'};
 }
 
+sub check_elements {
+    my $obj = shift;
+    if (ref $obj eq "ARRAY") {
+        return @$obj ? 1 : 0;
+    } elsif (ref $obj eq "HASH") {
+        return %$obj ? 1 : 0;
+    }
+    return 0;
+}
+
 sub interpolate_object {
     my ($ctx, $cname, $obj, $method) = @_;
     return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};

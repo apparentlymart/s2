@@ -31,11 +31,19 @@ sub clone {
     return $nt;
 }
 
-# return true if the type is an INT or BOOL (something
-# that can be interpretted in a boolean context)
+# return true if the type can be interpretted in a boolean context
 sub isBoolable {
     my $this = shift;
-    return $this->equals($BOOL) || $this->equals($INT);
+
+    # everything is boolable but void
+    #    int:  != 0
+    #    bool:  obvious
+    #    string:  != ""
+    #    Object:  defined
+    #    array:  elements > 0
+    #    hash:  elements > 0
+
+    return ! $this->equals($VOID);
 }
 
 sub subTypes {
