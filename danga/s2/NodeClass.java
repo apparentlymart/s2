@@ -160,6 +160,10 @@ public class NodeClass extends Node
 	// register all var and function declarations in hash & check for both
 	// duplicates and masking of parent class's declarations
 
+	// register self.  this needs to be done before checking member
+        // variables so we can have members of our own type.
+	ck.addClass(cname, this);
+
 	// member vars
 	for (li = vars.listIterator(); li.hasNext(); )  {
 	    NodeClassVarDecl nnt = (NodeClassVarDecl) li.next();
@@ -174,14 +178,19 @@ public class NodeClass extends Node
 				    "already defined in class '"+oc.getName()+"' as "+
 				    "type '"+et+"'.");
 	    }
+
+            // check to see if type exists
+            if (ck.isValidType(vt) != true) {
+                throw new Exception("Can't declare member variable '"+vn+"' "+
+                                    "as unknown type '"+vt+"' in class '"+cname+"' at "+
+                                    nnt.getFilePos());
+            }
+
 	    varType.put(vn, vt);  // register member variable
 	}
 
 	// all parent class functions need to be inherited:
 	registerFunctions(ck, cname);
-
-	// register self.
-	ck.addClass(cname, this);
     }
 
     private void registerFunctions (Checker ck, String clas) throws Exception

@@ -6,12 +6,6 @@ layerinfo "majorversion" = 0;
 property string blah;
 set "blah" = "foo";
 
-class Page
-{
-  var KillerDog d;
-  function foo (int c);
-}
-
 class Dog
 {
   var string name;
@@ -22,6 +16,13 @@ class KillerDog extends Dog
 {
   var int weight;
 }
+
+class Page
+{
+  var KillerDog d;
+  function foo (int c);
+}
+
 
 function Dog::out {
   println "I'm a dog named \"$.name\".";

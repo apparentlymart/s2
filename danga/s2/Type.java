@@ -136,4 +136,11 @@ public class Type implements Cloneable
 		t.equals(BOOL));
     }
 
+    public boolean isPrimitive () {
+        return (this.equals(STRING) ||
+                this.equals(INT) ||
+                this.equals(BOOL));
+            
+    }
+
 }

@@ -61,6 +61,13 @@ public class Checker
 	return (NodeClass) classes.get(name);
     }
 
+    public boolean isValidType (Type t) {
+        if (t == null) return false;
+        if (t.isPrimitive()) return true;
+        if (getClass(t.baseType()) != null) return true;
+        return false;
+    }
+
     // property functions
     public void addProperty (String name, Type t) {
 	props.put(name, t);
