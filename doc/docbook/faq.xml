@@ -2,7 +2,7 @@
 <qandaset defaultlable='qanda'>
   <qandaentry id='&s2.idroot;faq.xslt'>
     <question><simpara>Why didn't you just use XML and let style authors use XSLT?</simpara></question>
-    <answer><simpara>Because XSLT is ugly and difficult.</simpara></answer>
+    <answer><simpara><ulink url="http://www.livejournal.com/users/evan/601685.html">Because XSLT is ugly and difficult.</ulink></simpara></answer>
   </qandaentry>
   <qandaentry id='&s2.idroot;faq.newlang'>
     <question><simpara>Why invent a whole new programming language and not just use, say, Perl and Safe.pm?</simpara></question>
