@@ -39,6 +39,12 @@ sub parse {
         $n->{'doNewline'} = 1;
     }
 
+    $t = $toker->peek();
+    if ($t->isa("S2::TokenIdent") && $t->getIdent() eq "safe") {
+        $n->{'safe'} = 1;
+        $n->eatToken($toker);
+    }
+
     $n->addNode($n->{'expr'} = S2::NodeExpr->parse($toker));
     $n->requireToken($toker, $S2::TokenPunct::SCOLON);
     return $n;
@@ -62,7 +68,11 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
-    $o->tabwrite("pout(");
+    if ($bp->untrusted() || $this->{'safe'}) {
+        $o->tabwrite("\$S2::pout_s->(");
+    } else {
+        $o->tabwrite("\$S2::pout->(");
+    }
     $this->{'expr'}->asPerl($bp, $o);
     $o->write(" . \"\\n\"") if $this->{'doNewline'};
     $o->writeln(");");

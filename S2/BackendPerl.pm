@@ -7,16 +7,19 @@ use strict;
 use S2::Indenter;
 
 sub new {
-    my ($class, $l, $layerID) = @_;
+    my ($class, $l, $layerID, $untrusted) = @_;
     my $this = {
         'layer' => $l,
         'layerID' => $layerID,
+        'untrusted' => $untrusted,
     };
     bless $this, $class;
 }
 
 sub getLayerID { shift->{'layerID'}; }
 sub getLayerIDString { shift->{'layerID'}; }
+
+sub untrusted { shift->{'untrusted'}; }
 
 sub output {
     my ($this, $o) = @_;

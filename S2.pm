@@ -4,6 +4,10 @@
 package S2;
 
 use strict;
+use vars qw($pout $pout_s);  # public interface:  sub refs to print and print safely
+
+$pout = sub { print @_; };
+$pout_s = sub { print @_; };
 
 ## array indexes into $_ctx (which shows up in compiled S2 code)
 use constant VTABLE => 0;
@@ -24,8 +28,6 @@ my %layerglobal; # lid -> signature -> hashref
 my %funcnum;     # funcID -> funcnum
 my $funcnummax;  # maxnum in use already by funcnum, above.
 
-my $output_sub;
-
 sub get_layer_all
 {
     my $lid = shift;
@@ -40,14 +42,9 @@ sub get_layer_all
     };
 }
 
-sub pout
-{
-    if ($output_sub) {
-	$output_sub->(@_);
-    } else {
-	print @_;
-    }
-}
+# compatibility functions
+sub pout   { $pout->(@_);   }
+sub pout_s { $pout_s->(@_); }
 
 sub get_property_value
 {
@@ -177,6 +174,12 @@ sub load_layers_from_db
     return $maxtime;
 }
 
+sub layer_loaded 
+{
+    my ($id) = @_;
+    return $layercomp{$id};
+}
+
 sub load_layer_file
 {
     my ($file) = @_;
@@ -290,8 +293,12 @@ sub register_function
 
 sub set_output
 {
-    my $code = shift;
-    $output_sub = $code;
+    $pout = shift;
+}
+
+sub set_output_safe
+{
+    $pout_s = shift;
 }
 
 sub function_exists
@@ -309,12 +316,13 @@ sub run_code
     my $fnum = get_func_num($entry);
     my $code = $ctx->[VTABLE]->{$fnum};
     unless (ref $code eq "CODE") {
-        die "S2::run_code: Undefined function $entry";
+        die "S2::run_code: Undefined function $entry ($fnum $code)\n";
     }
     eval {
         $code->($ctx, @args);
     };
     if ($@) {
+        use Data::Dumper;
         die "Died in S2::run_code running $entry: $@\n";
     }
     return 1;
@@ -334,7 +342,9 @@ sub get_object_func_num
         die "Method called on null $type object at layer \#$s2lid, line $s2line.\n";
     }
     $type = $inst->{'_type'} unless $is_super;
-    return get_func_num("${type}::$func");
+    my $fn = get_func_num("${type}::$func");
+    #Apache->request->log_error("get_object_func_num(${type}::$func) = $fn");
+    return $fn;
 }
 
 # Called by NodeForeachStmt
