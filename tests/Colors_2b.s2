@@ -5,14 +5,17 @@ layerinfo "majorversion" = 0;
 
 class Color
 {
-  var  int r;
-  var  int g;
-  var  int b;
-  var  string asString;
-  function builtin setRed(int r);
-  function builtin setGreen(int g);
-  function builtin setBlue(int b);
-  function builtin makeString();
+  var  int _r;
+  var  int _g;
+  var  int _b;
+  var  string as_string;
+  function builtin red(int r);
+  function builtin red() : int;
+  function builtin green(int g);
+  function builtin green() : int;
+  function builtin blue(int b);
+  function builtin blue() : int;
+  function builtin make_string();
   function builtin Color(string s) : Color;
 }
 
@@ -50,7 +53,7 @@ function main()
   $c = "#123456";
 
   "$c\n";
-  $c->setBlue($c.b + 1);
+  $c->blue($c->blue() + 1);
   "My color is now $c\n";
 
   println "Age = $*age";

@@ -115,7 +115,7 @@ public class Tokenizer
 	    nextChar == '[' || nextChar == ']' ||
 	    nextChar == '(' || nextChar == ')' ||
 	    nextChar == '.' || nextChar == ',' ||
-	    nextChar == '?' || 
+	    nextChar == '?' || nextChar == '%' || 
 	    false) {
 	    return TokenPunct.scan(this);
 	}
