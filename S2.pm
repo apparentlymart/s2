@@ -452,7 +452,15 @@ sub check_elements {
 sub interpolate_object {
     my ($ctx, $cname, $obj, $method) = @_;
     return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
-    return $ctx->[VTABLE]->{get_object_func_num($cname,$obj,$method)}->($ctx, $obj);
+    my $res = eval {
+        # wrap in an eval in case get_object_func_num returns something invalid...
+        return $ctx->[VTABLE]->{get_object_func_num($cname,$obj,$method)}->($ctx, $obj);
+    };
+    return $res unless $@;
+
+    # if we get here, we know something went wrong
+    my $type = $obj->{_type} || $cname || "undef";
+    return "$type::$method call failed.";
 }
 
 sub notags {
