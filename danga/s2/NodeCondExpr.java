@@ -8,14 +8,14 @@ public class NodeCondExpr extends Node
     
     public static boolean canStart (Tokenizer toker) throws Exception
     {
-	return NodeLogOrExpr.canStart(toker);
+	return NodeRange.canStart(toker);
     }
     
     public static Node parse (Tokenizer toker) throws Exception
     {
 	NodeCondExpr n = new NodeCondExpr();
 
-	n.test_expr = NodeLogOrExpr.parse(toker);
+	n.test_expr = NodeRange.parse(toker);
 	n.addNode(n.test_expr);
 
 	if (toker.peek().equals(TokenPunct.QMARK)) {
@@ -25,11 +25,11 @@ public class NodeCondExpr extends Node
 	    return n.test_expr;
 	}
 
-	n.true_expr = NodeLogOrExpr.parse(toker);
+	n.true_expr = NodeRange.parse(toker);
 	n.addNode(n.true_expr);
 	n.requireToken(toker, TokenPunct.COLON);
 
-	n.false_expr = NodeLogOrExpr.parse(toker);
+	n.false_expr = NodeRange.parse(toker);
 	n.addNode(n.false_expr);
 
 	return n;
