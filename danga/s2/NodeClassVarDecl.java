@@ -7,6 +7,8 @@ public class NodeClassVarDecl extends Node
     public String name;
     public String docstring;
 
+    boolean readonly = false;
+
     public Type getType () {
 	return type;
     }
@@ -16,6 +18,10 @@ public class NodeClassVarDecl extends Node
 
     public String getDocString () {
         return docstring;
+    }
+
+    public boolean isReadOnly () {
+        return readonly;
     }
 
     public NodeClassVarDecl () {
@@ -32,6 +38,11 @@ public class NodeClassVarDecl extends Node
 
         n.setStart(n.requireToken(toker, TokenKeyword.VAR));
         
+        if (toker.peek() == TokenKeyword.READONLY) {
+            n.readonly = true;
+            n.eatToken(toker);
+        }
+
 	n.typenode = (NodeType) NodeType.parse(toker);
 	n.type = n.typenode.getType();
 	n.addNode(n.typenode);
@@ -52,6 +63,7 @@ public class NodeClassVarDecl extends Node
     public void asS2 (Indenter o) 
     {
         o.tabwrite("var ");
+        if (readonly) o.write("readonly ");
 	typenode.asS2(o);
 	o.write(" " + name);
         if (docstring != null) {

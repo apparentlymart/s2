@@ -12,7 +12,9 @@ public class Type implements Cloneable
 
     protected LinkedList typeMods; // stores "[]" and "{}" information
     protected String baseType;
-    
+
+    protected boolean readOnly = false;
+
     public Object clone () {
 	Type nt = new Type (baseType);
 
@@ -24,6 +26,7 @@ public class Type implements Cloneable
 	for (ListIterator li = typeMods.listIterator(); li.hasNext(); ) {
 	    nt.typeMods.add(li.next());
 	}
+        nt.readOnly = readOnly;
 
 	return nt;
     }
@@ -142,5 +145,8 @@ public class Type implements Cloneable
                 this.equals(BOOL));
             
     }
+
+    public boolean isReadOnly () { return readOnly; }
+    public void setReadOnly (boolean b) { readOnly = b; }
 
 }
