@@ -292,73 +292,76 @@ public class NodeTerm extends Node
 	    int ql = ts.getQuotesLeft();
 	    int qr = ts.getQuotesRight();
 
-	    // interpolated string literal (turn into a subexpr)
 	    if (qr != 0) {
 		// whole string literal
 		nt.type = NodeTerm.STRING;
 		nt.tokStr = (TokenStringLiteral) nt.eatToken(toker);
+                nt.setStart(nt.tokStr);
 		return nt;
-	    } else {
-		LinkedList toklist = new LinkedList();
-
-		nt.type = NodeTerm.STRING;
-		nt.tokStr = (TokenStringLiteral) nt.eatToken(toker);
-		toklist.add(nt.tokStr.clone());  // cloned before it's changed.
-		nt.tokStr.setQuotesRight(ql);
-		Node lhs = nt;
-
-		boolean loop = true;
-		while (loop) {
-		    Node rhs = null;
-		    Token tok = toker.peek();
-		    if (tok instanceof TokenStringLiteral) {
-			rhs = new NodeTerm();
-			NodeTerm rhsnt = (NodeTerm) rhs;
-			ts = (TokenStringLiteral) tok;
-			rhsnt.type = NodeTerm.STRING;
-			rhsnt.tokStr = (TokenStringLiteral) rhsnt.eatToken(toker);
-			toklist.add(rhsnt.tokStr.clone());  // cloned before it's changed.
-
-			if (ts.getQuotesRight() == ql) {
-			    loop = false;
-			}
-			ts.setQuotesRight(ql);
-			ts.setQuotesLeft(ql);
-		    }
-		    else if (tok.equals(TokenPunct.DOLLAR)) {
-			rhs = NodeTerm.parse(toker);
-			toklist.add(rhs);
-		    }
-		    else {
-			throw new Exception("Error parsing "+
-					    "interpolated string.");
-		    }
-
-		    // don't make a sum out of a blank string on either side
-		    boolean join = true;
-		    if (lhs instanceof NodeTerm) {
-			NodeTerm lhst = (NodeTerm) lhs;
-			if (lhst.type == STRING &&
-			    lhst.tokStr.getString().length() == 0) {
-			    lhs = rhs;
-			    join = false;
-			}
-		    }
-		    if (rhs instanceof NodeTerm) {
-			NodeTerm rhst = (NodeTerm) rhs;
-			if (rhst.type == STRING &&
-			    rhst.tokStr.getString().length() == 0) {
-			    join = false;
-			}
-		    }
-		    if (join) {
-			lhs = new NodeSum(lhs, TokenPunct.PLUS, rhs);
-		    }
-		}
-
-		lhs.setTokenList(toklist);
-		return lhs;
 	    }
+            
+            // interpolated string literal (turn into a subexpr)
+            LinkedList toklist = new LinkedList();
+
+            nt.type = NodeTerm.STRING;
+            nt.tokStr = (TokenStringLiteral) nt.eatToken(toker);
+            toklist.add(nt.tokStr.clone());  // cloned before it's changed.
+            nt.tokStr.setQuotesRight(ql);
+            Node lhs = nt;
+            FilePos filepos = (FilePos) nt.tokStr.getFilePos();
+            
+            boolean loop = true;
+            while (loop) {
+                Node rhs = null;
+                Token tok = toker.peek();
+                if (tok instanceof TokenStringLiteral) {
+                    rhs = new NodeTerm();
+                    NodeTerm rhsnt = (NodeTerm) rhs;
+                    ts = (TokenStringLiteral) tok;
+                    rhsnt.type = NodeTerm.STRING;
+                    rhsnt.tokStr = (TokenStringLiteral) rhsnt.eatToken(toker);
+                    toklist.add(rhsnt.tokStr.clone());  // cloned before it's changed.
+                    
+                    if (ts.getQuotesRight() == ql) {
+                        loop = false;
+                    }
+                    ts.setQuotesRight(ql);
+                    ts.setQuotesLeft(ql);
+                }
+                else if (tok.equals(TokenPunct.DOLLAR)) {
+                    rhs = NodeTerm.parse(toker);
+                    toklist.add(rhs);
+                }
+                else {
+                    throw new Exception("Error parsing "+
+                                        "interpolated string.");
+                }
+                
+                // don't make a sum out of a blank string on either side
+                boolean join = true;
+                if (lhs instanceof NodeTerm) {
+                    NodeTerm lhst = (NodeTerm) lhs;
+                    if (lhst.type == STRING &&
+                        lhst.tokStr.getString().length() == 0) {
+                        lhs = rhs;
+                        join = false;
+                    }
+                }
+                if (rhs instanceof NodeTerm) {
+                    NodeTerm rhst = (NodeTerm) rhs;
+                    if (rhst.type == STRING &&
+                        rhst.tokStr.getString().length() == 0) {
+                        join = false;
+                    }
+                }
+                if (join) {
+                    lhs = new NodeSum(lhs, TokenPunct.PLUS, rhs);
+                }
+            }
+            
+            lhs.setTokenList(toklist);
+            lhs.setStart(filepos);
+            return lhs;
 	}
 
 	// Sub-expression (in parenthesis)

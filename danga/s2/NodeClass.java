@@ -220,10 +220,8 @@ public class NodeClass extends Node
 
 	// vars
 	for (li = vars.listIterator(0); li.hasNext(); )  {
-	    NodeNamedType nnt = (NodeNamedType) li.next();
-	    o.tabwrite("var ");
-	    nnt.asS2(o);
-	    o.writeln(";");
+	    NodeClassVarDecl vd = (NodeClassVarDecl) li.next();
+	    vd.asS2(o);
 	}
 
 	// functions

@@ -12,6 +12,10 @@ public abstract class Node
 	startPos = (FilePos) t.getFilePos().clone();
     }
 
+    public void setStart (FilePos p) {
+	startPos = (FilePos) p.clone();
+    }
+
     public void check (Layer l, Checker ck) throws Exception {
 	System.err.println("FIXME: check not implemented for " + this.toString());
     }
