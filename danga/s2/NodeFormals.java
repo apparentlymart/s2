@@ -44,12 +44,14 @@ public class NodeFormals extends Node
 	while (li.hasNext()) {
 	    NodeNamedType nt = (NodeNamedType) li.next();
 	    String name = nt.getName();
-	    if (h.get(name) != null) {
+	    if (h.get(name) != null)
 		throw new Exception("Duplicate argument named '" + name + "' at "+
 				    nt.getFilePos());
-	    } else {
-		h.put(name, name);
-	    }
+            h.put(name, name);
+
+            Type t = nt.getType();
+            if (! ck.isValidType(t)) 
+                throw new Exception("Unknown type '" + t + "' at "+nt.getFilePos());
 	}
     }
 
