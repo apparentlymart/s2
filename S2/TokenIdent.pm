@@ -19,46 +19,26 @@ $STRING  = 2;
 sub new 
 {
     my ($class, $ident) = @_;
+    my $kwtok = S2::TokenKeyword->tokenFromString($ident);
+    return $kwtok if $kwtok;
     bless {
-        'ident' => $ident,
+        'chars' => $ident,
     }, $class;
 }
 
-sub getIdent 
-{
-    my $this = shift;
-    $this->{'ident'};
+sub getIdent {
+    shift->{'chars'};
 }
 
-sub toString
-{
+sub toString {
     my $this = shift;
-    "[TokenIdent] = $this->{'ident'}";
+    "[TokenIdent] = $this->{'chars'}";
 }
 
-sub setType
-{
+sub setType {
     my ($this, $type) = @_;
     $this->{'type'} = $type;
 }
 
-sub canStart
-{
-    my ($class, $t) = @_;
-    S2::error() unless $t;
-    my $nextchar = $t->peekChar();
-    return $nextchar =~ /[a-zA-Z_]/;
-}
-
-sub scan
-{
-    my ($class, $t) = @_;
-    my $tbuf;
-    while ($t->peekChar() =~ /[a-zA-Z0-9_]/) {
-        $tbuf .= $t->getChar();
-    }
-    my $kwtok = S2::TokenKeyword->tokenFromString($tbuf);
-    return $kwtok || new S2::TokenIdent($tbuf);
-}
 1;
 

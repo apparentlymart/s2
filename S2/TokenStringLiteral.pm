@@ -28,13 +28,19 @@ sub new
         $source = $text;
     } elsif (@_ == 4) {
         ($text, $source, $ql, $qr) = @_;
+        unless (defined $text) {
+            $text = $source;
+            $text =~ s/\\n/\n/g;
+            $text =~ s/\\\"/\"/g;
+            $text =~ s/\\\$/\$/g;
+        }
     } else {
         die;
     }
     
     bless {
         'text' => $text,
-        'source' => $source,
+        'chars' => $source,
         'quotesLeft' => $ql,
         'quotesRight' => $qr,
     }, $class;
@@ -48,7 +54,7 @@ sub setQuotesRight { my $this = shift; $this->{'quotesRight'} = shift; }
 sub clone {
     my $this = shift;
     return S2::TokenStringLiteral->new($this->{'text'},
-                                       $this->{'source'},
+                                       $this->{'chars'},
                                        $this->{'quotesLeft'},
                                        $this->{'quotesRight'});
 }
@@ -79,7 +85,7 @@ sub asHTML
     my ($this, $o) = @_;
     my $ret;
     $ret .= makeQuotes($this->{'quotesLeft'});
-    $ret .= $this->{'source'};
+    $ret .= $this->{'chars'};
     $ret .= makeQuotes($this->{'quotesRight'});
     $o->write("<span class=\"s\">" . S2::BackendHTML::quoteHTML($ret) . "</span>");
 }

@@ -27,7 +27,7 @@ sub canStart {
 }
 
 sub parse {
-    my ($class, $tokermain) = @_;
+    my ($class, $toker) = @_;
 
     my $n = new S2::NodeVarRef();
     $n->{'levels'} = [];
@@ -37,22 +37,21 @@ sub parse {
     # if we're in a string and trying to parse interesting things
     # involved in a VarRef:
     
-    $n->setStart($n->requireToken($tokermain, $S2::TokenPunct::DOLLAR, 0));
+    $n->setStart($n->requireToken($toker, $S2::TokenPunct::DOLLAR, 0));
 
-    my $toker = $tokermain->{'inString'} == 0 ? 
-        $tokermain : $tokermain->getVarTokenizer();	
+    $toker->pushInString(0);  # pretend we're not, even if we are.
 	
-    if ($toker->peekChar() eq '{') {
+    if ($toker->peekChar() eq "{") {
         $n->requireToken($toker, $S2::TokenPunct::LBRACE, 0);
         $n->{'braced'} = 1;
     } else {
         $n->{'braced'} = 0;
     }
 
-    if ($toker->peekChar() eq '.') {
+    if ($toker->peekChar() eq ".") {
         $n->requireToken($toker, $S2::TokenPunct::DOT, 0);
         $n->{'type'} = $OBJECT;
-    } elsif ($toker->peekChar() eq '*') {
+    } elsif ($toker->peekChar() eq "*") {
         $n->requireToken($toker, $S2::TokenPunct::MULT, 0);
         $n->{'type'} = $PROPERTY;
     } 
@@ -62,8 +61,7 @@ sub parse {
     # only peeking at characters, not tokens, otherwise
     # we could force tokens could be created in the wrong 
     # context.  
-    while (S2::TokenIdent->canStart($toker) ||
-           $toker->peekChar() eq '.') 
+    while ($toker->peekChar() =~ /[a-zA-Z\_\.]/)
     {
         if ($requireDot) {
             $n->requireToken($toker, $S2::TokenPunct::DOT, 0);
@@ -114,14 +112,15 @@ sub parse {
         # treated as if it were outside the string.
         $n->requireToken($toker, $S2::TokenPunct::RBRACE, 0);
     }
+
+    $toker->popInString();  # back to being in a string if we were
     
     # now we must skip white space that requireToken above would've
     # done had we not told it not to, but not if the main tokenizer
     # is in a quoted string
-    if ($tokermain->{'inString'} == 0) {
+    if ($toker->{'inString'} == 0) {
         $n->skipWhite($toker);
     }
-
     return $n;
 }
 

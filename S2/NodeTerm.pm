@@ -280,6 +280,7 @@ sub parse {
 
         # interpolated string literal (turn into a subexpr)
         my $toklist = [];
+        $toker->pushInString($ql);
         
         $nt->{'type'} = $STRING;
         $nt->{'tokStr'} = $nt->eatToken($toker);
@@ -331,6 +332,8 @@ sub parse {
             }
         }
         
+        $toker->popInString();
+
         $lhs->setTokenList($toklist);
         $lhs->setStart($filepos);
         
@@ -406,7 +409,7 @@ sub parse {
 
         # check for -> after, like: $object->method(arg1, arg2, ...)
         if ($toker->peek() == $S2::TokenPunct::DEREF) {
-            $nt->{'derefLine'} = $toker->peek()->getFilePos()->{'line'};
+            $nt->{'derefLine'} = $toker->peek()->getFilePos()->line;
             $nt->eatToken($toker);
             $nt->{'type'} = $METHCALL;
             # don't return... parsing continues below.

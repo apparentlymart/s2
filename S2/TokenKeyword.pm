@@ -24,7 +24,7 @@ sub new
 {
     my ($class, $ident) = @_;
     bless {
-        'ident' => $ident,
+        'chars' => $ident,
     }, $class;
 }
 
@@ -37,13 +37,13 @@ sub tokenFromString
 sub toString
 {
     my $this = shift;
-    "[TokenKeyword] = $this->{'ident'}";
+    "[TokenKeyword] = $this->{'chars'}";
 }
 
 sub asHTML
 {
     my ($this, $o) = @_;
-    $o->write("<span class=\"k\">$this->{'ident'}</span>");
+    $o->write("<span class=\"k\">$this->{'chars'}</span>");
 }
 
 1;

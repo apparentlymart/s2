@@ -12,51 +12,42 @@ $VERSION = '1.0';
 
 sub new
 {
-    my $val = shift;
+    my ($class, $val) = @_;
     bless {
-        'val' => $val+0,
+        'chars' => $val+0,
     };
 }
 
 sub getInteger
 {
     my $this = shift;
-    $this->{'val'};
+    $this->{'chars'};
 }
 
 sub asS2
 {
     my ($this, $o) = @_;
-    $o->write($this->{'val'});
+    $o->write($this->{'chars'});
 }
 
 sub asHTML
 {
     my ($this, $o) = @_;
-    $o->write("<span class=\"n\">$this->{'val'}</span>");
+    $o->write("<span class=\"n\">$this->{'chars'}</span>");
 }
 
 sub asPerl
 {
     my ($this, $bp, $o) = @_;
-    $o->write($this->{'val'});
+    $o->write($this->{'chars'});
 }
 
 sub toString
 {
     my $this = shift;
-    "[TokenIntegerLiteral] = $this->{'val'}";
+    "[TokenIntegerLiteral] = $this->{'chars'}";
 }
 
-sub scan
-{
-    my ($class, $t) = @_;
-    my $buf;
-    while ($t->peekChar() =~ /\d/) {
-        $buf .= $t->getChar();
-    }
-    return new($buf);
-}
 
 1;
 

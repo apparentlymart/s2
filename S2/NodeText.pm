@@ -29,10 +29,10 @@ sub parse {
         $ti->setType($S2::TokenIdent::STRING);
     } elsif ($t->isa('S2::TokenIntegerLiteral')) {
         $toker->getToken();
-        $nt->{'text'} = $t->{'val'};
+        $nt->{'text'} = $t->getInteger();
     } elsif ($t->isa('S2::TokenStringLiteral')) {
         $toker->getToken();
-        $nt->{'text'} = $t->{'text'};
+        $nt->{'text'} = $t->getString();
     } else {
         die "Expecting text (integer, string, or identifer)\n";
     }
