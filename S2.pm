@@ -118,6 +118,12 @@ sub make_context
     return $ctx;
 }
 
+# returns an arrayref of layerids loaded in this context
+sub get_layers {
+    my $ctx = shift;
+    return @{ $ctx->[LAYERLIST] };
+}
+
 sub get_style_modtime
 {
     my $ctx = shift;
