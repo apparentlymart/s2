@@ -30,7 +30,7 @@ sub compile_source {
         $be = new S2::BackendHTML($s2l);
     } else {
         $this->{'checker'}->checkLayer($s2l);
-        $be = new S2::BackendPerl($s2l, $opts->{'layerid'});
+        $be = new S2::BackendPerl($s2l, $opts->{'layerid'}, $opts->{'untrusted'});
     }
     $be->output($o);
     return 1;
