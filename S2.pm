@@ -264,7 +264,7 @@ sub register_global_function
 
     # need to make the signature:  foo(int a, int b) -> foo(int,int)
     return unless 
-        $func =~ /^(.+?\()(.+)\)$/;
+        $func =~ /^(.+?\()(.*)\)$/;
     my ($signature, @args) = ($1, split(/\s*\,\s*/, $2));
     foreach (@args) { s/\s+\w+$//; } # strip names
     $signature .= join(",", @args) . ")";
