@@ -9,12 +9,12 @@
 <formalpara><title>Security</title>
   <para>Rather than letting users program directly in C or Perl, S2 ensures that the resultant compiled code is both safe and fast.</para>
   <para>S2 code can't get access to anything on the host machine or do anything malicious.</para>
-  <para>S2 code can't waste host machine resources (CPU or memory)</para>
+  <para>S2 code can't waste host machine resources. (CPU or memory)</para>
   <para>Untrusted S2 code can't print JavaScript to prevent people from making styles which read their visitor's session cookies.</para>
 </formalpara>
 <formalpara><title>Speed</title>
   <para>Internally, S2 code is compiled into a lower level language and run directly when the page is loaded. Unlike S1, no parsing is necessary at run time. Also, S2 outputs directly to the client instead of being entirely buffered in memory first like S1, since S2 doesn't need to do tons of templating replacements at the end.</para>
-  <para>Trusted code by default prints direct to the client without going through the HTML cleaner. Untrusted user layers send all their output through an HTML cleaner which removes JavaScript and other potentially harmful markup.</para>
+  <para>Trusted code by default prints direct to the client without going through the HTML cleaner. Untrusted, user-created layers send all their output through an HTML cleaner which removes JavaScript and other potentially harmful markup.</para>
   <para>Popular S2 code &amp; data is cached by the webserver.</para>
 </formalpara>
 <formalpara><title>Internationalization</title>

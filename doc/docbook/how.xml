@@ -4,14 +4,14 @@
 <para>
   The web app get a request and decides what user it's for, and what type of resource it's for.
   </para>
-<para>The web app loads the user's style for that resource and then loads each
+<para>The web application loads the user's style for that resource and then loads each
   layer for that style, unless it's already loaded.  (layers are selectively cached) </para>
 <para>
     The S2 system builds a <emphasis role="bold">context</emphasis> which contains the property values
   set by the top-most layer for each property, as well as a function vtable
   computed the same way. </para>
 <para>
-  The web app invokes the global <function>prop_init()</function> function which the layout layer might've
+  Next the web application invokes the global <function>prop_init()</function> function which the layout layer might've
   implemented.  The job of this function is to initialize the <emphasis role="bold">constructional properties</emphasis>.
   Constructional properties are properties which the web app looks at to influence
   its subsequent data structure population.  For example, FotoBilder examines

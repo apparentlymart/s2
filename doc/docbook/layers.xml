@@ -20,7 +20,7 @@
   </varlistentry>
   <varlistentry>
     <term>Core Internationalization Layer (i18nc)</term>
-    <listitem><para>The i18nc layer overrides text properties in the core, translating them into a specific language. It also overrides the default short/medium/long date/time formats and functions which do things like return ordinal numbers from cardinal numbers and map item counts onto their plural form.</para>
+    <listitem><para>The i18nc layer overrides text properties in the core, translating them into a specific language. It also overrides the default short, medium, and long date and time formats and functions which do things like return ordinal numbers from cardinal numbers and map item counts onto their plural form.</para>
       <para>
         The core layer should have properties for every textual string which will likely be used by more than one layout to minimize the amount of work required by translators. Because the i18nc layer overrides the core, and not specific layouts, all layouts can take advantage of things defined in the core and i18nc layers.</para>
     </listitem>
@@ -33,7 +33,7 @@
   <varlistentry>
     <term>Layout Internationalization Layer (i18n)</term>
     <listitem><para>An i18n layer is like i18nc, but it's specific to a layout.</para>
-      <para>If a layout introduces new textual/locale properties/functions because it couldn't use stuff already in the core, an i18n layer overrides just those new items. The fact that there are two i18n layers is hidden from the user... they just select "Deutsch" (or it's selected by default automatically, based on their browser settings) and the system picks the i18nc and i18n layers which match the "de" language code for their layout and core. (their core layer is also automatically selected if there are more than one, based on the layout they choose)</para>
+      <para>If a layout introduces new textual or locale-specific properties/functions because it couldn't use stuff already in the core, an i18n layer overrides just those new items. The fact that there are two i18n layers is hidden from the user... they just select "Deutsch" (or it's selected by default automatically, based on their browser settings) and the system picks the i18nc and i18n layers which match the "de" language code for their layout and core. (their core layer is also automatically selected if there are more than one, based on the layout they choose)</para>
     </listitem>
   </varlistentry>
   <varlistentry>
