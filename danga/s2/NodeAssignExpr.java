@@ -37,9 +37,8 @@ public class NodeAssignExpr extends Node
 
     public Type getType (Checker ck, Type wanted) throws Exception 
     {
-	Type lt = lhs.getType(ck);
-        Type want = Type.STRING.equals(lt) ? Type.STRING : null;
-	Type rt = rhs.getType(ck, want);
+	Type lt = lhs.getType(ck, wanted);
+	Type rt = rhs.getType(ck, lt);
 
         if (lt.isReadOnly()) {
 	    throw new Exception("Left-hand side of assignment at "+getFilePos()+

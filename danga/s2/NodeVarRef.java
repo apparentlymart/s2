@@ -154,7 +154,7 @@ public class NodeVarRef extends Node
     {
         Type t = getType(ck);
         if (wanted == null) return t;
-        if (wanted != Type.STRING) return t;
+        if (! wanted.equals(Type.STRING)) return t;
 
         String type = t.toString();
         if (ck.classHasAsString(type)) {
