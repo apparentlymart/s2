@@ -142,11 +142,9 @@ sub load_layers_from_db
     }
     return $maxtime unless @to_load;
     my $where = join(' OR ', @to_load);
-    Apache->request->log_error("Where: $where");
     my $sth = $db->prepare("SELECT s2lid, compdata, comptime FROM s2compiled WHERE $where");
     $sth->execute;
     while (my ($id, $comp, $comptime) = $sth->fetchrow_array) {
-        Apache->request->log_error("s2lid = $id");
         eval $comp;
         if ($@) {
             my $err = $@;
