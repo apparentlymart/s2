@@ -3,6 +3,8 @@
 
 package S2;
 
+use strict;
+
 ## array indexes into $_ctx (which shows up in compiled S2 code)
 use constant VTABLE => 0;
 use constant STATICS => 1;
@@ -10,6 +12,7 @@ use constant PROPS => 2;
 use constant FUNCNUMS => 3;
 
 my %layer;       # lid -> time()
+my %layercomp;   # lid -> compiled time (when loaded from database)
 my %layerinfo;   # lid -> key -> value
 my %layerset;    # lid -> key -> value
 my %layerprop;   # lid -> prop -> { type/key => "string"/val }
@@ -115,20 +118,30 @@ sub load_layer
 sub load_layers_from_db
 {
     my ($db, @layers) = @_;
-    @layers = grep { ! exists $layer{$_} } @layers;
-    return 1 unless @layers;
+    my $maxtime = 0;
+    my @to_load;
+    foreach (@layers) {
+        if (exists $layer{$_}) {
+            $maxtime = $layercomp{$_} if $layercomp{$_} > $maxtime;
+        } else {
+            push @to_load, $_;
+        }
+    }
+    return $maxtime unless @to_load;
     my $in = join(',', map { $_+0 } @layers);
-    my $sth = $db->prepare("SELECT s2lid, compdata FROM s2compiled WHERE s2lid IN ($in)");
+    my $sth = $db->prepare("SELECT s2lid, compdata, comptime FROM s2compiled WHERE s2lid IN ($in)");
     $sth->execute;
-    while (my ($id, $comp) = $sth->fetchrow_array) {
+    while (my ($id, $comp, $comptime) = $sth->fetchrow_array) {
         eval $comp;
         if ($@) {
             my $err = $@;
             unregister_layer($id);
             die "Layer \#$id: $err";
         }
+        $layercomp{$id} = $comptime;
+        $maxtime = $comptime if $comptime > $maxtime;
     }
-    return 1;
+    return $maxtime;
 }
 
 sub load_layer_file
@@ -229,7 +242,7 @@ sub get_func_num
 sub get_object_func_num
 {
     my ($type, $inst, $func, $s2lid, $s2line) = @_;
-    if (ref $inst ne "HASH" || $ref->{'_isnull'}) {
+    if (ref $inst ne "HASH" || $inst->{'_isnull'}) {
         die "Method called on null $type object at layer \#$s2lid, line $s2line.\n";
     }
     $type = $inst->{'_type'};
