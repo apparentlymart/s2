@@ -9,7 +9,6 @@ use strict;
 use constant VTABLE => 0;
 use constant STATICS => 1;
 use constant PROPS => 2;
-use constant FUNCNUMS => 3;
 
 my %layer;       # lid -> time()
 my %layercomp;   # lid -> compiled time (when loaded from database)
@@ -29,6 +28,12 @@ sub pout
     } else {
 	print @_;
     }
+}
+
+sub get_property
+{
+    my ($ctx, $k) = @_;
+    return $ctx->[PROPS]->{$k};
 }
 
 sub make_context

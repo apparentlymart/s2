@@ -1,3 +1,8 @@
+- precedence/parsing fucked with things like:
+      println (isnull $test ? "It's null" : "not null");
+  have to write:
+      println ((isnull $test) ? "It's null" : "not null");
+
 - HTML backend will escape quotes in tripled quoted
   TokenStringLiterals that weren't escaped originally
 
@@ -37,5 +42,5 @@ GOTCHAS:
   won't parse.  the { after 'string' is parsed as part of the return
   type.  whitespace is required in there.
 
-  UPDATE: martmart says this isn't a bug.  :)
+  UPDATE: mart says this isn't a bug.  :)
 
