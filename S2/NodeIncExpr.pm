@@ -39,6 +39,7 @@ sub parse {
     }
 
     my $expr = parse S2::NodeTerm $toker;
+    $n->addNode($expr);
     
     if ($toker->peek() == $S2::TokenPunct::INCR ||
         $toker->peek() == $S2::TokenPunct::DEC) {
