@@ -8,6 +8,8 @@ public class NodeClass extends Node
 {
     TokenIdent name;
     TokenIdent parentName;
+    
+    String docstring;
 
     LinkedList vars = new LinkedList();      // NodeNamedType
     Hashtable varType = new Hashtable();     // token String -> Type
@@ -45,15 +47,19 @@ public class NodeClass extends Node
 	    n.parentName = n.getIdent(toker);
 	}
 
+        // docstring
+        if (toker.peek() instanceof TokenStringLiteral) {
+            TokenStringLiteral t = (TokenStringLiteral) n.eatToken(toker);
+            n.docstring = t.getString();
+        }
+
 	n.requireToken(toker, TokenPunct.LBRACE);
 
 	while (toker.peek() != null && toker.peek() instanceof TokenKeyword) {
 	    if (toker.peek().equals(TokenKeyword.VAR)) {
-		n.eatToken(toker);
-		NodeNamedType nnt = (NodeNamedType) NodeNamedType.parse(toker);
-		n.vars.add(nnt);
-		n.addNode(nnt);
-		n.requireToken(toker, TokenPunct.SCOLON);
+		NodeClassVarDecl ncvd = (NodeClassVarDecl) NodeClassVarDecl.parse(toker);
+		n.vars.add(ncvd);
+		n.addNode(ncvd);
 	    } else if (toker.peek().equals(TokenKeyword.FUNCTION)) {
 		NodeFunction nm = (NodeFunction) NodeFunction.parse(toker, true);
 		n.functions.add(nm);
@@ -156,7 +162,7 @@ public class NodeClass extends Node
 
 	// member vars
 	for (li = vars.listIterator(); li.hasNext(); )  {
-	    NodeNamedType nnt = (NodeNamedType) li.next();
+	    NodeClassVarDecl nnt = (NodeClassVarDecl) li.next();
 	    String vn = nnt.getName();
 	    Type vt = nnt.getType();
 	    Type et = getMemberType(vn);
@@ -222,8 +228,54 @@ public class NodeClass extends Node
     }
 
     public void asPerl (BackendPerl bp, Indenter o) {
-	// classes are declarative only... only used for
-	// type checking.
+	o.tabwriteln("register_class(" + bp.getLayerIDString() +
+                     ", " + bp.quoteString(name.getIdent()) + ", {");
+        o.tabIn();
+        if (parentName != null) {
+            o.tabwriteln("'parent' => " + bp.quoteString(parentName.getIdent()) + ",");
+        }
+        if (docstring != null) {
+            o.tabwriteln("'docstring' => " + bp.quoteString(docstring) + ",");
+        }
+
+        // vars
+        o.tabwriteln("'vars' => {");
+        o.tabIn();
+	for (ListIterator li = vars.listIterator(); li.hasNext(); )  {
+	    NodeClassVarDecl nnt = (NodeClassVarDecl) li.next();
+	    String vn = nnt.getName();
+	    Type vt = nnt.getType();
+	    Type et = getMemberType(vn);
+            o.tabwrite(bp.quoteString(vn) + " => { 'type' => " + bp.quoteString(vt.toString()));
+            if (nnt.getDocString() != null) {
+                o.write(", 'docstring' => " + bp.quoteString(nnt.getDocString()));
+            }
+            o.writeln(" },");
+        }        
+        o.tabOut();
+        o.tabwriteln("},");
+
+        // methods
+        o.tabwriteln("'funcs' => {");
+        o.tabIn();
+	for (ListIterator li = functions.listIterator(); li.hasNext(); )  {
+	    NodeFunction nf = (NodeFunction) li.next();
+	    String name = nf.getName();
+            NodeFormals nfo = nf.getFormals();
+	    Type rt = nf.getReturnType();
+            o.tabwrite(bp.quoteString(name + nfo) + " => { 'returntype' => " + bp.quoteString(rt.toString()));
+            if (nf.getDocString() != null) {
+                o.write(", 'docstring' => " + bp.quoteString(nf.getDocString()));
+            }
+            o.writeln(" },");
+        }        
+        o.tabOut();
+        o.tabwriteln("},");
+        
+
+        o.tabOut();
+        o.tabwriteln("});");
+        
     }
 
 };

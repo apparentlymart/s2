@@ -40,7 +40,7 @@ public class NodeNamedType extends Node
 	o.write(" " + name);
     }
 
-    public String asString () 
+    public String toString ()  // was asString
     {
 	return type.toString() + " " + name;
     }
