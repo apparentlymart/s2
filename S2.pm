@@ -191,8 +191,9 @@ sub run_code
         $ctx->[VTABLE]->{$fnum}->($ctx, @args);
     };
     if ($@) {
-        die "Died in S2::run_code running $entry(@args)\n";
+        die "Died in S2::run_code running $entry(@args): $@\n";
     }
+    return 1;
 }
 
 sub get_func_num
