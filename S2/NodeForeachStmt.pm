@@ -111,7 +111,7 @@ sub asPerl {
 
     $o->tabwrite("foreach ");
     $this->{'vardecl'}->asPerl($bp, $o) if $this->{'vardecl'};
-    $this->{'varder'}->asPerl($bp, $o) if $this->{'varder'};
+    $this->{'varref'}->asPerl($bp, $o) if $this->{'varref'};
     if ($this->{'isHash'}) {
         $o->write(" (keys %{");
     } elsif ($this->{'isString'}) {
