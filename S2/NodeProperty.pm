@@ -79,11 +79,107 @@ sub parse {
     return $n;
 }
 
+sub check {
+    my ($this, $l, $ck) = @_;
 
-sub getText { shift->{'text'}; }
+    if ($this->{'use'}) {
+        unless ($l->getType() eq "layout") {
+            S2::error($this, "Can't declare property usage in non-layout layer");
+        }
+        unless ($ck->propertyType($this->{'uhName'})) {
+            S2::error($this, "Can't declare usage of non-existent property");
+        }
+        return;
+    }
+
+    if ($this->{'hide'}) {
+        unless ($ck->propertyType($this->{'uhName'})) {
+            S2::error($this, "Can't hide non-existent property");
+        }
+        return;
+    }
+
+    my $name = $this->{'nt'}->getName();
+    my $type = $this->{'nt'}->getType();
+
+    if ($l->getType() eq "i18n") {
+        # FIXME: as a special case, allow an i18n layer to
+        # to override the 'des' property of a property, so
+        # that stuff can be translated
+        return;
+    }
+
+    # only core and layout layers can define properties
+    unless ($l->isCoreOrLayout()) {
+        S2::error($this, "Only core and layout layers can define new properties.");
+    }
+
+    # make sure they aren't overriding a property from a lower layer
+    my $existing = $ck->propertyType($name);
+    if ($existing && ! $type->equals($existing)) {
+      S2::error($this, "Can't override property '$name' of type " .
+                $existing->toString . " with new type " . 
+                $type->toString . ".");
+    }
+
+    my $basetype = $type->baseType;
+    if (! S2::Type::isPrimitive($basetype) && ! defined $ck->getClass($basetype)) {
+        S2::error($this, "Can't define a property of an unknown class");
+    }
+
+    # all is well, so register this property with its type
+    $ck->addProperty($name, $type);
+}
 
 sub asS2 {
     my ($this, $o) = @_;
-    $o->write(S2::Backend::quoteString($this->{'text'}));
+    $o->tabwrite("property ");
+    $o->write("builtin ") if $this->{'builtin'};
+    if ($this->{'use'} || $this->{'hide'}) {
+        $o->write("use ") if $this->{'use'};
+        $o->write("hide ") if $this->{'hide'};
+        $o->writeln("$this->{'uhName'};");
+        return;
+    }
+    if (@{$this->{'pairs'}}) {
+        $o->writeln(" {");
+        $o->tabIn();
+        foreach my $pp (@{$this->{'pairs'}}) {
+            $pp->asS2($o);
+        }
+        $o->tabOut();
+        $o->writeln("}");
+    } else {
+        $o->writeln(";");
+    }
 }
 
+sub asPerl {
+    my ($this, $bp, $o) = @_;
+
+    if ($this->{'use'}) {
+        $o->tabwriteln("register_property_use(" .
+                       $bp->getLayerIDString() . "," +
+                       $bp->quoteString($this->{'uhName'}) . ");");
+        return;
+    }
+
+    if ($this->{'hide'}) {
+        $o->tabwriteln("register_property_hide(" .
+                       $bp->getLayerIDString() . "," +
+                       $bp->quoteString($this->{'uhName'}) . ");");
+        return;
+    }
+
+    $o->tabwriteln("register_property(" .
+                   $bp->getLayerIDString() . "," .
+                   $bp->quoteString($this->{'nt'}->getName()) . ",{");
+    $o->tabIn();
+    $o->tabwriteln("\"type\"=>" . $bp->quoteString($this->{'nt'}->getType->toString) . ",");
+    foreach my $pp (@{$this->{'pairs'}}) {
+        $o->tabwriteln($bp->quoteString($pp->getKey()) . "=>" .
+                       $bp->quoteString($pp->getVal()) . ",");
+    }    
+    $o->tabOut();
+    $o->writeln("});");
+}

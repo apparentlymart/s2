@@ -7,6 +7,7 @@ use S2::NodeUnnecessary;
 use S2::NodeLayerInfo;
 use S2::NodeProperty;
 use S2::NodeSet;
+use S2::NodeFunction;
 
 sub new
 {
@@ -45,13 +46,14 @@ sub new
             push @$nodes, S2::NodeSet->parse($toker);
             next;
         }
+
+        if (S2::NodeFunction->canStart($toker)) {
+            push @$nodes, S2::NodeFunction->parse($toker);
+            next;
+        }
+
 =pod
 
-	    if (NodeFunction.canStart(toker)) {
-		nodes.add(NodeFunction.parse(toker, false));
-		continue;
-	    }
-		
 	    if (NodeClass.canStart(toker)) {
 		nodes.add(NodeClass.parse(toker));
 		continue;

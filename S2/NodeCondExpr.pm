@@ -27,9 +27,9 @@ sub parse {
     my $n = new S2::NodeCondExpr;
 
     $n->{'test_expr'} = parse S2::NodeRange $toker;
-    $n->addNode($n->{'text_expr'});
+    $n->addNode($n->{'test_expr'});
 
-    return $n->{'text_expr'} unless
+    return $n->{'test_expr'} unless
         $toker->peek() == $S2::TokenPunct::QMARK;
 
     $n->eatToken($toker);
@@ -47,7 +47,7 @@ sub parse {
 sub getType {
     my ($this, $ck) = @_;
 
-    my $ctype = $this->{'text_expr'}->getType($ck);
+    my $ctype = $this->{'test_expr'}->getType($ck);
     unless ($ctype->isBoolable()) {
         die("Conditional expression not a boolean at " .
             $this->getFilePos->toString . "\n");
