@@ -57,6 +57,10 @@ sub getType {
         S2::error($this, "Left-hand side of assignment must be an lvalue.");
     }
 
+    if ($this->{'lhs'}->isBuiltinProperty($ck)) {
+        S2::error($this, "Can't assign to built-in properties.");
+    }
+
     return $lt if $ck->typeIsa($rt, $lt);
 
     # types don't match, but maybe class for left hand side has

@@ -71,6 +71,10 @@ sub check {
         S2::error($this, "Property value is of wrong type.  Expecting $lname but got $rname.");
     }
 
+    if ($ck->propertyBuiltin($this->{'key'})) {
+        S2::error($this, "Can't set built-in properties");
+    }
+
     # simple case... assigning a primitive
     if ($ltype->isPrimitive()) {
         # TODO: check that value.isLiteral()

@@ -104,13 +104,19 @@ sub isValidType {
 
 # property functions
 sub addProperty {
-    my ($this, $name, $t) = @_;
+    my ($this, $name, $t, $builtin) = @_;
     $this->{'props'}->{$name} = $t;
+    $this->{'prop_builtin'}->{$name} = 1 if $builtin;
 }
 
 sub propertyType {
     my ($this, $name) = @_;
     return $this->{'props'}->{$name};
+}
+
+sub propertyBuiltin {
+    my ($this, $name) = @_;
+    return $this->{'prop_builtin'}->{$name};
 }
 
 # return type functions (undef means no return type)

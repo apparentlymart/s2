@@ -656,3 +656,11 @@ sub isProperty {
     return 0 unless $this->{'type'} == $VARREF;
     return $this->{'var'}->isProperty();
 }
+
+sub isBuiltinProperty {
+    my ($this, $ck) = @_;
+    return 0 unless $this->{'type'} == $VARREF;
+    return 0 unless $this->{'var'}->isProperty();
+    my $name = $this->{'var'}->propName();
+    return $ck->propertyBuiltin($name);
+}

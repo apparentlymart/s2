@@ -6,6 +6,7 @@ package S2::Layer;
 use S2::NodeUnnecessary;
 use S2::NodeLayerInfo;
 use S2::NodeProperty;
+use S2::NodePropGroup;
 use S2::NodeSet;
 use S2::NodeFunction;
 use S2::NodeClass;
@@ -40,6 +41,11 @@ sub new
 
         if (S2::NodeProperty->canStart($toker)) {
             push @$nodes, S2::NodeProperty->parse($toker);
+            next;
+        }
+
+        if (S2::NodePropGroup->canStart($toker)) {
+            push @$nodes, S2::NodePropGroup->parse($toker);
             next;
         }
 
