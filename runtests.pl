@@ -121,7 +121,7 @@ foreach my $f (@files)
 	    print "$f: $error\n" if $opt_verbose;
 	}
     } elsif ($error) {
-	push @errors, [ $f, "Error occured, but not anticipated." ];
+	push @errors, [ $f, "Error occurred, but not anticipated." ];
 	print "$f: $error\n" if $opt_verbose;
     }
 }
