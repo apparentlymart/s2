@@ -145,6 +145,9 @@ sub _getType {
 
     if ($type == $NEW || $type == $NEWNULL) {
         my $clas = $this->{'newClass'}->getIdent();
+        if ($clas eq "int" || $clas eq "string") {
+            S2::error($this, "Can't use 'new' with primitive type '$clas'");
+        }
         my $nc = $ck->getClass($clas);
         unless ($nc) {
             S2::error($this, "Can't instantiate unknown class.");
