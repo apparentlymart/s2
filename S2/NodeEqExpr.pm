@@ -50,17 +50,15 @@ sub getType {
     my $rt = $this->{'rhs'}->getType($ck);
 
     if (! $lt->equals($rt)) {
-        die "The types of the left and right hand side of " .
-            "equality test expression don't match at " .
-            $this->getFilePos->toString . "\n";
+        S2::error($this, "The types of the left and right hand side of " .
+                  "equality test expression don't match.");
     }
 
     $this->{'myType'} = $lt;
     
     return $S2::Type::BOOL if $lt->isPrimitive();
 
-    die "Only bool, string, and int types can be tested for equality at ".
-        $this->getFilePos->toString . "\n";
+    S2::error($this, "Only bool, string, and int types can be tested for equality.");
 }
 
 sub asS2 {

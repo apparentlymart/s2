@@ -89,7 +89,7 @@ sub getType {
     if ($this->{'op'} == $S2::TokenPunct::MINUS && 
         ($lt->equals($S2::Type::STRING) || 
          $rt->equals($S2::Type::STRING))) {
-        die "Can't substract strings at " . $this->{'rhs'}->getFilePos->toString . "\n";
+        S2::error($this->{'rhs'}, "Can't substract strings.");
     }
 
     if ($lt->equals($S2::Type::STRING) || 

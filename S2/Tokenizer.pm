@@ -172,7 +172,7 @@ sub makeToken # () method private : Token
     }
 
     if ($$c =~ /.+/gc) {
-        die "Parse error!  Unknown next token ($&) at " . $this->getPos->toString . "\n";
+        S2::error($this, "Parse error!  Unknown token.");
     }
     
     return undef;

@@ -62,15 +62,13 @@ sub getType {
     my $rt = $this->{'rhs'}->getType($ck, $wanted);
 
     unless ($lt->equals($S2::Type::INT)) {
-        die "Left hand side of " . $this->{'op'}->getPunct() . " operator is " .
-            $lt->toString() . ", not an integer, at " .
-            $this->{'lhs'}->getFilePos()->toString() . "\n";
+        S2::error($this->{'lhs'}, "Left hand side of " . $this->{'op'}->getPunct() . " operator is " .
+                  $lt->toString() . ", not an integer.");
     }
 
     unless ($rt->equals($S2::Type::INT)) {
-        die "Right hand side of " . $this->{'op'}->getPunct() . " operator is " .
-            $rt->toString() . ", not an integer, at " .
-            $this->{'rhs'}->getFilePos()->toString() . "\n";
+        S2::error($this->{'rhs'}, "Right hand side of " . $this->{'op'}->getPunct() . " operator is " .
+                  $rt->toString() . ", not an integer.");
     }
 
     return $S2::Type::INT;

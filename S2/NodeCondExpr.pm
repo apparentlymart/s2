@@ -49,14 +49,12 @@ sub getType {
 
     my $ctype = $this->{'test_expr'}->getType($ck);
     unless ($ctype->isBoolable()) {
-        die("Conditional expression not a boolean at " .
-            $this->getFilePos->toString . "\n");
+        S2::error($this, "Conditional expression not of type boolean.");
     }
     my $lt = $this->{'true_expr'}->getType($ck);
     my $rt = $this->{'false_expr'}->getType($ck);
     unless ($lt->equals($rt)) {
-        die "Types don't match in conditional expression at " .
-            $this->getFilePos->toString . "\n";
+        S2::error($this, "Types don't match in conditional expression.");
     }
     return $lt;
 }

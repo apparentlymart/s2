@@ -93,7 +93,7 @@ sub requireToken {
     if ($ignoreSpace) { $this->skipWhite($toker); }
     
     my $next = $toker->getToken();
-    die "Unexpected end of file found\n" unless $next;
+    S2::error($next, "Unexpected end of file found") unless $next;
 
     unless ($next == $t) {
         S2::error(undef, "internal error") unless $t;
@@ -111,8 +111,8 @@ sub getStringLiteral {
     if ($ignoreSpace) { $this->skipWhite($toker); }
 
     my $t = $toker->getToken();
-    die "Expected string literal at " . $t->getFilePos()->toString()
-        unless $t->isa("S2::TokenStringLiteral");
+    S2::error($t, "Expected string literal")
+        unless $t && $t->isa("S2::TokenStringLiteral");
     
     $this->addToken($t);
     return $t;
@@ -125,7 +125,7 @@ sub getIdent {
     
     my $id = $toker->peek();
     unless ($id->isa("S2::TokenIdent")) {
-        die "Expected identifier at " . $id->getFilePos()->toString() . "\n";
+        S2::error($id, "Expected identifier.");
     }
     if ($addToList) {
         $this->eatToken($toker, $ignoreSpace);
