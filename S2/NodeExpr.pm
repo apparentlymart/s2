@@ -46,7 +46,11 @@ sub getType {
     $this->{'expr'}->getType($ck, $wanted);
 }
 
+sub makeAsString {
+    my ($this, $ck) = @_;
+    $this->{'expr'}->makeAsString($ck);
+}
+
 sub getExpr {
     shift->{'expr'};
 }
-

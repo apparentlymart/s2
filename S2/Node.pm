@@ -213,7 +213,7 @@ sub isLValue {
 
 sub makeAsString {
     my ($this, $ck) = @_;
-    die "Node::makeAsString() on $this\n";
+    return 0;
 }
 
 sub isProperty {

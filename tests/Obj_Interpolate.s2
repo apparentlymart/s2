@@ -44,4 +44,8 @@ function main()
 
     var Foo fnull;
     print "Null local as_string: {$fnull}\n";
+    print "Empty lines:\n";
+    println $fnull;
+    println "$fnull";
+    print "end.\n";
 }

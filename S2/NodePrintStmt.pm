@@ -55,8 +55,10 @@ sub check {
     my $t = $this->{'expr'}->getType($ck);
     return if $t->equals($S2::Type::INT) ||
         $t->equals($S2::Type::STRING);
-    S2::error($this, "Print statement must print an expression of type int or string, not " .
-              $t->toString);
+    unless ($this->{'expr'}->makeAsString($ck)) {
+        S2::error($this, "Print statement must print an expression of type int or string, not " .
+                  $t->toString);
+    }
 }
 
 sub asS2 {
