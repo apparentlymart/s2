@@ -1,5 +1,5 @@
 <title>Behind the Scenes</title>
-  <section>
+  <section id='&s2.idroot;howworks'>
     <title>How it all works, in a nutshell</title>
 <para>
   The web app get a request and decides what user it's for, and what type of resource it's for.
