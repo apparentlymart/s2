@@ -16,7 +16,8 @@ sub new {
 
 sub setStart {
     my ($this, $arg) = @_;
-    if ($arg->isa('S2::Token')) {
+
+    if ($arg->isa('S2::Token') || $arg->isa('S2::Node')) {
         $this->{'startPos'} =
             $arg->getFilePos()->clone();
     } elsif ($arg->isa('S2::FilePos')) {
@@ -85,6 +86,7 @@ sub requireToken {
     die "Unexpected end of file found\n" unless $next;
 
     unless ($next == $t) {
+        S2::error(undef, "internal error") unless $t;
         die("Unexpected token found at " . $toker->locationString() . "\n" .
             "Expecting: " . $t->toString() . "\nGot: " . $next->toString() . "\n");
     }

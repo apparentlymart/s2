@@ -130,9 +130,9 @@ sub check {
         # find & register all the derivative names by which this function
         # could be called.
         my $dercs = $nc->getDerClasses();
+        my $fvs = S2::NodeFormals::variations($this->{'formals'}, $ck);
         foreach my $dc (@$dercs) {  # DerItem
             my $c = $dc->{'nc'}; # NodeClass
-            my $fvs = S2::NodeFormals::variations($this->{'formals'}, $ck);
             foreach my $fv (@$fvs) {
                 my $derFuncID = S2::Checker::functionID($c->getName(), $this->getName(), $fv);
                 $ck->setFuncDistance($derFuncID, { 'nf' => $this, 'dist' => $dc->{'dist'} });
@@ -231,8 +231,8 @@ sub asPerl {
         $o->tabwriteln("my \@_l2g_func = ( undef, ");
         $o->tabIn();
         foreach my $id (@{$this->{'funcNames'}}) {
-            $o->tabwriteln("get_func_num(" +
-                           $bp->quoteString($id) + "),");
+            $o->tabwriteln("get_func_num(" .
+                           $bp->quoteString($id) . "),");
         }
         $o->tabOut();
         $o->tabwriteln(");");
@@ -245,7 +245,7 @@ sub asPerl {
     # setup function argument/ locals
     $o->tabwrite("my (\$_ctx");
     if ($this->{'classname'} && ! $this->{'isCtor'}) {
-        $o->write(", $this");
+        $o->write(", \$this");
     }
 
     if ($this->{'formals'}) {
@@ -292,27 +292,29 @@ sub totalName {
     return $sb;
 }
 
+# called by NodeClass
+sub registerFunction {
+    my ($this, $ck, $cname) = @_;
+
+    my $fname = $this->getName();
+    my $funcID = S2::Checker::functionID($cname, $fname,
+                                         $this->{'formals'});
+    my $et = $ck->functionType($funcID);
+    my $rt = $this->getReturnType();
+
+    # check that function is either currently undefined or 
+    # defined with the same type, otherwise complain
+    if ($et && ! $et->equals($rt)) {
+        S2::error($this, "Can't redefine function '$fname' with return ".
+                  "type of '" . $rt->toString . "' masking ".
+                  "earlier definition of type '". $et->toString ."'.");
+    }
+
+    $ck->addFunction($funcID, $rt, $this->{'builtin'});  # Register
+}
+
 __END__
 
-
-    # called by NodeClass
-    public void registerFunction (Checker ck, String cname)
-	throws Exception
-    {
-	String funcID = Checker.functionID(cname, getName(), formals);
-	Type et = $ck->functionType(funcID);
-	Type rt = getReturnType();
-
-	# check that function is either currently undefined or 
-	# defined with the same type, otherwise complain
-	if (et == null || et.equals(rt)) {
-	    $ck->addFunction(funcID, rt, builtin);  # Register
-	} else {
-	    throw new Exception("Can't redefine function '"+getName()+"' with return "+
-				"type of '"+rt+"' at "+getFilePos()+" masking "+
-				"earlier definition of type '"+et+"'.");
-	}
-    }
 
     public void asS2 (Indenter o) 
     {

@@ -37,14 +37,14 @@ sub check {
 
 sub asS2 {
     my ($this, $o) = @_;
-    $o->doTab();
+    $o->tabwrite("");
     $this->{'expr'}->asS2($o);
     $o->writeln(";");
 }
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
-    $o->doTab();
+    $o->tabwrite("");
     $this->{'expr'}->asPerl($bp, $o);
     $o->writeln(";");
 }

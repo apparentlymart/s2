@@ -67,9 +67,13 @@ sub getFormals { shift->{'listFormals'}; }
 
 # static
 sub variations {
-    my ($nf, $ck) = @_;
+    my ($nf, $ck) = @_;  # NodeFormals, Checker
     my $l = [];
-    $nf->getVariations($ck, $l, [], 0) if $nf;
+    if ($nf) {
+        $nf->getVariations($ck, $l, [], 0);
+    } else {
+        push @$l, new S2::NodeFormals;
+    }
     return $l;
 }
 
@@ -85,7 +89,7 @@ sub getVariations {
     my $nt = $this->{'listFormals'}->[$col-1]; # NodeNamedType
     my $t = $nt->getType();
 
-    foreach my $st ($t->subTypes($ck)) {
+    foreach my $st (@{$t->subTypes($ck)}) {
         my $newtemp = [ @$temp ];  # hacky clone (not cloning member objects)
         push @$newtemp, new S2::NodeNamedType($nt->getName(), $st);
         $this->getVariations($ck, $vars, $newtemp, $col+1);
@@ -94,8 +98,20 @@ sub getVariations {
 
 sub typeList {
     my $this = shift;
-    return join(',', map { $_->getType->toString } 
+    return join(',', map { $_->getType()->toString } 
                 @{$this->{'listFormals'}});
+
+    # debugging implementation:
+    #my @list;
+    #foreach my $nnt (@{$this->{'listFormals'}}) { # NodeNamedType
+    #    my $t = $nnt->getType();
+    #    if (ref $t ne "S2::Type") {
+    #        print STDERR "Is: $t\n";
+    #        S2::error() 
+    #    }
+    #    push @list, $t->toString;
+    #}
+    #return join(',', @list);
 }
 
 
@@ -107,12 +123,6 @@ sub populateScope {
      }
 }
 
-
-__END__
-
-    public ListIterator iterator() {
-	return listFormals.listIterator();
-    }
 
 
 

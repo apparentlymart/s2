@@ -39,8 +39,26 @@ sub isBoolable {
 
 sub subTypes {
     my ($this, $ck) = @_;
+    my $l = [];
 
-    die "FIXME";
+    my $nc = $ck->getClass($this->{'baseType'});
+    unless ($nc) {
+        # no sub-classes.  just return our type.
+        push @$l, $this;
+        return $l;
+    }
+
+    foreach my $der (@{$nc->getDerClasses()}) {
+        # add a copy of this type to the list, but with
+        # the derivative class type.  that way it
+        # saves the varlevels:  A[] .. B[] .. C[], etc
+        my $c = $der->{'nc'}->getName();
+        my $newt = $this->clone();
+        $newt->{'baseType'} = $c;
+        push @$l, $newt;
+    }
+
+    return $l;
 }
 
 sub equals {
@@ -78,12 +96,12 @@ sub isSimple {
 
 sub isHashOf {
     my ($this) = @_;
-    return $this =~ /\{\}$/;
+    return $this->{'typeMods'} =~ /\{\}$/;
 }
 
 sub isArrayOf {
     my ($this) = @_;
-    return $this =~ /\[\]$/;
+    return $this->{'typeMods'} =~ /\[\]$/;
 }
 
 sub baseType {
@@ -112,7 +130,8 @@ sub isReadOnly {
 }
 
 sub setReadOnly {
-    shift->{'readOnly'} = shift;
+    my ($this, $v) = @_;
+    $this->{'readOnly'} = $v;
 }
 
 

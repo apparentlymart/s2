@@ -13,7 +13,7 @@ sub new
         'props' => {},
         'funcs' => {},
         'funcBuiltin' => {},
-        'derclass' => {},
+        'derclass' => {},   # classname -> arrayref<classname>
         'localblocks' => [],
     };
     bless $this, $class;
@@ -25,13 +25,13 @@ sub addClass {
 
     # make sure that the list of classes that derive from 
     # this one exists.
-    $this->{'derclasses'}->{$name} ||= [];
+    $this->{'derclass'}->{$name} ||= [];
 
     # and if this class derives from another, add ourselves
     # to that list
     my $parent = $nc->getParentName();
     if ($parent) {
-        my $l = $this->{'derclasses'}->{$parent};
+        my $l = $this->{'derclass'}->{$parent};
         die "Internal error: can't append to empty list" unless $l;
         push @$l, $name;
     }
@@ -245,7 +245,7 @@ sub checkLayer {
     my ($this, $lay) = @_; # lay = Layer
 
     # initialize layer-specific data structures
-    $this->{'funcDist'} = {};
+    $this->{'funcDist'} = {};  # funcID -> "derItem" hashref ('dist' scalar and 'nf' NodeFormal)
     $this->{'funcIDs'} = {};
     $this->{'hitFunction'} = 0;
 

@@ -21,7 +21,7 @@ sub canStart {
     my ($class, $toker) = @_;
     return $toker->peek() == $S2::TokenPunct::INC ||
         $toker->peek() == $S2::TokenPunct::DEC ||
-        $S2::NodeTerm->canStart($toker);
+        S2::NodeTerm->canStart($toker);
 }
 
 sub parse {

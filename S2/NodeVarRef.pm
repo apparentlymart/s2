@@ -221,16 +221,16 @@ sub doDerefs {
     foreach my $d (@{$derefs}) {
         my $et = $d->{'expr'}->getType($ck);
         if ($d->{'type'} eq "{") {
-            S2::error("Can't dereference a non-hash as a hash")
+            S2::error($this, "Can't dereference a non-hash as a hash")
                 unless $vart->isHashOf();
-            S2::error("Must dereference a hash with a string or int")
+            S2::error($this, "Must dereference a hash with a string or int")
                 unless ($et->equals($S2::Type::STRING) ||
                         $et->equals($S2::Type::INT));
             $vart->removeMod();  # not a hash anymore
         } elsif ($d->{'type'} eq "[") {
-            S2::error("Can't dereference a non-array as an array")
+            S2::error($this, "Can't dereference a non-array as an array ")
                 unless $vart->isArrayOf();
-            S2::error("Must dereference an array with an int")
+            S2::error($this, "Must dereference an array with an int")
                 unless $et->equals($S2::Type::INT);
             $vart->removeMod();  # not an array anymore
         }

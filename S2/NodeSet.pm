@@ -60,15 +60,15 @@ sub check {
     $ck->setInFunction(0);
 
     unless ($ltype) {
-        die "Can't set non-existent property '$this->{'key'}' at ".
-            $this->getFilePos()->toString() . "\n";
+        S2::error($this, "Can't set non-existent property '$this->{'key'}'");
     }
 
     my $rtype = $this->{'value'}->getType($ck, $ltype);
     
     unless ($ltype->equals($rtype)) {
-        die "Property value is of wrong type at " .
-            $this->getFilePos()->toString() . "\n";
+        my $lname = $ltype->toString;
+        my $rname = $rtype->toString;
+        S2::error($this, "Property value is of wrong type.  Expecting $lname but got $rname.");
     }
 
     # simple case... assigning a primitive
@@ -82,8 +82,7 @@ sub check {
     if ($base->isPrimitive()) {
         return;
     } elsif (! defined $ck->getClass($ltype->baseType())) {
-        die "Can't set property of unknown type at " .
-            $this->getFilePos()->toString() . "\n";
+        S2::error($this, "Can't set property of unknown type");
     }
 }
 

@@ -5,6 +5,7 @@ package S2::NodeArrayLiteral;
 
 use strict;
 use S2::Node;
+use S2::NodeExpr;
 use vars qw($VERSION @ISA);
 
 $VERSION = '1.0';
@@ -13,6 +14,8 @@ $VERSION = '1.0';
 sub new {
     my ($class) = @_;
     my $node = new S2::Node;
+    $node->{'keys'} = [];
+    $node->{'vals'} = [];
     bless $node, $class;
 }
 
@@ -22,33 +25,13 @@ sub canStart {
         $toker->peek() == $S2::TokenPunct::LBRACE;
 }
 
-__END__
+# [ <NodeExpr>? (, <NodeExpr>)* ,? ]
+# { (<NodeExpr> => <NodeExpr> ,)* }
 
-package danga.s2;
+sub parse {
+    my ($this, $toker) = @_;
 
-import java.util.LinkedList;
-import java.util.ListIterator;
-
-// [ <NodeExpr>? (, <NodeExpr>)* ,? ]
-// { (<NodeExpr> => <NodeExpr> ,)* }
-
-public class NodeArrayLiteral extends NodeExpr
-{
-    boolean isHash = false;
-    boolean isArray = false;
-
-    LinkedList keys = new LinkedList();
-    LinkedList vals = new LinkedList();
-    
-    public static boolean canStart (Tokenizer toker) throws Exception
-    {
-	return (toker.peek().equals(TokenPunct.LBRACK) ||
-                toker.peek().equals(TokenPunct.LBRACE));
-    }
-
-    public static Node parse (Tokenizer toker) throws Exception
-    {
-	NodeArrayLiteral nal = new NodeArrayLiteral();
+    my $nal = new S2::NodeArrayLiteral;
 
         Token t = toker.peek();	
         if (t.equals(TokenPunct.LBRACK)) {
@@ -100,7 +83,17 @@ public class NodeArrayLiteral extends NodeExpr
                 need_comma = false;
             }
         }
-    }
+    
+    
+}
+
+__END__
+
+package danga.s2;
+
+import java.util.LinkedList;
+import java.util.ListIterator;
+
 
     public void asS2 (Indenter o)
     {
