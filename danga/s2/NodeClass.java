@@ -272,7 +272,9 @@ public class NodeClass extends Node
 	    String name = nf.getName();
             NodeFormals nfo = nf.getFormals();
 	    Type rt = nf.getReturnType();
-            o.tabwrite(bp.quoteString(name + nfo) + " => { 'returntype' => " + bp.quoteString(rt.toString()));
+            o.tabwrite(bp.quoteString(name + ((nfo != null) ? nfo.toString() : "()"))
+                                      + " => { 'returntype' => " 
+                                      + bp.quoteString(rt.toString()));
             if (nf.getDocString() != null) {
                 o.write(", 'docstring' => " + bp.quoteString(nf.getDocString()));
             }
