@@ -36,7 +36,7 @@ sub parse {
         return $n->{'lhs'};
     }
 
-    $n->{'rhs'} = parse S2::NodeCondExpr $toker;
+    $n->{'rhs'} = parse S2::NodeAssignExpr $toker;
     $n->addNode($n->{'rhs'});
 
     return $n;
