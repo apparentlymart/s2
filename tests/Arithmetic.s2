@@ -11,4 +11,8 @@ function main() {
     println "$first * $second = " + ($first * $second);
     println "$first / $second = " + ($first / $second);
     println "$first % $second = " + ($first % $second);
+
+    var int third = 8;
+    $first = $second = $third;
+    println "All eight: $first $second $third";
 }
