@@ -14,11 +14,11 @@ sub error {
     }
 
     my $i = 0;
-    print STDERR "$where: $msg\n";
+    my $errmsg = "$where: $msg\n";
     while (my ($p, $f, $l) = caller($i++)) {
-        print STDERR "  $p, $f, $l\n";
+        $errmsg .= "  $p, $f, $l\n";
     }
-    exit 1;
+    die $errmsg;
 }
 
 
