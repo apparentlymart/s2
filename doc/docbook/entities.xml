@@ -1,4 +1,6 @@
-<!ENTITY s2.idroot                "">
+<!ENTITY s2.idroot                 "">
+
+<!ENTITY s2.bookinfo               SYSTEM "bookinfo.xml">
 
 <!ENTITY s2.preface                SYSTEM "preface.xml">
 <!ENTITY s2.about                  SYSTEM "about.xml">
@@ -15,6 +17,6 @@
 <!ENTITY s2.misc                   SYSTEM "misc.xml">
 
 <!ENTITY s2.faq                    SYSTEM "faq.xml">
+<!ENTITY s2.faq.extra              "">
 
 <!ENTITY appx.gfdl                 SYSTEM "appx.gfdl.xml">
-
