@@ -364,13 +364,79 @@ sub get_characters
 
 package S2::Builtin;
 
+sub int__zeropad
+{
+    my ($ctx, $this, $digits) = @_;
+    $digits += 0;
+    sprintf("%0${digits}d", $this);
+}
+
 sub string__substr
 {
-    # FIXME: want to use character semantics here, not bytes (the default)
-    # just "use utf8" ?
     my ($ctx, $this, $start, $length) = @_;
+    use utf8;
     return substr($this, $start, $length);
 }
+
+sub string__length
+{
+    use utf8;
+    my ($ctx, $this) = @_;
+    return length($this);
+}
+
+sub string__lower
+{
+    use utf8;
+    my ($ctx, $this) = @_;
+    return lc($this);
+}
+
+sub string__upper
+{
+    use utf8;
+    my ($ctx, $this) = @_;
+    return uc($this);
+}
+
+sub string__upperfirst
+{
+    use utf8;
+    my ($ctx, $this) = @_;
+    return ucfirst($this);
+}
+
+sub string__startswith
+{
+    use utf8;
+    my ($ctx, $this, $str) = @_;
+    return $this =~ /^\Q$str\E/;
+}
+
+sub string__endswith
+{
+    use utf8;
+    my ($ctx, $this, $str) = @_;
+    return $this =~ /\Q$str\E$/;
+}
+
+sub string__contains
+{
+    use utf8;
+    my ($ctx, $this, $str) = @_;
+    return $this =~ /\Q$str\E/;
+}
+
+sub string__repeat
+{
+    use utf8;
+    my ($ctx, $this, $num) = @_;
+    $num += 0;
+    my $size = length($this) * $num;
+    return "[too large]" if $size > 5000;
+    return $this x $num;
+}
+
 
 sub Color__Color
 {
