@@ -17,6 +17,9 @@
   <chapter id='&s2.idroot;notes'>
     &s2.notes;
   </chapter>
+  <chapter id='&s2.idroot;csp'>
+    &s2.csp;
+  </chapter>
   <appendix id='&s2.idroot;faq'>
     &s2.faq;
   </appendix>
