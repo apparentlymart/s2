@@ -19,6 +19,12 @@ public class NodeFunction extends Node
     
     Checker ck;
 
+    String docstring;
+
+    public String getDocString () {
+        return docstring;
+    }
+
     public static boolean canStart (Tokenizer toker) throws Exception
     {
 	if (toker.peek().equals(TokenKeyword.FUNCTION))
@@ -65,6 +71,12 @@ public class NodeFunction extends Node
 	    n.requireToken(toker, TokenPunct.COLON);
 	    n.addNode(n.rettype = (NodeType) NodeType.parse(toker));
 	} 
+
+        // docstring
+        if (toker.peek() instanceof TokenStringLiteral) {
+            TokenStringLiteral t = (TokenStringLiteral) n.eatToken(toker);
+            n.docstring = t.getString();
+        }
 	
 	// if inside a class declaration, only a declaration now.
 	if (isDecl || n.builtin) {
@@ -233,9 +245,17 @@ public class NodeFunction extends Node
 
     public void asPerl (BackendPerl bp, Indenter o) 
     {
-	// Built-in functions in S2 are declarative only.
-	if (builtin) 
-	    return;
+        if (classname == null) {
+            o.tabwrite("register_global_function(" +
+                       bp.getLayerIDString() + "," +
+                       bp.quoteString(name.getIdent() + (formals != null ? formals.toString() : "()")) + "," +
+                       bp.quoteString(getReturnType().toString()));
+            if (docstring != null)
+                o.write(", " + bp.quoteString(docstring));
+            o.writeln(");");
+        }
+
+        if (builtin) return;
 
 	o.tabwrite("register_function(" + bp.getLayerIDString() +
 		   ", [");

@@ -6,15 +6,11 @@ import java.util.Hashtable;
 
 public class NodeFormals extends Node
 {
-    public LinkedList listFormals = new LinkedList();
+    public LinkedList listFormals = new LinkedList(); // NodeNamedType
 
     public NodeFormals () { }
     public NodeFormals (LinkedList formals) {
 	listFormals = formals;
-    }
-    
-    public String toString () {
-	return "formals()";
     }
     
     public static Node parse (Tokenizer toker) throws Exception
@@ -58,20 +54,26 @@ public class NodeFormals extends Node
     }
 
     public void asS2 (Indenter o) {
-	if (listFormals.size() == 0) return;
-	o.write("(");
+	if (listFormals.size() == 0) return; // no empty parens necessary in S2
+	o.write(toString());
+    }
+
+    public String toString () {
+        StringBuffer sb = new StringBuffer("(");
 	ListIterator li = listFormals.listIterator();
 	boolean first = true;
 	while (li.hasNext()) {
 	    NodeNamedType nf = (NodeNamedType) li.next();
 	    if (! first) {
-		o.write(", ");
+		sb.append(", ");
 	    }
 	    first = false;
 
-	    nf.asS2(o);
+	    sb.append(nf.toString());
 	}
-	o.write(")");
+
+        sb.append(")");
+        return sb.toString();
     }
 
     // returns a ListIterator returning variations of this NodeFormal

@@ -18,10 +18,26 @@ my %layerprop;   # lid -> prop -> { type/key => "string"/val }
 my %layerprops;  # lid -> arrayref of hashrefs
 my %layerprophide; # lid -> prop -> 1
 my %layerfunc;   # lid -> funcnum -> sub{}
+my %layerclass;  # lid -> classname -> hashref
+my %layerglobal; # lid -> signature -> hashref
 my %funcnum;     # funcID -> funcnum
 my $funcnummax;  # maxnum in use already by funcnum, above.
 
 my $output_sub;
+
+sub get_layer_all
+{
+    my $lid = shift;
+    return undef unless $layer{$lid};
+    return {
+        'layer' => $layer{$lid},
+        'info' => $layerinfo{$lid},
+        'set' => $layerset{$lid},
+        'prop' => $layerprop{$lid},
+        'class' => $layerclass{$lid},
+        'global' => $layerglobal{$lid},
+    };
+}
 
 sub pout
 {
@@ -78,6 +94,12 @@ sub make_context
     return $ctx;
 }
 
+sub register_class
+{
+    my ($lid, $classname, $info) = @_;
+    $layerclass{$lid}->{$classname} = $info;
+}
+
 sub register_layer
 {
     my ($lid) = @_;
@@ -96,6 +118,8 @@ sub unregister_layer
     delete $layerprops{$lid};
     delete $layerprophide{$lid};
     delete $layerfunc{$lid};
+    delete $layerclass{$lid};
+    delete $layerglobal{$lid};
 }
 
 sub load_layer
@@ -231,6 +255,24 @@ sub get_set
     my $v = $layerset{$lid}->{$propname};
     return undef unless defined $v;
     return ref $v ? $v->[0] : $v;  # return just value, not coderef of ctor
+}
+
+# the whole point here is just to get the docstring.
+sub register_global_function
+{
+    my ($lid, $func, $rtype, $docstring) = @_;
+
+    # need to make the signature:  foo(int a, int b) -> foo(int,int)
+    return unless 
+        $func =~ /^(.+?\()(.+)\)$/;
+    my ($signature, @args) = ($1, split(/\s*\,\s*/, $2));
+    foreach (@args) { s/\s+\w+$//; } # strip names
+    $signature .= join(",", @args) . ")";
+    $layerglobal{$lid}->{$signature} = {
+        'returntype' => $rtype,
+        'docstring' => $docstring,
+        'args' => $func,
+    };    
 }
 
 sub register_function

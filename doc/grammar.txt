@@ -22,6 +22,8 @@ doublecolon := "::"
 
 NativeType  := "bool" | "string" | "int"
 
+DocString := <TokenStringLiteral>
+
 GRAMMAR 
 ============================================================================
 
@@ -45,11 +47,12 @@ NodeClass.java
 -------------------------
 ClassDecl := "class" <ident> 
 	      ( "extends" <ident> )?
+              <StringLiteral>?
 	      "{" ClassItemDecl* "}"
 
 ClassItemDecl := ClassVarDecl | FuncDecl
 
-ClassVarDecl := "var" <NamedType> ";"
+ClassVarDecl := "var" <NamedType> DocString? ";"
 
 
 NodeProperty.java
@@ -76,13 +79,13 @@ NodeFunction.java
 
 FuncReturn := ":" <SimpleType>
 
-FuncDecl := "function" "builtin"? <ident> FuncArgs? FuncReturn? ";"
+FuncDecl := "function" "builtin"? <ident> FuncArgs? FuncReturn? DocString? ";"
 
 FuncArgs := "(" FuncArgItem ("," FuncArgItem)* ")"
 
 FuncArgItem := <Type> <ident>
 
-FuncDef := "function" (<ident> "::")? <ident> FuncArgs? FuncReturn? <StmtBlock>
+FuncDef := "function" (<ident> "::")? <ident> FuncArgs? FuncReturn? DocString? <StmtBlock>
 
 VarDeclStmt := "var" <Type> <ident> ";"
 
