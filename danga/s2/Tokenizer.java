@@ -15,7 +15,7 @@ public class Tokenizer
 
     public Tokenizer (InputStream is)
     {
-	sc = new Scanner(is);
+        if (is != null) sc = new Scanner(is);
 	inString = 0;
 	peekedToken = null;
 	masterTokenizer = this;
@@ -64,11 +64,14 @@ public class Tokenizer
 	}
 
 	char nextChar = sc.peek();
+
 	if (nextChar == (char) -1) {
+            if (sc.getBogusFlag())
+                throw new Exception("Malformed source encoding.  (should be UTF-8)");
 	    return null;
 	}
 
-	FilePos pos = new FilePos(sc.line, sc.col);
+	FilePos pos = getPos();
 	Token nxtoken = makeToken();
 	nxtoken.pos = pos;
 

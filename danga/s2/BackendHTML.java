@@ -26,6 +26,7 @@ public class BackendHTML extends Backend {
 	                    s2compile.topLayerName);
 
         o.write("<html><head><title>Source for "+layername+"</title>\n");
+        o.write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n");
         o.write("<style type=\"text/css\">\n");
         o.write("body { background: #ffffff none; color: #000000; }\n");
         o.write(".c { background: #ffffff none; color: "+CommentColor+"; }\n");
@@ -37,7 +38,7 @@ public class BackendHTML extends Backend {
         o.write(".t { background: #ffffff none; color: "+TypeColor+"; }\n");
         o.write(".v { background: #ffffff none; color: "+VarColor+"; }\n");
         o.write(".n { background: #ffffff none; color: "+IntegerColor+"; }\n");
-	o.write("</style></head><body><pre>");
+	o.write("</style></head>\n<body>\n<pre>");
 	LinkedList nodes = layer.getNodes();
 	ListIterator li = nodes.listIterator();
 	while (li.hasNext()) {
