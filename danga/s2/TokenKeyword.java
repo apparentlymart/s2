@@ -31,13 +31,14 @@ class TokenKeyword extends TokenIdent {
     public final static TokenKeyword REVERSE   = new TokenKeyword("reverse");
     public final static TokenKeyword SIZE      = new TokenKeyword("size");
     public final static TokenKeyword ISNULL    = new TokenKeyword("isnull");
-    public final static TokenKeyword NEWNULL    = new TokenKeyword("null");
+    public final static TokenKeyword NEWNULL   = new TokenKeyword("null");
+    public final static TokenKeyword READONLY  = new TokenKeyword("readonly");
 
     static TokenKeyword[] keywords = {
 	CLASS, ELSE, ELSEIF, FUNCTION, IF, BUILTIN, PROPERTY, SET,
 	STATIC, VAR, WHILE, FOREACH, PRINT, PRINTLN, NEW, TRUE, FALSE,
 	NOT, AND, OR, XOR, LAYERINFO, EXTENDS, RETURN, DELETE, DEFINED,
-	REVERSE, SIZE, ISNULL, NEWNULL
+	REVERSE, SIZE, ISNULL, NEWNULL, READONLY
     };
 
     public TokenKeyword () {

@@ -43,6 +43,11 @@ public class NodeAssignExpr extends Node
         Type want = Type.STRING.equals(lt) ? Type.STRING : null;
 	Type rt = rhs.getType(ck, want);
 
+        if (lt.isReadOnly()) {
+	    throw new Exception("Left-hand side of assignment at "+getFilePos()+
+				" is a read-only value.");
+        }
+
 	if (! (lhs instanceof NodeTerm) ||
 	    ! lhs.isLValue()) {
 	    throw new Exception("Left-hand side of assignment at "+getFilePos()+

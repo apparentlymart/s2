@@ -88,6 +88,7 @@ public class NodeClass extends Node
 	    return parentClass.getFunctionDeclClass(funcID);
 	return null;
     }
+
     public Type getMemberType (String mem) {
 	Type t = (Type) varType.get(mem);
 	if (t != null) return t;
@@ -167,6 +168,7 @@ public class NodeClass extends Node
 	// member vars
 	for (li = vars.listIterator(); li.hasNext(); )  {
 	    NodeClassVarDecl nnt = (NodeClassVarDecl) li.next();
+            boolean readonly = nnt.isReadOnly();
 	    String vn = nnt.getName();
 	    Type vt = nnt.getType();
 	    Type et = getMemberType(vn);
@@ -186,6 +188,7 @@ public class NodeClass extends Node
                                     nnt.getFilePos());
             }
 
+            vt.setReadOnly(readonly);
 	    varType.put(vn, vt);  // register member variable
 	}
 
