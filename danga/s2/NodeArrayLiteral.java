@@ -54,6 +54,7 @@ public class NodeArrayLiteral extends NodeExpr
             if (nal.isArray) {
                 NodeExpr ne = (NodeExpr) NodeExpr.parse(toker);
                 nal.vals.add(ne);
+                nal.addNode(ne);
             }
             if (nal.isHash) {
                 NodeExpr ne = (NodeExpr) NodeExpr.parse(toker);
@@ -63,6 +64,7 @@ public class NodeArrayLiteral extends NodeExpr
 
                 ne = (NodeExpr) NodeExpr.parse(toker);
                 nal.vals.add(ne);
+                nal.addNode(ne);
             }
 
             need_comma = true;

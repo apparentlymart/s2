@@ -460,7 +460,6 @@ public class NodeTerm extends Node
 	    nt.funcIdent = nt.getIdent(toker);
 	    nt.funcArgs = (NodeArguments) NodeArguments.parse(toker);
 	    nt.addNode(nt.funcArgs);
-
 	    return nt;
 	}
 
@@ -468,6 +467,7 @@ public class NodeTerm extends Node
         if (NodeArrayLiteral.canStart(toker)) {
             nt.type = ARRAY;
             nt.subExpr = (NodeExpr) NodeArrayLiteral.parse(toker);
+            nt.addNode(nt.subExpr);
             return nt;
         }
 
