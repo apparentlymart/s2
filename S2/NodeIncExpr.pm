@@ -6,6 +6,7 @@ package S2::NodeIncExpr;
 use strict;
 use S2::Node;
 use S2::NodeTerm;
+use S2::TokenPunct;
 use vars qw($VERSION @ISA);
 
 $VERSION = '1.0';
@@ -19,7 +20,7 @@ sub new {
 
 sub canStart {
     my ($class, $toker) = @_;
-    return $toker->peek() == $S2::TokenPunct::INC ||
+    return $toker->peek() == $S2::TokenPunct::INCR ||
         $toker->peek() == $S2::TokenPunct::DEC ||
         S2::NodeTerm->canStart($toker);
 }
@@ -29,7 +30,7 @@ sub parse {
 
     my $n = new S2::NodeIncExpr;
 
-    if ($toker->peek() == $S2::TokenPunct::INC ||
+    if ($toker->peek() == $S2::TokenPunct::INCR ||
         $toker->peek() == $S2::TokenPunct::DEC) {
         $n->{'bPre'} = 1;
         $n->{'op'} = $toker->peek();
@@ -39,10 +40,10 @@ sub parse {
 
     my $expr = parse S2::NodeTerm $toker;
     
-    if ($toker->peek() == $S2::TokenPunct::INC ||
+    if ($toker->peek() == $S2::TokenPunct::INCR ||
         $toker->peek() == $S2::TokenPunct::DEC) {
         if ($n->{'bPre'}) {
-            die "Unexpected " . $toker->peek()->getPunct() . "\n";
+            S2::error($toker->peek(), "Unexpected " . $toker->peek()->getPunct());
         }
         $n->{'bPost'} = 1;
         $n->{'op'} = $toker->peek();
@@ -63,9 +64,8 @@ sub getType {
     my $t = $this->{'expr'}->getType($ck);
 
     unless ($this->{'expr'}->isLValue() &&
-            $t == $S2::Type::INT) {
-        die "Post/pre-increment must operate on an integer lvalue at ".
-            $this->{'expr'}->getFilePos->toString . "\n";
+            $t->equals($S2::Type::INT)) {
+        S2::error($this->{'expr'}, "Post/pre-increment must operate on an integer lvalue");
     }
 
     return $t;

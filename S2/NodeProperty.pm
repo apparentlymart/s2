@@ -160,7 +160,7 @@ sub asPerl {
 
     if ($this->{'use'}) {
         $o->tabwriteln("register_property_use(" .
-                       $bp->getLayerIDString() . "," +
+                       $bp->getLayerIDString() . "," .
                        $bp->quoteString($this->{'uhName'}) . ");");
         return;
     }
