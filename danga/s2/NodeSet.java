@@ -65,6 +65,11 @@ public class NodeSet extends Node
 	    return;
 	}
 
+        if (ck.getClass(type.baseType()) == null) {
+            throw new Exception("Can't set property of unknown type at "+
+                                getFilePos());
+        }
+
 	// more complex case... calling a constructor to generate
 	// the value
 	nodevalue = NodeTerm.makeStringCtorCall(type.baseType(), val);
