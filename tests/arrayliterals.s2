@@ -32,6 +32,9 @@ set bgcolor = "#102030";
 
 function main ()
 {
+  var string[] empty = [];
+  $empty = [];
+
   var string[] s = [ "a", "b", "c" ];
   println "$s[0] $s[1] $s[2]";
 

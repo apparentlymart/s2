@@ -40,7 +40,7 @@ public class NodeVarDeclStmt extends Node
 	}
 
 	if (expr != null) {
-	    Type et = expr.getType(ck);
+	    Type et = expr.getType(ck, t);
 	    if (! ck.typeIsa(et, t)) {
 		throw new Exception("Can't initialize variable '"+nvd.getName()+"' "+
 				    "of type "+t+" with expression of type "+
