@@ -103,6 +103,17 @@ sub make_context
     return $ctx;
 }
 
+sub get_style_modtime
+{
+    my $ctx = shift;
+
+    my $high = 0;
+    foreach (@{$ctx->[LAYERLIST]}) {
+        $high = $layercomp{$_} if $layercomp{$_} > $high;
+    }
+    return $high;
+}
+
 sub register_class
 {
     my ($lid, $classname, $info) = @_;
