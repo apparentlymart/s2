@@ -107,6 +107,12 @@ public class NodeVarRef extends Node
 	    n.levels.add(vl);
 	} // end while
 
+        // did we parse just $ ?
+        if (n.levels.size() == 0) {
+            throw new Exception("Malformed variable reference at "+
+                                n.getFilePos());
+        }
+
 	if (n.braced) {
 	    // false argument necessary to prevent peeking at token
 	    // stream while it's in the interpolated variable parsing state,
