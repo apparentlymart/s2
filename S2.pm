@@ -414,14 +414,14 @@ sub string__upperfirst
     return ucfirst($this);
 }
 
-sub string__startswith
+sub string__starts_with
 {
     use utf8;
     my ($ctx, $this, $str) = @_;
     return $this =~ /^\Q$str\E/;
 }
 
-sub string__endswith
+sub string__ends_with
 {
     use utf8;
     my ($ctx, $this, $str) = @_;
