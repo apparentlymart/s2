@@ -147,27 +147,16 @@ sub unregister_layer
 
 sub load_layer
 {
-    my ($lid) = @_;
+    my ($lid, $comp, $comptime) = @_;
 
-    # don't load it if it's already loaded.
-    if ($layer{$lid}) {
-	return 1;
+    eval $comp;
+    if ($@) {
+        my $err = $@;
+        unregister_layer($lid);
+        die "Layer \#$lid: $err";
     }
-
-    undef $@;
-    my $s2file = "layers/$lid.s2";
-    my $cfile = "layers/$lid.pl";
-    unless (-e $s2file) {
-	$@ = "failed loading";
-	return 0;
-    }
-    if ((stat($s2file))[9] > (stat($cfile))[9])
-    {
-	my $cmd = "./s2compile perl $lid $s2file > $cfile";
-	print "# $cmd\n";
-	system($cmd) and die "Failed to run!\n";
-    }
-    return load_layer_file($cfile);
+    $layercomp{$lid} = $comptime;
+    return 1;
 }
 
 sub load_layers_from_db
@@ -201,21 +190,10 @@ sub load_layers_from_db
     return $maxtime;
 }
 
-sub layer_loaded 
+sub layer_loaded
 {
     my ($id) = @_;
     return $layercomp{$id};
-}
-
-sub load_layer_file
-{
-    my ($file) = @_;
-    undef $@;
-    unless (eval "require \"$file\";") {
-	$@ = "failed loading: $@";
-	return 0;
-    }
-    return 1;
 }
 
 sub set_layer_info
