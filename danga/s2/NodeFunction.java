@@ -15,7 +15,7 @@ public class NodeFunction extends Node
     NodeStmtBlock stmts;
     boolean builtin = false;
     boolean isCtor = false;
-    Hashtable funcNums = null;
+    LinkedList funcNames = null;
     
     Checker ck;
 
@@ -179,6 +179,15 @@ public class NodeFunction extends Node
 		stmts.addLocalVar("this", Type.VOID);  // prevent its use
 	    }
 
+            // make sure $this is accessible in a class method 
+            // that has a parent.
+            String pname = ck.getParentClassName(cname);
+            if (pname != null) {
+		stmts.addLocalVar("super", new Type(pname));
+	    } else {
+		stmts.addLocalVar("super", Type.VOID);  // prevent its use
+            }
+
 	    if (formals != null) 
 		formals.populateScope(stmts);
 	    
@@ -189,7 +198,7 @@ public class NodeFunction extends Node
 	}
 
 	// remember the funcID -> local funcNum mappings for the backend
-	funcNums = ck.getFuncNums();
+	funcNames = ck.getFuncNames();
     }
 
     // called by NodeClass
@@ -274,19 +283,18 @@ public class NodeFunction extends Node
 	o.tabIn();
 
 	// the first time register_function is run, it'll find the
-	// funcNums for this session and save those in a hash and then
+	// funcNames for this session and save those in a list and then
 	// return the sub which is a closure and will have fast access
 	// to that num -> num hash.  (benchmarking showed two
 	// hashlookups on ints was faster than one on strings)
 
-	if (funcNums.size() > 0) {
-	    o.tabwriteln("my %_l2g_func = (");
+	if (funcNames.size() > 0) {
+	    o.tabwriteln("my @_l2g_func = ( undef, ");
 	    o.tabIn();
-	    Enumeration en = funcNums.keys();
-	    while (en.hasMoreElements()) {
-		String id = (String) en.nextElement();
-		Integer num = (Integer) funcNums.get(id);
-		o.tabwriteln(num + " => " + "get_func_num(" +
+            ListIterator li = funcNames.listIterator();
+            while (li.hasNext()) {
+                String id = (String) li.next();
+		o.tabwriteln("get_func_num(" +
 			     BackendPerl.quoteString(id) + "),");
 	    }
 	    o.tabOut();

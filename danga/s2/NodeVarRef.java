@@ -20,7 +20,7 @@ public class NodeVarRef extends Node
     }
 
     LinkedList levels;
-
+    
     boolean braced;
     int type = LOCAL;
 
@@ -121,7 +121,7 @@ public class NodeVarRef extends Node
 	if (tokermain.inString == 0) {
 	    n.skipWhite(toker);
 	}
-	
+
 	return n;
     }
 
@@ -295,6 +295,16 @@ public class NodeVarRef extends Node
 	} // end levels
     }
 
+    // is this variable $super ?
+    public boolean isSuper ()
+    {
+        if (type != LOCAL) return false;
+        if (levels.size() > 1) return false;
+        VarLevel v = (VarLevel) levels.getFirst();
+        return (v.var.equals("super") &&
+                v.derefs.size() == 0);
+    }
+
     public void asPerl (BackendPerl bp, Indenter o) 
     {
 	ListIterator li = levels.listIterator();
@@ -313,7 +323,10 @@ public class NodeVarRef extends Node
 	    if (! first || type == OBJECT) { 
 		o.write("->{'" + lev.var + "'}");
 	    } else {
-		o.write(lev.var);
+                String v = lev.var;
+                if (first && type == LOCAL && lev.var.equals("super"))
+                    v = "this";
+		o.write(v);
 		first = false;
 	    }
 	    

@@ -709,13 +709,16 @@ public class NodeTerm extends Node
                     o.write(bp.getLayerID());
 		    o.write(",");
                     o.write(derefLine);
+                    if (var.isSuper()) {
+                        o.write(",1");
+                    } 
 		    o.write(")}->");
 		} else if (type == METHCALL || callFromSet) {
                     o.write("$_ctx->[VTABLE]->{get_func_num(");
                     o.write(bp.quoteString(funcID));
                     o.write(")}->");
 		} else {
-		    o.write("$_ctx->[VTABLE]->{$_l2g_func{"+funcNum+"}}->");
+		    o.write("$_ctx->[VTABLE]->{$_l2g_func["+funcNum+"]}->");
 		}
 	    }
 
