@@ -79,11 +79,6 @@ sub getType {
 
     if ($type == $BOOL) { return $S2::Type::BOOL; }
 
-    if ($type == $DEFINEDTEST) {
-        print STDERR "FIXME: check type of defined expression\n";
-        return $S2::Type::BOOL;
-    }
-
     if ($type == $SIZEFUNC) {
         $this->{'subType'} = $this->{'subExpr'}->getType($ck);
         return $S2::Type::INT if
@@ -108,34 +103,35 @@ sub getType {
             "at " . $this->getFilePos->toString . "\n";
     }
 
-    if ($type == $ISNULLFUNC) {
+    if ($type == $ISNULLFUNC || $type == $DEFINEDTEST) {
+        my $op = ($type == $ISNULLFUNC) ? "isnull" : "defined";
         $this->{'subType'} = $this->{'subExpr'}->getType($ck);
 
         if ($this->{'subExpr'}->isa('S2::NodeTerm')) {
             my $nt = $this->{'subExpr'};
             if ($nt->{'type'} != $VARREF && $nt->{'type'} != $FUNCCALL &&
                 $nt->{'type'} != $METHCALL) {
-                die("isnull must only be used on an object variable, ".
+                die("$op must only be used on an object variable, ".
                     "function call or method call at ".$this->getFilePos->toString . "\n");
             }
         } else {
-            die("isnull must only be used on an object variable, ".
+            die("$op must only be used on an object variable, ".
                 "function call or method call at ".$this->getFilePos->toString . "\n");
         }
 
         # can't be used on arrays and hashes
         unless ($this->{'subType'}->isSimple()) {
-            die("Can't use isnull on an array or hash at " . $this->getFilePos->toString . "\n");
+            die("Can't use $op on an array or hash at " . $this->getFilePos->toString . "\n");
         }
         
         # not primitive types either
         if ($this->{'subType'}->isPrimitive()) {
-            die("Can't use isnull on primitive types at ".$this->getFilePos->toString . "\n");
+            die("Can't use $op on primitive types at ".$this->getFilePos->toString . "\n");
         }
         
         # nor void
         if ($this->{'subType'}->equals($S2::Type::VOID)) {
-            die("Can't use isnull on a void value at ".$this->getFilePos->toString . "\n");
+            die("Can't use $op on a void value at ".$this->getFilePos->toString . "\n");
         }
         
         return $S2::Type::BOOL;
