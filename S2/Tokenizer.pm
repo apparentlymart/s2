@@ -83,7 +83,7 @@ sub getPos # () method : FilePos
 {
     my $this = shift;
     return new S2::FilePos($this->{'sc'}->{'line'},
-                                    $this->{'sc'}->{'col'});
+                           $this->{'sc'}->{'col'});
 }
 
 sub makeToken # () method private : Token

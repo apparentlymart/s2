@@ -1,0 +1,169 @@
+#!/usr/bin/perl
+#
+
+package S2::Node;
+
+use strict;
+
+sub new {
+    my ($class) = @_;
+    my $node = {
+        'startPos' => undef,
+        'tokenlist' => [],
+    };
+    bless $node, $class;
+}
+
+sub setStart {
+    my ($this, $arg) = @_;
+    if (isa($arg, 'S2::Token')) {
+        $this->{'startPos'} =
+            $arg->getFilePos()->clone();
+    } elsif (isa($arg, 'S2::FilePos')) {
+        $this->{'startPos'} =
+            $arg->clone();
+    } else {
+        die "Unexpected argument.\n";
+    }
+}
+
+sub check {
+    my ($this, $l, $ck) = @_;
+    die "FIXME: check not implemented for $this\n";
+}
+
+sub asHTML {
+    my ($this, $o) = @_;
+    foreach my $el (@{$this->{'tokenlist'}}) {
+        # $el is an S2::Token or S2::Node
+        $el->asHTML($o);
+    }
+}
+
+sub asS2 {
+    my ($this, $o) = @_;
+    $o->tabwriteln("###$this:::asS2###");
+}
+
+sub asPerl {
+    my ($this, $bp, $o) = @_;
+    $o->tabwriteln("###$this:::asPerl###");
+}
+
+sub setTokenlist {
+    my ($this, $newlist) = @_;
+    $this->{'tokenlist'} = $newlist;
+}
+
+sub addNode {
+    my ($this, $subnode) = @_;
+    push @{$this->{'tokenlist'}}, $subnode;
+}
+
+sub addToken {
+    my ($this, $t) = @_;
+    push @{$this->{'tokenlist'}}, $t;
+}
+
+sub eatToken {
+    my ($this, $toker, $ignoreSpace) = @_;
+    $ignoreSpace = 1 unless defined $ignoreSpace;
+    my $t = $toker->getToken();
+    $this->addToken($t);
+    if ($ignoreSpace) {
+        $this->skipWhite($toker);
+    }
+}
+
+sub requireToken {
+    my ($this, $toker, $t, $ignoreSpace) = @_;
+    $ignoreSpace = 1 unless defined $ignoreSpace;
+    if ($ignoreSpace) { $this->skipWhite($toker); }
+    
+    my $next = $toker->getToken();
+    die "Unexpected end of file found\n" unless $next;
+
+    unless ($next == $t) {
+        die("Unexpected token found at " . $toker->locationString() . "\n" .
+            "Expecting: " . $t->toString() . "\nGot: " . $next->toString() . "\n");
+    }
+    $this->addToken($next);
+    if ($ignoreSpace) { $this->skipWhite($toker); }
+    return $next;
+}
+
+sub getStringLiteral {
+    my ($this, $toker, $ignoreSpace) = @_;
+    $ignoreSpace = 1 unless defined $ignoreSpace;
+    if ($ignoreSpace) { $this->skipWhite($toker); }
+
+    my $t = $toker->getToken();
+    die "Expected string literal at " . $t->getFilePos()->toString()
+        unless isa($t, "S2::TokenStringLiteral");
+    
+    $this->addToken($t);
+    return $t;
+}
+
+sub getIdent {
+    my ($this, $toker, $addToList, $ignoreSpace) = @_;
+    $addToList = 1 unless defined $addToList;
+    $ignoreSpace = 1 unless defined $ignoreSpace;
+    
+    my $id = $toker->peek();
+    unless (isa($id, "S2::TokenIdent")) {
+        die "Expected identifier at " . $id->getFilePos()->toString() . "\n";
+    }
+    if ($addToList) {
+        $this->eatToken($toker, $ignoreSpace);
+    }
+    return $id;
+}
+
+sub skipWhite {
+    my ($this, $toker) = @_;
+    while (my $next = $toker->peek()) {
+        return if $next->isNecessary();
+        $this->addToken($toker->getToken());
+    }
+}
+
+sub getFilePos {
+    my ($this) = @_;
+
+    # most nodes should set their position
+    return $this->{'startPos'} if $this->{'startPos'};
+
+    # if the node didn't record its position, try to figure it out
+    # from where the first token is at
+    my $el = $this->{'tokenlist'}->[0];
+    return $el->getFilePos() if $el;
+    return undef;
+}
+
+sub getType {
+    my ($this, $ck, $wanted) = @_;
+    die "FIXME: getType(ck) not implemented in $this\n";
+}
+
+# kinda a crappy part to put this, perhaps.  but all expr
+# nodes don't inherit from NodeExpr.  maybe they should?
+sub isLValue {
+    my ($this) = @_;
+    # hack:  only NodeTerms inside NodeExprs can be true
+    if (isa($this, 'S2::NodeExpr')) {
+        my $n = $this->getExpr();
+        if (isa($n, 'S2::NodeTerm')) {
+            return $n->isLValue();
+        }
+    }
+    return 0;
+}
+
+sub makeAsString {
+    my ($this, $ck) = @_;
+    die "Node::makeAsString() on $this\n";
+}
+
+
+1;
