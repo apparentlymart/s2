@@ -24,6 +24,8 @@ public class NodeVarRef extends Node
     boolean braced;
     int type = LOCAL;
 
+    boolean useAsString = false;
+
     public static boolean canStart (Tokenizer toker) throws Exception
     {
 	if (toker.peek().equals(TokenPunct.DOLLAR))
@@ -146,6 +148,20 @@ public class NodeVarRef extends Node
 	    return false;
 	Deref d = (Deref) l.derefs.getLast();
 	return d.type == '{';	
+    }
+
+    public Type getType (Checker ck, Type wanted) throws Exception
+    {
+        Type t = getType(ck);
+        if (wanted == null) return t;
+        if (wanted != Type.STRING) return t;
+
+        String type = t.toString();
+        if (ck.classHasAsString(type)) {
+            useAsString = true;
+            return Type.STRING;
+        }
+        return t;
     }
 
     public Type getType (Checker ck) throws Exception
@@ -313,6 +329,10 @@ public class NodeVarRef extends Node
 		if (d.type == '{') { o.write("}"); }
 	    }
 	} // end levels
+
+        if (useAsString) {
+            o.write("->{'as_string'}");
+        }
     }
 
 };

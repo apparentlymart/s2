@@ -12,6 +12,7 @@ public class NodeTerm extends Node
 
     public final static int STRING = 2;
     TokenStringLiteral tokStr;
+    Node nodeString;
 
     public final static int BOOL = 3;
     boolean boolValue;
@@ -70,8 +71,18 @@ public class NodeTerm extends Node
 
     public Type getType (Checker ck) throws Exception
     {
+        return getType(ck, null);
+    }
+
+    public Type getType (Checker ck, Type wanted) throws Exception
+    {
 	if (type == INTEGER) return Type.INT;
-	if (type == STRING)  return Type.STRING;
+	if (type == STRING) {
+            if (nodeString != null) {
+                return nodeString.getType(ck, Type.STRING);
+            }
+            return Type.STRING;
+        }
 	if (type == SUBEXPR) return subExpr.getType(ck);
 	if (type == BOOL) return Type.BOOL;
 
@@ -149,7 +160,7 @@ public class NodeTerm extends Node
 	}
 
 	if (type == VARREF) {
-	    return var.getType(ck);
+	    return var.getType(ck, wanted);
 	}
 
 	if (type == METHCALL || type == FUNCCALL) {
@@ -361,7 +372,11 @@ public class NodeTerm extends Node
             
             lhs.setTokenList(toklist);
             lhs.setStart(filepos);
-            return lhs;
+
+            NodeTerm rnt = new NodeTerm();
+            rnt.type = NodeTerm.STRING;
+            rnt.nodeString = lhs;
+            return rnt;
 	}
 
 	// Sub-expression (in parenthesis)
@@ -528,6 +543,12 @@ public class NodeTerm extends Node
 	    return;
 	}
 	if (type == STRING) {
+            if (nodeString != null) {
+                o.write("(");
+                nodeString.asPerl(bp, o);
+                o.write(")");
+                return;
+            }
 	    tokStr.asPerl(bp, o);
 	    return;
 	}
