@@ -22,6 +22,7 @@ my $layertype;
 
 my $opt_untrusted = 0;
 my ($opt_core, $opt_layout);
+my $outfile;
 
 exit usage() unless
     GetOptions("output=s" => \$output,
@@ -30,6 +31,7 @@ exit usage() unless
                "core=s" => \$opt_core,
                "layout=s" => \$opt_layout,
                "untrusted" => \$opt_untrusted,
+               "outfile=s" => \$outfile,
                );
 
 exit usage() unless @ARGV == 1;
@@ -96,7 +98,14 @@ if ($@) {
     die "Compile error: $@\n";
 }
 
-print $compiled;
+if (defined $outfile) {
+    open(OUT,'>',$outfile);
+    print OUT $compiled;
+    close(OUT);
+}
+else {
+    print $compiled;
+}
 exit 0;
 
 ###################### functions
@@ -133,19 +142,20 @@ sub makeLayer {
 
 sub usage {
     print STDERR <<'USAGE';
-Usage: 
-   s2compile [opts]* <file>
+Usage: s2compile [opts]* <file>
+
 Options:
    --output <format>     One of: perl, html, s2, tokens
    --layertype <type>    One of: core, i18nc, layout, theme, i18n, user
    --core <filename>     Core S2 file, if layertype after core
    --layout <filename>   Layout S2 file, if compiling layer after layout
+   --outfile <filename>  Optional file to write result to instead of stdout
 
 Perl output options:
    --layerid <int>       Set layerID for database
    --untrusted           Source is from untrusted user; do safe (slow) prints
 
-Any file args can be '-' to read from STDIN, ending with ^D
+Any input file args can be '-' to read from STDIN, ending with ^D
 USAGE
 
    return 1;
