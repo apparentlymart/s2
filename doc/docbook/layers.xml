@@ -75,6 +75,16 @@
           <entry />
         </row>
         <row>
+          <entry>Define <function>builtin</function> functions/methods</entry>
+          <entry>X</entry>
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+          <entry />
+        </row>
+
+        <row>
           <entry>Define global functions</entry>
           <entry>X</entry>
           <entry />
@@ -84,10 +94,11 @@
           <entry />
         </row>
         <row>
-          <entry>Define <function>builtin</function> functions/methods</entry>
+          <entry>Define class methods</entry>
           <entry>X</entry>
           <entry />
-          <entry />
+          <entry>X<footnote><para>
+Layouts adding methods to classes must prefix the method name with <function>lay_</function> to avoid future namespace collisions should the core layer expand.</para></footnote></entry>
           <entry />
           <entry />
           <entry />
@@ -96,7 +107,7 @@
           <entry>Define properties</entry>
           <entry>X</entry>
           <entry />
-          <entry />
+          <entry>X</entry>
           <entry />
           <entry />
           <entry />
