@@ -83,8 +83,9 @@ sub getType {
         $this->{'subType'} = $this->{'subExpr'}->getType($ck);
         return $S2::Type::INT if
             $this->{'subType'}->isArrayOf() ||
+            $this->{'subType'}->isHashOf() ||
             $this->{'subType'}->equals($S2::Type::STRING);
-        die "Can't use size on expression that's not a string or array ".
+        die "Can't use size on expression that's not a string, hash or array ".
             "at " . $this->getFilePos->toString . "\n";
     }
 
@@ -511,6 +512,10 @@ sub asPerl {
     if ($type == $SIZEFUNC) {
         if ($this->{'subType'}->isArrayOf()) {
             $o->write("scalar(\@{");
+            $this->{'subExpr'}->asPerl($bp, $o);
+            $o->write("})");
+        } elsif ($this->{'subType'}->isHashOf()) {
+            $o->write("scalar(keys \%{");
             $this->{'subExpr'}->asPerl($bp, $o);
             $o->write("})");
         } elsif ($this->{'subType'}->equals($S2::Type::STRING)) {
