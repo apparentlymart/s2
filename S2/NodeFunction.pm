@@ -108,11 +108,12 @@ sub check {
     # (builtin functions are okay)
     $ck->setHitFunction(1) unless $this->{'builtin'};
     
+    my $funcName = $this->{'name'}->getIdent();
     my $cname = $this->className();
-    my $funcID = S2::Checker::functionID($cname, $this->{'name'}->getIdent(), $this->{'formals'});
+    my $funcID = S2::Checker::functionID($cname, $funcName, $this->{'formals'});
     my $t = $this->getReturnType();
 
-    if ($cname && $cname eq $this->{'name'}->getIdent()) {
+    if ($cname && $cname eq $funcName) {
         $this->{'isCtor'} = 1;
     }
 
@@ -127,7 +128,8 @@ sub check {
         }
 
         my $et = $ck->functionType($funcID);
-        unless ($et) {
+        unless ($et || ($l->getType() eq "layout" &&
+                        $funcName =~ /^lay_/)) {
             S2::error($this, "Can't define undeclared object function $funcID");
         }
 
