@@ -63,6 +63,8 @@ sub toString {
                       @{$this->{'listFormals'}}) . ")";
 }
 
+sub getFormals { shift->{'listFormals'}; }
+
 # FIXME: much not converted yet
 
 

@@ -166,9 +166,9 @@ sub getDerClasses {
 
 # TODO: public void setFuncDistance
 
-sub getFuncIDsIter {
+sub getFuncIDs {
     my ($this, $nf) = @_;
-    die;
+    return [ sort keys %{$this->{'funcIDs'}} ];
 }
 
 # per function

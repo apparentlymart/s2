@@ -477,143 +477,141 @@ sub asPerl {
         return;
     }
 
-    die "Incomplete";
-}
-
-__END__
-
-        if (type == ARRAY) {
-            subExpr.asPerl(bp, o);
-            return;
-        }
-	if (type == NEW) {
-	    o.write("{'_type'=>" +
-		    bp.quoteString(newClass.getIdent())+
-		    "}");
-	    return;
-	}
-	if (type == NEWNULL) {
-	    o.write("{'_type'=>" +
-		    bp.quoteString(newClass.getIdent())+
-		    ", '_isnull'=>1}");
-	    return;
-	}
-	if (type == DEFINEDTEST) {
-	    o.write("defined(");
-	    subExpr.asPerl(bp, o);
-	    o.write(")");
-	    return;
-	}
-	if (type == REVERSEFUNC) {
-	    if (subType.isArrayOf()) {
-		o.write("[reverse(");
-		o.write("@{");
-		subExpr.asPerl(bp, o);
-		o.write("})");
-		o.write("]");
-	    } else if (subType.equals(Type.STRING)) {
-		o.write("reverse(");
-		subExpr.asPerl(bp, o);
-		o.write(")");
-	    }
-	    return;
-	}
-	if (type == SIZEFUNC) {
-	    if (subType.equals(Type.STRING)) {
-		o.write("length(");
-		subExpr.asPerl(bp, o);
-		o.write(")");
-	    }
-	    else if (subType.isArrayOf()) {
-		o.write("scalar(@{");
-		subExpr.asPerl(bp, o);
-		o.write("})");
-	    }
-	    return;
-	}
-	if (type == ISNULLFUNC) {
-	    o.write("(ref ");
-	    subExpr.asPerl(bp, o);
-            o.write(" ne \"HASH\" || ");
-	    subExpr.asPerl(bp, o);
-	    o.write("->{'_isnull'})");
-	    return;
-	}
-	if (type == VARREF) {
-	    var.asPerl(bp, o);
-	    return;
-	}
-
-	if (type == FUNCCALL || type == METHCALL) {
-
-	    boolean funcDumped = false;
-
-	    // builtin functions can be optimized.
-	    if (funcBuiltin) {
-		// these built-in functions can be inlined.
-		if (funcID.equals("string(int)")) {
-		    funcArgs.asPerl(bp, o, false);
-		    return;
-		}
-		if (funcID.equals("int(string)")) {
-		    // cast from string to int by adding zero to it
-		    o.write("(0+");
-		    funcArgs.asPerl(bp, o, false);
-		    o.write(")");
-		    return;
-		}
-
-		// otherwise, call the builtin function (avoid a layer
-		// of indirection), unless it's for a class that has
-		// children (won't know until run-time which class to call)
-		if(funcClass == null || (funcClass != null && ! parentMethod)) {
-		    o.write("S2::Builtin::");
-		    if (funcClass != null) {
-			o.write(funcClass + "__");
-		    }
-		    o.write(funcIdent.getIdent());
-		    funcDumped = true;
-		}
-	    }
-
-	    if (funcDumped == false) {
-		if (type == METHCALL && ! funcClass.equals("string")) {
-		    o.write("$_ctx->[VTABLE]->{get_object_func_num(");
-		    o.write(bp.quoteString(funcClass));
-		    o.write(",");
-                    var.asPerl(bp, o);
-		    o.write(",");
-		    o.write(bp.quoteString(funcID_noclass));
-		    o.write(",");
-                    o.write(bp.getLayerID());
-		    o.write(",");
-                    o.write(derefLine);
-                    if (var.isSuper()) {
-                        o.write(",1");
-                    }
-		    o.write(")}->");
-		} else if (type == METHCALL || callFromSet) {
-                    o.write("$_ctx->[VTABLE]->{get_func_num(");
-                    o.write(bp.quoteString(funcID));
-                    o.write(")}->");
-		} else {
-		    o.write("$_ctx->[VTABLE]->{$_l2g_func["+funcNum+"]}->");
-		}
-	    }
-
-	    o.write("($_ctx, ");
-
-	    // this pointer
-	    if (type == METHCALL) {
-		var.asPerl(bp, o);
-		o.write(", ");
-	    }
-
-	    funcArgs.asPerl(bp, o, false);
-
-	    o.write(")");
-	    return;
-	}
+    if ($type == $ARRAY) {
+        $this->{'subExpr'}->asPerl($bp, $o);
+        return;
     }
+
+    if ($type == $NEW) {
+        $o->write("{'_type'=>" .
+                  $bp->quoteString($this->{'newClass'}->getIdent()) .
+                  "}");
+        return;
+    }
+
+    if ($type == $NEWNULL) {
+        $o->write("{'_type'=>" .
+                  $bp->quoteString($this->{'newClass'}->getIdent()) .
+                  ", '_isnull'=>1}}");
+        return;
+    }
+
+    # FIXME: defined vs. null?  should have opposite semantics?
+    # really, what does defined() mean for S2?  perl implementation
+    # is to use hashes even for null values.  stupid.
+    if ($type == $DEFINEDTEST) {
+        $o->write("defined(");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write(")");
+        return;
+    }
+
+    if ($type == $REVERSEFUNC) {
+        if ($this->{'subType'}->isArrayOf()) {
+            $o->write("[reverse(@{");
+            $this->{'subExpr'}->asPerl($bp, $o);
+            $o->write("})]");
+        } elsif ($this->{'subType'}->equals($S2::Type::STRING)) {
+            $o->write("reverse(");
+            $this->{'subExpr'}->asPerl($bp, $o);
+            $o->write(")");
+        }
+        return;
+    }
+
+    if ($type == $SIZEFUNC) {
+        if ($this->{'subType'}->isArrayOf()) {
+            $o->write("scalar(@{");
+            $this->{'subExpr'}->asPerl($bp, $o);
+            $o->write("})");
+        } elsif ($this->{'subType'}->equals($S2::Type::STRING)) {
+            $o->write("length(");
+            $this->{'subExpr'}->asPerl($bp, $o);
+            $o->write(")");
+        }
+        return;
+    }
+
+    if ($type == $ISNULLFUNC) {
+        $o->write("(ref ");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write(" ne \"HASH\" || ");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write("->{'_isnull'})");
+        return;
+    }
+
+    if ($type == $VARREF) {
+        $this->{'var'}->asPerl($bp, $o);
+        return;
+    }
+
+    if ($type == $FUNCCALL || $type == $METHCALL) {
+
+        # builtin functions can be optimized.
+        if ($this->{'funcBuiltin'}) {
+            # these built-in functions can be inlined.
+            if ($this->{'funcID'} eq "string(int)") {
+                $this->{'funcArgs'}->asPerl($bp, $o, 0);
+                return;
+            }
+            if ($this->{'funcID'} eq "int(string)") {
+                # cast from string to int by adding zero to it
+                $o->write("int(");
+                $this->{'funcArgs'}->asPerl($bp, $o, 0);
+                $o->write(")");
+                return;
+            }
+
+            # otherwise, call the builtin function (avoid a layer
+            # of indirection), unless it's for a class that has
+            # children (won't know until run-time which class to call)
+
+            $o->write("S2::Builtin::");
+            if ($this->{'funcClass'}) {
+                $o->write("$this->{'funcClass'}__");
+            }
+            $o->write($this->{'funcIdent'}->getIdent());
+        } else {
+            if ($type == $METHCALL && $this->{'funcClass'} ne "string") {
+                $o->write("\$_ctx->[VTABLE]->{get_object_func_num(");
+                $o->write($bp->quoteString($this->{'funcClass'}));
+                $o->write(",");
+                $this->{'var'}->asPerl($bp, $o);
+                $o->write(",");
+                $o->write($bp->quoteString($this->{'funcID_noclass'}));
+                $o->write(",");
+                $o->write($bp->getLayerID());
+                $o->write(",");
+                $o->write($this->{'derefLine'});
+                if ($this->{'var'}->isSuper()) {
+                    $o->write(",1");
+                }
+                $o->write(")}->");
+            } elsif ($type == $METHCALL) {
+                $o->write("\$_ctx->[VTABLE]->{get_func_num(");
+                $o->write($bp->quoteString($this->{'funcID'}));
+                $o->write(")}->");
+            } else {
+                $o->write("\$_ctx->[VTABLE]->{\$_l2g_func[$this->{'funcNum'}]}->");
+            }
+        }
+
+        $o->write("(\$_ctx, ");
+        
+        # this pointer
+        if ($type == $METHCALL) {
+            $this->{'var'}->asPerl($bp, $o);
+            $o->write(", ");
+        }
+        
+        $this->{'funcArgs'}->asPerl($bp, $o, 0);
+        
+        $o->write(")");
+        return;
+    }
+
+    die "Unknown term type";
+}
 
 
