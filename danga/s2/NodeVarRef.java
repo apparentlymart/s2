@@ -163,7 +163,10 @@ public class NodeVarRef extends Node
 	    if (levels.size() > 1 || lev.derefs.size() > 0) {
 		throw new Exception("Malformed property variable at "+getFilePos());
 	    }
-	    return ck.propertyType(lev.var);
+            Type t = ck.propertyType(lev.var);
+            if (t == null)
+                throw new Exception("Unknown property at "+getFilePos());
+	    return t;
 	}
 
 	// local variables.
