@@ -52,6 +52,7 @@
   <para>The following table summarizes what each layer type is permitted to do:</para>
   <informaltable frame='all'>
     <tgroup cols='7' align='center' colsep='1' rowsep='1'>
+      <colspec align="left" />
       <thead>
         <row>
           <entry></entry>
