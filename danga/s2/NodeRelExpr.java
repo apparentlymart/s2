@@ -48,7 +48,7 @@ public class NodeRelExpr extends Node
 	    myType = lt;
 	    return Type.BOOL;
 	}
-	throw new Exception ("Only bool, string, and int types can be compared at "+
+	throw new Exception ("Only string and int types can be compared at "+
 			     getFilePos());
     }
     
