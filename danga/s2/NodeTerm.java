@@ -3,7 +3,7 @@ package danga.s2;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class NodeTerm extends Node
+public class NodeTerm extends NodeExpr
 {
     int type = 0;
 
@@ -101,15 +101,10 @@ public class NodeTerm extends Node
 	}
 	if (type == SIZEFUNC) {
 	    subType = subExpr.getType(ck);
-
-	    // reverse a string
 	    if (subType.equals(Type.STRING))
 		return Type.INT;
-
-	    // reverse an array
 	    if (subType.isArrayOf())
 		return Type.INT;
-
 	    // complain
 	    throw new Exception("Can't use size on expression that's "+
 				"not a string or array at "+getFilePos());
@@ -133,8 +128,8 @@ public class NodeTerm extends Node
 
         if (type == ISNULLFUNC) {
             subType = subExpr.getType(ck);
-	    if (subExpr.expr instanceof NodeTerm) {
-                NodeTerm nt = (NodeTerm) subExpr.expr;
+	    if (subExpr instanceof NodeTerm) {
+                NodeTerm nt = (NodeTerm) subExpr;
                 if (nt.type != VARREF && nt.type != FUNCCALL && nt.type != METHCALL)
                     throw new Exception("isnull must only be used on an object variable, "+
                                         "function call or method call at "+getFilePos());
@@ -395,7 +390,7 @@ public class NodeTerm extends Node
 	if (t.equals(TokenKeyword.DEFINED)) {
 	    nt.type = NodeTerm.DEFINEDTEST;
 	    nt.eatToken(toker);
-	    nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
+	    nt.subExpr = (NodeTerm) NodeTerm.parse(toker);
 	    nt.addNode(nt.subExpr);
 	    return nt;
 	}
@@ -404,7 +399,7 @@ public class NodeTerm extends Node
 	if (t.equals(TokenKeyword.REVERSE)) {
 	    nt.type = NodeTerm.REVERSEFUNC;
 	    nt.eatToken(toker);
-	    nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
+	    nt.subExpr = (NodeTerm) NodeTerm.parse(toker);
 	    nt.addNode(nt.subExpr);
 	    return nt;
 	}
@@ -413,7 +408,7 @@ public class NodeTerm extends Node
         if (t.equals(TokenKeyword.SIZE)) {
             nt.type = NodeTerm.SIZEFUNC;
             nt.eatToken(toker);
-            nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
+            nt.subExpr = (NodeTerm) NodeTerm.parse(toker);
             nt.addNode(nt.subExpr);
             return nt;
         }
@@ -422,7 +417,7 @@ public class NodeTerm extends Node
         if (t.equals(TokenKeyword.ISNULL)) {
             nt.type = NodeTerm.ISNULLFUNC;
             nt.eatToken(toker);
-            nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
+            nt.subExpr = (NodeTerm) NodeTerm.parse(toker);
             nt.addNode(nt.subExpr);
             return nt;
         }
