@@ -47,53 +47,52 @@ class s2compile
 	    return;
         }
 
-        String layertype = (String) hargs.get("layertype");
-        if (layertype == null) {
-            System.err.println("Unspecified layertype.");
-            return;
-        }
-
+        String layertype = null;
 	Checker ck = null;
         Layer layerMain;
 
         // TODO: respect cmdline option to pre-load serialized checker to
         //       avoid having to make one by reparsing source of core[+layout]
 
-        if (layertype.equals("core")) {
+        if (format.equals("html") || format.equals("s2")) {
+            ck = null;
+        } else {
             ck = new Checker();
-        }
-        else if (layertype.equals("i18nc") || layertype.equals("layout")) {
-            if (ck == null) {
-                ck = new Checker();
+            layertype = (String) hargs.get("layertype");
+            if (layertype == null) {
+                System.err.println("Unspecified layertype.");
+                return;
+            } else if (layertype.equals("core")) {
+                // nothing.
+            }
+            else if (layertype.equals("i18nc") || layertype.equals("layout")) {
                 makeLayer((String) hargs.get("core"), "core", ck);
             }
-        }
-        else if (layertype.equals("theme") || layertype.equals("i18n") ||
-                 layertype.equals("user")) {
-            if (ck == null) {
-                ck = new Checker();
+            else if (layertype.equals("theme") || layertype.equals("i18n") ||
+                     layertype.equals("user")) {
                 makeLayer((String) hargs.get("core"), "core", ck);
                 makeLayer((String) hargs.get("layout"), "layout", ck);
             }
+            else {
+                System.err.println("Invalid layertype.");
+                return;
+            }
         }
-        else {
-            System.err.println("Invalid layertype.");
-            return;
-        }
-        layerMain = makeLayer(filename, layertype, ck);
 
+        layerMain = makeLayer(filename, layertype, ck);
+        
         topLayerName = layerMain.getLayerInfo("name");
         topLayerType = layerMain.type;
-
-	Output o = new OutputConsole();
-	Backend be = null;
-
-	if (format.equals("html"))
-	    be = new BackendHTML(layerMain);
-
-	if (format.equals("s2"))
-	    be = new BackendS2(layerMain);
-
+        
+        Output o = new OutputConsole();
+        Backend be = null;
+        
+        if (format.equals("html"))
+            be = new BackendHTML(layerMain);
+        
+        if (format.equals("s2"))
+            be = new BackendS2(layerMain);
+        
 	if (format.equals("perl")) {
             int layerid = 0;
             try {
@@ -111,6 +110,7 @@ class s2compile
 	}
 
 	be.output(o);
+        o.flush();
 	return;
     }
 
@@ -138,11 +138,13 @@ class s2compile
         if (filename == null) {
             throw new Exception("Undefined filename for "+type+" layer.");
         }
-	Tokenizer toker = new Tokenizer(getInputStream(filename));
+
+        Tokenizer toker = new Tokenizer(getInputStream(filename));
 	Layer s2l = new Layer(toker, type);
 	// now check the layer, since it must have parsed fine (otherwise
 	// the Layer constructor would have thrown an exception
-	ck.checkLayer(s2l);
+        if (ck != null)
+            ck.checkLayer(s2l);
 	return s2l;
     }
 }

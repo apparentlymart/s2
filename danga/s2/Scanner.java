@@ -1,24 +1,36 @@
 package danga.s2;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 
 public class Scanner
 {
     public int line;
     public int col;
 
-    InputStream is;
+    BufferedReader is;
     
     boolean havePeeked;
     char peekedChar;
     boolean fakeNewline = false;
 
+    boolean bogusInput = false;
+
     public Scanner (InputStream is)
     {
-	this.is = is;
+        try {
+            this.is = new BufferedReader(new InputStreamReader(is, "UTF-8"), 4096);
+        } catch (Exception e) {
+            System.err.println("Scanner Error: "+e);
+        }
 	line = 1;
 	col = 1;
 	havePeeked = false;
+    }
+
+    public boolean getBogusFlag() {
+        return bogusInput;
     }
 
     public char peek ()
@@ -32,6 +44,7 @@ public class Scanner
 	    peekedChar = (char) is.read();
             if (peekedChar == (char) 0) peekedChar = (char) -1;
 	} catch (Exception e) {
+            bogusInput = true;
 	    peekedChar = (char) -1;
 	}
 

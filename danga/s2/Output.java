@@ -17,4 +17,6 @@ public abstract class Output {
 	newline();
     }
     public abstract void newline ();
+
+    public void flush () { }
 }
