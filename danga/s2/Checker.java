@@ -19,6 +19,7 @@ public class Checker
     private Type returnType;
     private String funcClass;       // current function class
     private Hashtable derclass;     // classname  -> LinkedList<classname>
+    private boolean inFunction;     // checking in a function now?
 
     // per-layer
     private Hashtable funcDist;     // FuncID -> [ distance, NodeFunction ]
@@ -94,7 +95,6 @@ public class Checker
 	    throw new Exception("Can't override function '" + funcid + "' with new "+
 				"return type.");
 	}
-	
 	funcs.put(funcid, t);
 	funcBuiltin.put(funcid, new Boolean(builtin));
     }
@@ -106,12 +106,33 @@ public class Checker
 	return b == null ? false : b.booleanValue();
     }
 
+    // returns true if there's a string -> t class constructor
+    public boolean isStringCtor (Type t) {
+        if (t == null) return false;
+        if (! t.isSimple()) return false;
+        String cname = t.baseType();
+        String ctorid = cname+"::"+cname+"(string)";
+        Type rt = functionType(ctorid);
+        if (rt == null || ! rt.isSimple() || ! rt.baseType().equals(cname) ||
+            ! isFuncBuiltin(ctorid))
+            return false;
+        return true;
+    }
+
     // setting/getting the current function class we're in
     public void setCurrentFunctionClass (String f) {
 	funcClass = f;
     }
     public String getCurrentFunctionClass () {
 	return funcClass;
+    }
+
+    // setting/getting whether in a function now
+    public void setInFunction (boolean in) {
+	inFunction = in;
+    }
+    public boolean getInFunction () {
+        return inFunction;
     }
 
     // variable lookup

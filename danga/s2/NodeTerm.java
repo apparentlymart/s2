@@ -13,6 +13,7 @@ public class NodeTerm extends Node
     public final static int STRING = 2;
     TokenStringLiteral tokStr;
     Node nodeString;
+    String ctorclass;  // if not null, then we're not a string, but calling a class ctor with a string
 
     public final static int BOOL = 3;
     boolean boolValue;
@@ -48,6 +49,8 @@ public class NodeTerm extends Node
     String funcID_noclass;
     int funcNum;    // used by perl backend for function vtables
 
+    public final static int ARRAY = 14;
+
     public static boolean canStart (Tokenizer toker) throws Exception
     {
 	Token t = toker.peek();
@@ -63,7 +66,9 @@ public class NodeTerm extends Node
 	    t.equals(TokenKeyword.SIZE) ||
 	    t.equals(TokenKeyword.REVERSE) ||
 	    t.equals(TokenKeyword.ISNULL) ||
-	    t.equals(TokenKeyword.NEWNULL)
+	    t.equals(TokenKeyword.NEWNULL) ||
+	    t.equals(TokenPunct.LBRACK) ||
+	    t.equals(TokenPunct.LBRACE)
 	    )
 	    return true;
 	return false;
@@ -80,6 +85,10 @@ public class NodeTerm extends Node
 	if (type == STRING) {
             if (nodeString != null) {
                 return nodeString.getType(ck, Type.STRING);
+            }
+            if (ck.isStringCtor(wanted)) {
+                ctorclass = wanted.baseType();
+                return wanted;
             }
             return Type.STRING;
         }
@@ -160,10 +169,16 @@ public class NodeTerm extends Node
 	}
 
 	if (type == VARREF) {
+            if (! ck.getInFunction()) {
+                throw new Exception("Can't reference a variable outside of a function at "+getFilePos());
+            }
 	    return var.getType(ck, wanted);
 	}
 
 	if (type == METHCALL || type == FUNCCALL) {
+            if (! ck.getInFunction()) {
+                throw new Exception("Can't call a function or method outside of a function at "+getFilePos());
+            }
 
 	    // find the classname of the variable the method was being called on
 	    if (type == METHCALL) {
@@ -203,6 +218,10 @@ public class NodeTerm extends Node
 	    }
 	    return t;
 	}
+        
+        if (type == ARRAY) {
+            return subExpr.getType(ck, wanted);
+        }
 
 	throw new Exception("ERROR: unknown NodeTerm type at "+getFilePos());
     }
@@ -463,6 +482,13 @@ public class NodeTerm extends Node
 
 	    return nt;
 	}
+        
+        // array/hash literal
+        if (NodeArrayLiteral.canStart(toker)) {
+            nt.type = ARRAY;
+            nt.subExpr = (NodeExpr) NodeArrayLiteral.parse(toker);
+            return nt;
+        }
 
 	throw new Exception("Can't finish parsing NodeTerm at " +
 			    toker.locationString() +
@@ -476,6 +502,10 @@ public class NodeTerm extends Node
 	    return;
 	}
 	if (type == STRING) {
+            if (nodeString != null) {
+                nodeString.asS2(o);
+                return;
+            }
 	    tokStr.asS2(o);
 	    return;
 	}
@@ -534,6 +564,10 @@ public class NodeTerm extends Node
 	}
 	if (type == VARREF || type == METHCALL || type == FUNCCALL)
 	    return;
+        if (type == ARRAY) {
+            subExpr.asS2(o);
+            return;
+        }
     }
 
     public void asPerl (BackendPerl bp, Indenter o)
@@ -549,7 +583,11 @@ public class NodeTerm extends Node
                 o.write(")");
                 return;
             }
+            if (ctorclass != null)
+                o.write("S2::Builtin::"+ctorclass+"__"+ctorclass+"(");
 	    tokStr.asPerl(bp, o);
+            if (ctorclass != null)
+                o.write(")");
 	    return;
 	}
 	if (type == BOOL) {
@@ -565,6 +603,10 @@ public class NodeTerm extends Node
 	    o.write(")");
 	    return;
 	}
+        if (type == ARRAY) {
+            subExpr.asPerl(bp, o);
+            return;
+        }
 	if (type == NEW) {
 	    o.write("{'_type'=>" +
 		    bp.quoteString(newClass.getIdent())+

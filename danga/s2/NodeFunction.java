@@ -95,6 +95,7 @@ public class NodeFunction extends Node
     {
 	// keep a reference to the checker for later
 	this.ck = ck;
+        ck.setInFunction(true);
 
 	// reset the functionID -> local funcNum mappings
 	ck.resetFunctionNums();

@@ -6,8 +6,6 @@ public class NodeAssignExpr extends Node
     TokenPunct op;
     Node rhs;
 
-    boolean rhsCtor;  // right hand side is a constructor
-    String ctorId;
     boolean builtin;
     String baseType;    
     
@@ -53,26 +51,19 @@ public class NodeAssignExpr extends Node
 	    throw new Exception("Left-hand side of assignment at "+getFilePos()+
 				" must be an lvalue.");
 	}
-	if (! ck.typeIsa(rt, lt)) {
-	    // types don't match, but maybe class for left hand side has
-	    // a constructor which takes a string.
-	    if (lt.isSimple() && rt.equals(Type.STRING)) {
-		baseType = lt.baseType();
-		ctorId = baseType+"::"+baseType+"(string)";
-		Type et = ck.functionType(ctorId);
-		builtin = ck.isFuncBuiltin(ctorId);
-		if (et != null && et.equals(lt)) {
-		    // there's a good constructor, so change right hand side
-		    // later to call that constructor instead
-		    rhsCtor = true;
-		    return lt;
-		}
-	    }
-	    throw new Exception("Can't assign type "+rt+" to "+lt+" at "+
-				getFilePos());
-	}
 
-	return lt;
+	if (ck.typeIsa(rt, lt))
+            return lt;
+
+        // types don't match, but maybe class for left hand side has
+        // a constructor which takes a string.
+        if (rt.equals(Type.STRING) && ck.isStringCtor(lt)) {
+            rt = rhs.getType(ck, lt);
+            if (lt.equals(rt)) return lt;
+        }
+        
+        throw new Exception("Can't assign type "+rt+" to "+lt+" at "+
+                            getFilePos());
     }
 
     public void asS2 (Indenter o) 
@@ -89,19 +80,7 @@ public class NodeAssignExpr extends Node
 	lhs.asPerl(bp, o);
 	if (op != null) {
 	    o.write(" = ");
-	    if (! rhsCtor) {
-		rhs.asPerl(bp, o);
-	    } else {
-		if (builtin) {
-		    o.write("S2::Builtin::"+baseType+"__"+baseType+
-			    "($_ctx, ");
-		} else {
-		    o.write("$_ctx->[VTABLE]->{get_func_num("+
-			    bp.quoteString(ctorId) + ")}->($_ctx, ");
-		}
-		rhs.asPerl(bp, o);
-		o.write(")");
-	    }
+            rhs.asPerl(bp, o);
 	}
     }
 

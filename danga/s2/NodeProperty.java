@@ -110,11 +110,6 @@ public class NodeProperty extends Node
 				"' at " + getFilePos());
 	}
 
-	if (! type.isSimple()) {
-	    throw new Exception("Properties must be scalars, not arrays or hashes "+
-				"at "+nt.getFilePos());
-	}
-
         String basetype = type.baseType();
         if (! Type.isPrimitive(basetype) && ck.getClass(basetype) == null) {
             throw new Exception("Can't define a property of an unknown class "+
