@@ -30,12 +30,14 @@ class TokenKeyword extends TokenIdent {
     public final static TokenKeyword FALSE     = new TokenKeyword("false");
     public final static TokenKeyword REVERSE   = new TokenKeyword("reverse");
     public final static TokenKeyword SIZE      = new TokenKeyword("size");
-    
+    public final static TokenKeyword ISNULL    = new TokenKeyword("isnull");
+    public final static TokenKeyword NEWNULL    = new TokenKeyword("null");
+
     static TokenKeyword[] keywords = {
-	CLASS, ELSE, ELSEIF, FUNCTION, IF, BUILTIN, PROPERTY, SET, 
+	CLASS, ELSE, ELSEIF, FUNCTION, IF, BUILTIN, PROPERTY, SET,
 	STATIC, VAR, WHILE, FOREACH, PRINT, PRINTLN, NEW, TRUE, FALSE,
 	NOT, AND, OR, XOR, LAYERINFO, EXTENDS, RETURN, DELETE, DEFINED,
-	REVERSE, SIZE
+	REVERSE, SIZE, ISNULL, NEWNULL
     };
 
     public TokenKeyword () {
@@ -59,9 +61,9 @@ class TokenKeyword extends TokenIdent {
 	return ("[TokenKeyword] = " + ident);
     }
 
-    public void asHTML (Output o) 
+    public void asHTML (Output o)
     {
-	o.write("<b><font color=" + BackendHTML.KeywordColor + ">" + 
+	o.write("<b><font color=" + BackendHTML.KeywordColor + ">" +
 		ident + "</font></b>");
     }
 

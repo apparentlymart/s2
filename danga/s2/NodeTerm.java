@@ -23,27 +23,30 @@ public class NodeTerm extends Node
     public final static int DEFINEDTEST = 6;
     public final static int SIZEFUNC = 7;
     public final static int REVERSEFUNC = 8;
+    public final static int ISNULLFUNC = 12;
     NodeExpr subExpr;
     Type subType;      // for backend, set by getType()
 
     public final static int NEW = 9;
+    public final static int NEWNULL = 13; // Like NEW, but sets object to be null
     TokenIdent newClass;
 
     public final static int FUNCCALL = 10;
     public final static int METHCALL = 11;
+    int derefLine;      // keep track of where we saw the deref token
     TokenIdent funcIdent;
     String funcClass;      // null or classname of the method call
     NodeArguments funcArgs;
-    boolean funcBuiltin;   // is this function call a builtin?  
+    boolean funcBuiltin;   // is this function call a builtin?
                            // (if so, don't use vtable)
     boolean parentMethod;  // is this a method call on a super class?  if so,
                            // can't optimize method call since instance class won't
                            // necessarily be known until run-time (without a lot of analysis)
-    boolean callFromSet;    // if so, then lookup by funcID, if 
+    boolean callFromSet;    // if so, then lookup by funcID, if
     String funcID;         // used by backend; set after getType()
-    String funcID_noclass; 
+    String funcID_noclass;
     int funcNum;    // used by perl backend for function vtables
-    
+
     public static boolean canStart (Tokenizer toker) throws Exception
     {
 	Token t = toker.peek();
@@ -57,10 +60,12 @@ public class NodeTerm extends Node
 	    t.equals(TokenKeyword.FALSE) ||
 	    t.equals(TokenKeyword.NEW) ||
 	    t.equals(TokenKeyword.SIZE) ||
-	    t.equals(TokenKeyword.REVERSE)
+	    t.equals(TokenKeyword.REVERSE) ||
+	    t.equals(TokenKeyword.ISNULL) ||
+	    t.equals(TokenKeyword.NEWNULL)
 	    )
 	    return true;
-	return false;    
+	return false;
     }
 
     public Type getType (Checker ck) throws Exception
@@ -78,7 +83,7 @@ public class NodeTerm extends Node
 	    subType = subExpr.getType(ck);
 
 	    // reverse a string
-	    if (subType.equals(Type.STRING)) 
+	    if (subType.equals(Type.STRING))
 		return Type.INT;
 
 	    // reverse an array
@@ -94,7 +99,7 @@ public class NodeTerm extends Node
 	    subType = subExpr.getType(ck);
 
 	    // reverse a string
-	    if (subType.equals(Type.STRING)) 
+	    if (subType.equals(Type.STRING))
 		return Type.STRING;
 
 	    // reverse an array
@@ -105,8 +110,35 @@ public class NodeTerm extends Node
 	    throw new Exception("Can't use reverse on expression that's "+
 				"not a string or array at "+getFilePos());
 	}
-	
-	if (type == NEW) {
+
+        if (type == ISNULLFUNC) {
+            subType = subExpr.getType(ck);
+	    if (subExpr.expr instanceof NodeTerm) {
+                NodeTerm nt = (NodeTerm) subExpr.expr;
+                if (nt.type != VARREF && nt.type != FUNCCALL && nt.type != METHCALL)
+                    throw new Exception("isnull must only be used on an object variable, "+
+                                        "function call or method call at "+getFilePos());
+	    } else {
+                throw new Exception("isnull must only be used on an object variable, "+
+                                    "function call or method call at "+getFilePos());
+	    }
+
+            // can't be used on arrays and hashes
+            if (subType.isArrayOf() || subType.isHashOf())
+                throw new Exception("Can't use isnull on an array or hash at "+getFilePos());
+
+            // not primitive types either
+            if (subType.equals(Type.BOOL) || subType.equals(Type.STRING) || subType.equals(Type.INT))
+                throw new Exception("Can't use isnull on primitive types at "+getFilePos());
+
+            // nor void
+            if (subType.equals(Type.VOID))
+                throw new Exception("Can't use isnull on a void value at "+getFilePos());
+
+            return Type.BOOL;
+        }
+
+	if (type == NEW || type == NEWNULL) {
 	    String clas = newClass.getIdent();
 	    NodeClass nc = ck.getClass(clas);
 	    if (nc == null) {
@@ -137,10 +169,10 @@ public class NodeTerm extends Node
 					"undefined class at "+getFilePos());
 		}
 
-		if (ck.hasDerClasses(funcClass)) 
+		if (ck.hasDerClasses(funcClass))
 		    parentMethod = true;
 	    }
-	    
+
 	    funcID = Checker.functionID(funcClass, funcIdent.getIdent(),
 					funcArgs.typeList(ck));
 	    funcBuiltin = ck.isFuncBuiltin(funcID);
@@ -152,19 +184,19 @@ public class NodeTerm extends Node
 						funcArgs.typeList(ck));
 
 	    Type t = ck.functionType(funcID);
-	    if (! funcBuiltin) 
+	    if (! funcBuiltin)
 		funcNum = ck.functionNum(funcID);
 	    if (t == null) {
 	      throw new Exception("Unknown function "+funcID+" at "+
 				  funcIdent.getFilePos());
-	    } 
+	    }
 	    return t;
 	}
 
-	throw new Exception("ERROR: unknown NodeTerm type");	
+	throw new Exception("ERROR: unknown NodeTerm type at "+getFilePos());
     }
-    
-    public boolean isLValue () 
+
+    public boolean isLValue ()
     {
 	if (type == VARREF) return true;
 	if (type == SUBEXPR) {
@@ -188,15 +220,15 @@ public class NodeTerm extends Node
 			type = METHCALL;
 			funcIdent = new TokenIdent("toString");
 			funcClass = bt;
-			funcArgs = (NodeArguments) 
+			funcArgs = (NodeArguments)
 			    NodeArguments.makeEmptyArgs();
 			funcID_noclass = "toString()";
 			funcID = bt + "::" + funcID_noclass;
 			funcBuiltin = ck.isFuncBuiltin(funcID);
 			funcNum = ck.functionNum(funcID);
-			if (ck.hasDerClasses(funcClass)) 
+			if (ck.hasDerClasses(funcClass))
 			    parentMethod = true;
-	
+
 			return true;
 		    }
 
@@ -232,7 +264,7 @@ public class NodeTerm extends Node
 	nt.tokStr = new TokenStringLiteral(val);
 	return nt;
     }
-    
+
     public static Node parse (Tokenizer toker) throws Exception
     {
 	NodeTerm nt = new NodeTerm();
@@ -242,7 +274,7 @@ public class NodeTerm extends Node
 	// integer literal
 	if (t instanceof TokenIntegerLiteral) {
 	    nt.type = NodeTerm.INTEGER;
-	    nt.tokInt = (TokenIntegerLiteral) nt.eatToken(toker);	    
+	    nt.tokInt = (TokenIntegerLiteral) nt.eatToken(toker);
 	    return nt;
 	}
 
@@ -305,7 +337,7 @@ public class NodeTerm extends Node
 		    // don't make a sum out of a blank string on either side
 		    boolean join = true;
 		    if (lhs instanceof NodeTerm) {
-			NodeTerm lhst = (NodeTerm) lhs;			
+			NodeTerm lhst = (NodeTerm) lhs;
 			if (lhst.type == STRING &&
 			    lhst.tokStr.getString().length() == 0) {
 			    lhs = rhs;
@@ -326,14 +358,14 @@ public class NodeTerm extends Node
 
 		lhs.setTokenList(toklist);
 		return lhs;
-	    } 
+	    }
 	}
 
 	// Sub-expression (in parenthesis)
 	if (t.equals(TokenPunct.LPAREN)) {
 	    nt.type = NodeTerm.SUBEXPR;
 	    nt.setStart(nt.eatToken(toker));
-	    
+
 	    nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
 	    nt.addNode(nt.subExpr);
 
@@ -360,17 +392,26 @@ public class NodeTerm extends Node
 	}
 
 	// size function
-	if (t.equals(TokenKeyword.SIZE)) {
-	    nt.type = NodeTerm.SIZEFUNC;
-	    nt.eatToken(toker);
-	    nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
-	    nt.addNode(nt.subExpr);
-	    return nt;
-	}
+        if (t.equals(TokenKeyword.SIZE)) {
+            nt.type = NodeTerm.SIZEFUNC;
+            nt.eatToken(toker);
+            nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
+            nt.addNode(nt.subExpr);
+            return nt;
+        }
 
-	// new 
-	if (t.equals(TokenKeyword.NEW)) {
-	    nt.type = NodeTerm.NEW;
+        // isnull function
+        if (t.equals(TokenKeyword.ISNULL)) {
+            nt.type = NodeTerm.ISNULLFUNC;
+            nt.eatToken(toker);
+            nt.subExpr = (NodeExpr) NodeExpr.parse(toker);
+            nt.addNode(nt.subExpr);
+            return nt;
+        }
+
+	// new and null
+	if (t.equals(TokenKeyword.NEW) || t.equals(TokenKeyword.NEWNULL)) {
+	    nt.type = (t.equals(TokenKeyword.NEW) ? NodeTerm.NEW : NodeTerm.NEWNULL);
 	    nt.eatToken(toker);
 	    nt.newClass = nt.getIdent(toker);
 	    return nt;
@@ -384,11 +425,13 @@ public class NodeTerm extends Node
 
 	    // check for -> after, like: $object->method(arg1, arg2, ...)
 	    if (toker.peek().equals(TokenPunct.DEREF)) {
+                nt.derefLine = toker.peek().getFilePos().line;
+                
 		nt.eatToken(toker);
 		nt.type = METHCALL;
 		// don't return... parsing continues below.
 	    } else {
-		return nt;	    
+		return nt;
 	    }
 	}
 
@@ -400,11 +443,11 @@ public class NodeTerm extends Node
 	    nt.funcArgs = (NodeArguments) NodeArguments.parse(toker);
 	    nt.addNode(nt.funcArgs);
 
-	    return nt;	    
+	    return nt;
 	}
-	
+
 	throw new Exception("Can't finish parsing NodeTerm at " +
-			    toker.locationString() + 
+			    toker.locationString() +
 			    ", toker.peek() = " + t.toString());
     }
 
@@ -419,7 +462,7 @@ public class NodeTerm extends Node
 	    return;
 	}
 	if (type == BOOL) {
-	    if (boolValue) 
+	    if (boolValue)
 		o.write("true");
 	    else
 		o.write("false");
@@ -436,6 +479,11 @@ public class NodeTerm extends Node
 	    o.write(newClass.getIdent());
 	    return;
 	}
+        if (type == NEWNULL) {
+            o.write("null ");
+            o.write(newClass.getIdent());
+            return;
+        }
 	if (type == DEFINEDTEST) {
 	    o.write("defined ");
 	    subExpr.asS2(o);
@@ -446,11 +494,16 @@ public class NodeTerm extends Node
 	    subExpr.asS2(o);
 	    return;
 	}
-	if (type == REVERSEFUNC) {
-	    o.write("reverse ");
-	    subExpr.asS2(o);
-	    return;
-	}
+        if (type == REVERSEFUNC) {
+            o.write("reverse ");
+            subExpr.asS2(o);
+            return;
+        }
+        if (type == ISNULLFUNC) {
+            o.write("isnull ");
+            subExpr.asS2(o);
+            return;
+        }
 	if (type == VARREF || type == METHCALL) {
 	    var.asS2(o);
 	}
@@ -476,7 +529,7 @@ public class NodeTerm extends Node
 	    return;
 	}
 	if (type == BOOL) {
-	    if (boolValue) 
+	    if (boolValue)
 		o.write("1");
 	    else
 		o.write("0");
@@ -492,6 +545,12 @@ public class NodeTerm extends Node
 	    o.write("{'_type'=>" +
 		    bp.quoteString(newClass.getIdent())+
 		    "}");
+	    return;
+	}
+	if (type == NEWNULL) {
+	    o.write("{'_type'=>" +
+		    bp.quoteString(newClass.getIdent())+
+		    ", '_isnull'=>1}");
 	    return;
 	}
 	if (type == DEFINEDTEST) {
@@ -519,12 +578,20 @@ public class NodeTerm extends Node
 		o.write("length(");
 		subExpr.asPerl(bp, o);
 		o.write(")");
-	    } 
+	    }
 	    else if (subType.isArrayOf()) {
 		o.write("scalar(@{");
 		subExpr.asPerl(bp, o);
 		o.write("})");
 	    }
+	    return;
+	}
+	if (type == ISNULLFUNC) {
+	    o.write("(ref ");
+	    subExpr.asPerl(bp, o);
+            o.write(" ne \"HASH\" || ");
+	    subExpr.asPerl(bp, o);
+	    o.write("->{'_isnull'})");
 	    return;
 	}
 	if (type == VARREF) {
@@ -563,18 +630,24 @@ public class NodeTerm extends Node
 		    funcDumped = true;
 		}
 	    }
-	    
+
 	    if (funcDumped == false) {
-		if (callFromSet) {
-		    o.write("$_ctx->[VTABLE]->{get_func_num(");
-		    o.write(bp.quoteString(funcID));
+		if (type == METHCALL && ! funcClass.equals("string")) {
+		    o.write("$_ctx->[VTABLE]->{get_object_func_num(");
+		    o.write(bp.quoteString(funcClass));
+		    o.write(",");
+                    var.asPerl(bp, o);
+		    o.write(",");
+		    o.write(bp.quoteString(funcID_noclass));
+		    o.write(",");
+                    o.write(bp.getLayerID());
+		    o.write(",");
+                    o.write(derefLine);
 		    o.write(")}->");
-		} else if (parentMethod) {
-		    o.write("$_ctx->[VTABLE]->{get_func_num(");
-		    var.asPerl(bp, o);
-		    o.write("->{'_type'}.");
-		    o.write(bp.quoteString("::"+funcID_noclass));
-		    o.write(")}->");
+		} else if (type == METHCALL || callFromSet) {
+                    o.write("$_ctx->[VTABLE]->{get_func_num(");
+                    o.write(bp.quoteString(funcID));
+                    o.write(")}->");
 		} else {
 		    o.write("$_ctx->[VTABLE]->{$_l2g_func{"+funcNum+"}}->");
 		}
@@ -594,6 +667,6 @@ public class NodeTerm extends Node
 	    return;
 	}
     }
-    
+
 
 }

@@ -197,12 +197,12 @@ sub run_code
 {
     my ($ctx, $entry, @args) = @_;
     my $fnum = get_func_num($entry);
-    my $entry = $ctx->[VTABLE]->{$fnum};
-    unless (ref $entry eq "CODE") {
+    my $code = $ctx->[VTABLE]->{$fnum};
+    unless (ref $code eq "CODE") {
         die "S2::run_code: Undefined function $entry";
     }
     eval {
-        $entry->($ctx, @args);
+        $code->($ctx, @args);
     };
     if ($@) {
         die "Died in S2::run_code running $entry: $@\n";
@@ -223,8 +223,17 @@ sub get_func_num
     my $num = $funcnum{$name};
     return $num if $num;
 
-    my $error = "S2::get_func_num: Undefined function $name";
-    die $error;
+    die "S2::get_func_num: Undefined function $name\n";
+}
+
+sub get_object_func_num
+{
+    my ($type, $inst, $func, $s2lid, $s2line) = @_;
+    if (ref $inst ne "HASH" || $ref->{'_isnull'}) {
+        die "Method called on null $type object at layer \#$s2lid, line $s2line.\n";
+    }
+    $type = $inst->{'_type'};
+    return get_func_num("${type}::$func");
 }
 
 # Called by NodeForeachStmt

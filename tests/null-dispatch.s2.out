@@ -1,0 +1,3 @@
+Maple grows.
+Tree grows.
+ERROR: Died in S2::run_code running main(): Method called on null Tree object at layer #1, line 19.
