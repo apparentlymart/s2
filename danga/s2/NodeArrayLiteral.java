@@ -59,6 +59,7 @@ public class NodeArrayLiteral extends NodeExpr
             if (nal.isHash) {
                 NodeExpr ne = (NodeExpr) NodeExpr.parse(toker);
                 nal.keys.add(ne);
+                nal.addNode(ne);
 
                 nal.requireToken(toker, TokenPunct.HASSOC);
 
