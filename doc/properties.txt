@@ -4,8 +4,8 @@ attributes on properties:
 
 Required for all types:
 
-     des = description of property
-
+     des = description of property (short)
+ 
 Optional for all types:
 
 	 values = acceptable values with accompanying descriptions in form
@@ -13,6 +13,7 @@ Optional for all types:
          example = example value to be shown in italics when it's not obvious what
                    the value should be like.
          paidonly = need a paid account to set this property, otherwise default.
+         note = further note explaining the property
 
 Optional for type 'int':
 

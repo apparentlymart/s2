@@ -66,7 +66,7 @@ public class NodeTerm extends NodeExpr
 	    t.equals(TokenKeyword.SIZE) ||
 	    t.equals(TokenKeyword.REVERSE) ||
 	    t.equals(TokenKeyword.ISNULL) ||
-	    t.equals(TokenKeyword.NEWNULL) ||
+	    t.equals(TokenKeyword.NULL) ||
 	    t.equals(TokenPunct.LBRACK) ||
 	    t.equals(TokenPunct.LBRACE)
 	    )
@@ -423,7 +423,7 @@ public class NodeTerm extends NodeExpr
         }
 
 	// new and null
-	if (t.equals(TokenKeyword.NEW) || t.equals(TokenKeyword.NEWNULL)) {
+	if (t.equals(TokenKeyword.NEW) || t.equals(TokenKeyword.NULL)) {
 	    nt.type = (t.equals(TokenKeyword.NEW) ? NodeTerm.NEW : NodeTerm.NEWNULL);
 	    nt.eatToken(toker);
 	    nt.newClass = nt.getIdent(toker);
