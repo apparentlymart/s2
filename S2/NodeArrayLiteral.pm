@@ -33,67 +33,121 @@ sub parse {
 
     my $nal = new S2::NodeArrayLiteral;
 
-        Token t = toker.peek();	
-        if (t.equals(TokenPunct.LBRACK)) {
-            nal.isArray = true;
-            nal.setStart(nal.requireToken(toker, TokenPunct.LBRACK));
-        } else {
-            nal.isHash = true;
-            nal.setStart(nal.requireToken(toker, TokenPunct.LBRACE));
-        }
+    my $t = $toker->peek();	
+    if ($t == $S2::TokenPunct::LBRACK) {
+        $nal->{'isArray'} = 1;
+        $nal->setStart($nal->requireToken($toker, $S2::TokenPunct::LBRACK));
+    } else {
+        $nal->{'isHash'} = 1;
+        $nal->setStart($nal->requireToken($toker, $S2::TokenPunct::LBRACE));
+    }
         
-        boolean need_comma = false;
-        while (true) {
-            t = toker.peek();
+    my $need_comma = 0;
+    while (1) {
+        $t = $toker->peek();
 
-            // find the ends
-            if (nal.isArray && t.equals(TokenPunct.RBRACK)) {
-                nal.requireToken(toker, TokenPunct.RBRACK);
-                return nal;
-            }
-            if (nal.isHash && t.equals(TokenPunct.RBRACE)) {
-                nal.requireToken(toker, TokenPunct.RBRACE);
-                return nal;
-            }
-
-            if (need_comma) {
-                throw new Exception("Expecting comma at "+toker.getPos());
-            }
-
-            if (nal.isArray) {
-                NodeExpr ne = (NodeExpr) NodeExpr.parse(toker);
-                nal.vals.add(ne);
-                nal.addNode(ne);
-            }
-            if (nal.isHash) {
-                NodeExpr ne = (NodeExpr) NodeExpr.parse(toker);
-                nal.keys.add(ne);
-                nal.addNode(ne);
-
-                nal.requireToken(toker, TokenPunct.HASSOC);
-
-                ne = (NodeExpr) NodeExpr.parse(toker);
-                nal.vals.add(ne);
-                nal.addNode(ne);
-            }
-
-            need_comma = true;
-            if (toker.peek().equals(TokenPunct.COMMA)) {
-                nal.requireToken(toker, TokenPunct.COMMA);
-                need_comma = false;
-            }
+        # find the ends
+        if ($nal->{'isArray'} && $t == $S2::TokenPunct::RBRACK) {
+            $nal->requireToken($toker, $S2::TokenPunct::RBRACK);
+            return $nal;
         }
+        if ($nal->{'isHash'} && $t == $S2::TokenPunct::RBRACE) {
+            $nal->requireToken($toker, $S2::TokenPunct::RBRACE);
+            return $nal;
+        }
+
+        S2::error($t, "Expecting comma") if $need_comma;
+
+        if ($nal->{'isArray'}) {
+            my $ne = S2::NodeExpr->parse($toker);
+            push @{$nal->{'vals'}}, $ne;
+            $nal->addNode($ne);
+        } elsif ($nal->{'isHash'}) {
+            my $ne = S2::NodeExpr->parse($toker);
+            push @{$nal->{'keys'}}, $ne;
+            $nal->addNode($ne);
+
+            $nal->requireToken($toker, $S2::TokenPunct::HASSOC);
+
+            $ne = S2::NodeExpr->parse($toker);
+            push @{$nal->{'vals'}}, $ne;
+            $nal->addNode($ne);
+        }
+
+        $need_comma = 1;
+        if ($toker->peek() == $S2::TokenPunct::COMMA) {
+            $nal->requireToken($toker, $S2::TokenPunct::COMMA);
+            $need_comma = 0;
+        }
+    }
     
     
 }
 
+sub getType {
+    my ($this, $ck, $wanted) = @_;
+
+    # in case of empty array [] or hash {}, the type is what they wanted,
+    # if they wanted something, otherwise void[] or void{}
+    my $t;
+    my $vals = scalar @{$this->{'vals'}};
+    unless ($vals) {
+        return $wanted if $wanted;
+        $t = new S2::Type("void");
+        $t->makeArrayOf() if $this->{'isArray'};
+        $t->makeHashOf() if $this->{'isHash'};
+        return $t;
+    }
+
+    $t = $this->{'vals'}->[0]->getType($ck)->clone();
+    for (my $i=1; $i<$vals; $i++) {
+        my $next = $this->{'vals'}->[$i]->getType($ck);
+        next if $t->equals($next);
+        S2::error($this, "Hash/array literal with inconsistent types: ".
+                  "starts with ". $t->toString .", but then has ".
+                  $next->toString);
+    }
+    
+    if ($this->{'isHash'}) {
+        for (my $i=0; $i<$vals; $i++) {
+            my $t = $this->{'keys'}->[$i]->getType($ck);
+            next if $t->equals($S2::Type::STRING) ||
+                $t->equals($S2::Type::INT);
+            S2::error($this, "Hash keys must be strings or ints.");
+        }        
+    }
+
+    $t->makeArrayOf() if $this->{'isArray'};
+    $t->makeHashOf() if $this->{'isHash'};
+    return $t;
+}    
+
+sub asS2 {
+    my ($this, $o) = @_;
+    die "Not ported.";
+}
+
+sub asPerl {
+    my ($this, $bp, $o) = @_;
+
+    $o->writeln($this->{'isArray'} ? "[" : "{");
+    $o->tabIn();
+
+    my $size = scalar @{$this->{'vals'}};
+    for (my $i=0; $i<$size; $i++) {
+        $o->tabwrite("");
+        if ($this->{'isHash'}) {
+            $this->{'keys'}->[$i]->asPerl($bp, $o);
+            $o->write(" => ");
+        }
+        $this->{'vals'}->[$i]->asPerl($bp, $o);
+        $o->writeln(",");
+    }
+    $o->tabOut();
+    $o->tabwrite($this->{'isArray'} ? "]" : "}");
+}
+
 __END__
-
-package danga.s2;
-
-import java.util.LinkedList;
-import java.util.ListIterator;
-
 
     public void asS2 (Indenter o)
     {
@@ -117,64 +171,3 @@ import java.util.ListIterator;
 	o.tabwrite(isArray ? "]" : "}");
     }
 
-    public Type getType (Checker ck, Type wanted) throws Exception
-    {
-        // in case of empty array [] or hash {}, the type is what they wanted,
-        // if they wanted something, otherwise void[] or void{}
-        Type t;
-	if (vals.size() == 0) {
-            if (wanted != null) return wanted;
-            t = new Type("void");
-            if (isArray) t.makeArrayOf();
-            if (isHash) t.makeHashOf();
-            return t;
-        }
-
-        ListIterator liv = vals.listIterator();
-        ListIterator lik = keys.listIterator();
-        
-        t = (Type) ((Node) liv.next()).getType(ck).clone();
-        while (liv.hasNext()) {
-            Node n = (Node) liv.next();
-            Type next = n.getType(ck);
-            if (! t.equals(next)) {
-                throw new Exception("Array literal with inconsistent types: "+
-                                    "starts with "+t+", but then has "+next+" at "+
-                                    n.getFilePos());
-            }
-        }
-
-        if (isArray) t.makeArrayOf();
-        if (isHash) t.makeHashOf();
-        return t;
-    }    
-
-    public Type getType (Checker ck) throws Exception
-    {
-	return getType(ck, null);
-    }    
-
-    public void asPerl (BackendPerl bp, Indenter o)
-    {
-	o.writeln(isArray ? "[" : "{");
-        o.tabIn();
-        ListIterator liv = vals.listIterator();
-        ListIterator lik = keys.listIterator();
-        Node n;
-        while (liv.hasNext()) {
-            o.tabwrite("");
-            if (isHash) {
-                n = (Node) lik.next();
-                n.asPerl(bp, o);
-                o.write(" => ");
-            }
-            n = (Node) liv.next();
-            n.asPerl(bp, o);
-            o.writeln(",");
-        }
-        o.tabOut();
-	o.tabwrite(isArray ? "]" : "}");
-
-    }
-
-};

@@ -492,7 +492,7 @@ sub asPerl {
     if ($type == $NEWNULL) {
         $o->write("{'_type'=>" .
                   $bp->quoteString($this->{'newClass'}->getIdent()) .
-                  ", '_isnull'=>1}}");
+                  ", '_isnull'=>1}");
         return;
     }
 
@@ -508,7 +508,7 @@ sub asPerl {
 
     if ($type == $REVERSEFUNC) {
         if ($this->{'subType'}->isArrayOf()) {
-            $o->write("[reverse(@{");
+            $o->write("[reverse(\@{");
             $this->{'subExpr'}->asPerl($bp, $o);
             $o->write("})]");
         } elsif ($this->{'subType'}->equals($S2::Type::STRING)) {

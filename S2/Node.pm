@@ -87,8 +87,8 @@ sub requireToken {
 
     unless ($next == $t) {
         S2::error(undef, "internal error") unless $t;
-        die("Unexpected token found at " . $toker->locationString() . "\n" .
-            "Expecting: " . $t->toString() . "\nGot: " . $next->toString() . "\n");
+        S2::error($next, "Unexpected token found.  ".
+                  "Expecting: " . $t->toString() . "\nGot: " . $next->toString());
     }
     $this->addToken($next);
     if ($ignoreSpace) { $this->skipWhite($toker); }

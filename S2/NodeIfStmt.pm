@@ -94,9 +94,33 @@ sub check {
 
 sub asS2 {
     my ($this, $o) = @_;
+    die "Unported";
 }
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
+
+    # if
+    $o->tabwrite("if (");
+    $this->{'expr'}->asPerl($bp, $o);
+    $o->write(") ");
+    $this->{'thenblock'}->asPerl($bp, $o);
+	
+    # else-if
+    my $i = 0;
+    foreach my $expr (@{$this->{'elseifexprs'}}) {
+        my $block = $this->{'elseifblocks'}->[$i++];
+        $o->write(" elsif (");
+        $expr->asPerl($bp, $o);
+        $o->write(") ");
+        $block->asPerl($bp, $o);
+    }
+
+    # else
+    if ($this->{'elseblock'}) {
+        $o->write(" else ");
+        $this->{'elseblock'}->asPerl($bp, $o);
+    }
+    $o->newline();
 }
 
