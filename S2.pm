@@ -128,6 +128,13 @@ sub set_layer_info
     $layerinfo{$lid}->{$key} = $val;
 }
 
+sub get_layer_info
+{
+    my ($lid, $key) = @_;
+    return undef unless $layerinfo{$lid};
+    return $key ? $layerinfo{$lid}->{$key} : %{$layerinfo{$lid}};
+}
+
 sub register_property
 {
     my ($lid, $propname, $props) = @_;
