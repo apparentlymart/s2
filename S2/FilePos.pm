@@ -25,7 +25,7 @@ sub clone
 sub locationString
 {
     my $this = shift;
-    return "S2 line $this->[0], column $this->[1]";
+    return "line $this->[0], column $this->[1]";
 }
 
 sub toString
