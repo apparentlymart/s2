@@ -197,11 +197,15 @@ sub run_code
 {
     my ($ctx, $entry, @args) = @_;
     my $fnum = get_func_num($entry);
+    my $entry = $ctx->[VTABLE]->{$fnum};
+    unless (ref $entry eq "CODE") {
+        die "S2::run_code: Undefined function $entry";
+    }
     eval {
-        $ctx->[VTABLE]->{$fnum}->($ctx, @args);
+        $entry->($ctx, @args);
     };
     if ($@) {
-        die "Died in S2::run_code running $entry(@args): $@\n";
+        die "Died in S2::run_code running $entry: $@\n";
     }
     return 1;
 }
@@ -216,8 +220,11 @@ sub register_func_num
 sub get_func_num
 {
     my $name = shift;
-    return ($funcnum{$name} || die "Undefined function: $name\n");
+    my $num = $funcnum{$name};
+    return $num if $num;
 
+    my $error = "S2::get_func_num: Undefined function $name";
+    die $error;
 }
 
 # Called by NodeForeachStmt
