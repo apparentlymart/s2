@@ -19,6 +19,7 @@ public class NodeVarDeclStmt extends Node
 	if (toker.peek().equals(TokenPunct.ASSIGN)) {
 	    n.eatToken(toker);
 	    n.expr = (NodeExpr) NodeExpr.parse(toker);
+            n.addNode(n.expr);
 	}
 	n.requireToken(toker, TokenPunct.SCOLON);
 

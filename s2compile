@@ -1,5 +1,5 @@
 #!/usr/bin/perl
 #
 
-system($ENV{'JAVABIN'} || "java", "-jar", 
-       "s2compile.jar", @ARGV);
+exec($ENV{'JAVABIN'} || "java", "-jar", 
+     "$ENV{'FBHOME'}/src/s2/s2compile.jar", @ARGV);
