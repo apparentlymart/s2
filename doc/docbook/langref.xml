@@ -1,8 +1,169 @@
 <title>Language Reference</title>
+
+<section id='&s2.idroot;langref.literals'>
+  <title>Literals</title>
+  <para>S2 supports integer, string, boolean, array and hash literals:</para>
+  <variablelist>
+    <varlistentry>
+      <term><parameter>123</parameter></term>
+      <listitem><simpara>Integer literal representing the number <literal>one hundred and twenty three</literal>.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><parameter>"Blah blah blah"</parameter></term>
+      <listitem><simpara>Simple string literal. Variables are interpolated and escape sequences are processed.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><parameter>"""string with "quotes" in it"""</parameter></term>
+      <listitem><simpara>Triple-quote string literal. Quotes can occur within with no escaping for one or two consecutive characters. Variables are interpolated and escape sequences are processed.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><parameter>true</parameter> &amp; <parameter>false</parameter></term>
+      <listitem><simpara>The two boolean literals.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><parameter>[ item, item, item, item ]</parameter></term>
+      <listitem><simpara>Array literal. All items must be of the same type, and this literal will return an array of that type. Trailing commas are fine, if you want to include them.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><parameter>{ key => value, key => value, key => value }</parameter></term>
+      <listitem><simpara>Array literal. All <quote>key</quote> items must be strings, and all <quote>value</quote> items must be of the same type. This literal will return a hash of that type.</simpara></listitem>
+    </varlistentry>
+  </variablelist>
+  <para>The following escape sequences are supported in strings:</para>
+  <variablelist>
+    <varlistentry>
+      <term><literal>\n</literal></term>
+      <listitem><simpara>Newline</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>\"</literal></term>
+      <listitem><simpara>Literal quote</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>\\</literal></term>
+      <listitem><simpara>Literal backslash</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>\$</literal></term>
+      <listitem><simpara>Literal dollarsign</simpara></listitem>
+    </varlistentry>
+  </variablelist>
+</section>
+
+<section id='&s2.idroot;langref.variables'>
+  <title>Variables</title>
+  <para>S2 supports several primitive types, as well as regular and associative arrays and objects based on classes.</para>
+  <section id='&s2.idroot;langref.variables.types'>
+    <title>Variable Types</title>
+    <para>S2 has the following primitive types:</para>
+  <variablelist>
+    <varlistentry>
+      <term><literal>int</literal></term>
+      <listitem><simpara>An integer</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>bool</literal></term>
+      <listitem><simpara>A boolean (true/false) value</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>string</literal></term>
+      <listitem><simpara>A string</simpara></listitem>
+    </varlistentry>
+    </variablelist>
+  </section>
+  <section id='&s2.idroot;langref.variables.declaration'>
+    <title>Declaration</title>    
+  <variablelist>
+    <varlistentry>
+      <term><literal>var int somenumber;</literal></term>
+      <listitem><simpara>Declare a simple variable named somenumber as an integer.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>var string[] names</literal></term>
+      <listitem><simpara>Declare a regular array of strings called names.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>var bool{} has_stuff</literal></term>
+      <listitem><simpara>Declare an associative array of boolean values called has_stuff.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>var SomeClass[] stuffs</literal></term>
+      <listitem><simpara>Declare a regular array of the class SomeClass and name it stuffs.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>var SomeClass{} stuffs</literal></term>
+      <listitem><simpara>Declare an associative array of the class SomeClass and name it stuffs.</simpara></listitem>
+    </varlistentry>
+    </variablelist>
+  </section>
+  <section id='&s2.idroot;langref.variables.access'>
+    <title>Access</title>
+  <variablelist>
+    <varlistentry>
+      <term><literal>$variable</literal></term>
+      <listitem><simpara>Returns the value stored in the variable, or reference to the regular or associative array or instance of a class with this name.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>$this</literal></term>
+      <listitem><simpara>An instance of the class the currently-executing function was envoked from.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>$.member</literal> &amp; <literal>$this.member</literal></term>
+      <listitem><simpara>Equivalent ways to return the value stored in this member of the class which owns the function being executed.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>$var.member</literal></term>
+      <listitem><simpara>Returns the value stored in this member of the instance of a class known as <classname>var</classname>.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>$*propertyname</literal></term>
+      <listitem><simpara>Returns the value of the property specified.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>$variable[2]</literal></term>
+      <listitem><simpara>Returns the value stored in element 2 (3rd element) of the regular array.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>$variable{"fred"}</literal></term>
+      <listitem><simpara>A value stored in the associative array.</simpara></listitem>
+    </varlistentry>
+    </variablelist>
+  </section>
+</section>
+
 <section id='&s2.idroot;langref.operators'>
   <title>Operators</title>
+  <para>S2 operators have the following associativity and precedence, listed from highest precedence to lowest.</para>
+  <informaltable frame='none'>
+    <tgroup cols='2'>
+      <tbody>
+        <colspec colwidth="2*" />
+        <row><entry>left</entry><entry>Terms (literals, expressions in parentheses, variables, function/method calls, named unary operators)</entry></row>
+        <row><entry>nonassoc</entry><entry>++ --</entry></row>
+        <row><entry>right</entry><entry>not -</entry></row>
+        <row><entry>left</entry><entry>* / %</entry></row>
+        <row><entry>left</entry><entry>+ -</entry></row>
+        <row><entry>nonassoc</entry><entry><![CDATA[< > <= >=]]></entry></row>
+        <row><entry>nonassoc</entry><entry>== !=</entry></row>
+        <row><entry>left</entry><entry>and</entry></row>
+        <row><entry>left</entry><entry>or</entry></row>
+        <row><entry>nonassoc</entry><entry>..</entry></row>
+        <row><entry>nonassoc</entry><entry>? :</entry></row>
+        <row><entry>right</entry><entry>=</entry></row>
+      </tbody>
+    </tgroup>
+  </informaltable>
+  <section id="&s2.idroot;langref.operators.semantics">
+    <title>Semantics</title>
+    <remark>FIXME: Explain the non-obvious operators/operator semantics:</remark>
+    <itemizedlist>
+      <listitem><simpara><literal>..</literal> is the range operator, making an integer array: <literal>1 .. 4</literal> makes a list (<literal>type int[]</literal>) from 1 to 4</simpara></listitem>
+      <listitem><simpara><literal>+</literal> works on both integers and strings. In the case of strings, it concatenates.</simpara></listitem>
+    </itemizedlist>
+  </section>
+  <section id="&s2.idroot;langref.operators.unary">
+    <title>Named Unary Operators</title>
   <variablelist>
-    <title>Named unary operators</title>
     <simpara>The following are the built-in named operators. You do not have to wrap the following term in parentheses.</simpara>
     <varlistentry>
       <term><function>isnull</function> <varname>$object</varname></term>
@@ -38,8 +199,96 @@
       <term><function>size</function> <varname>$array</varname></term>
       <listitem><simpara>returns number of elements in <varname>$array</varname></simpara></listitem>
     </varlistentry>
-  </variablelist>
+    </variablelist>
+  </section>
 </section>
+
+<section id='&s2.idroot;langref.statements'>
+  <title>Statements</title>
+  <para>A statement is an expression terminated by a semicolon. Statements can contain <literal>code blocks</literal> delimited by curly braces which can then contain one or more statements themselves. Flow control constructs can also be statements.</para>
+  <para>A statement consisting wholly of a string literal, or a string literal with other strings concatenated to it will be output to the client. A statement consisting wholly of a variable will behave similarly.</para>
+  <para>The <function>print</function> instruction will cause the string or numeric expression supplied as its parameter to be output to the client. The <function>uprint</function> instruction does similarly, but forces the output to be checked for <quote>safety</quote>. In the case of LiveJournal and FotoBilder, this means running a <acronym>HTML</acronym> cleaner. All untrusted (non-system) layers always run through the checker, reglardless of which print instuction is used.</para>
+  <section id='&s2.idroot;langref.statements.flow'>
+    <title>Flow Control</title>
+  <variablelist>
+    <title>Flow control</title>
+    <para>A limited subset of the flow control constructs normally present in high-level programming languages is available in S2. Each includes at least one code block enclosed in curly braces.</para>
+    <varlistentry>
+      <term><literal>if ( expr ) block</literal></term>
+      <listitem><simpara>Simple conditional. If <literal>expr</literal> evaluates to true, <literal>block</literal> will be executed, otherwise it will be skipped.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>if ( expr ) block1 else block2</literal></term>
+      <listitem><simpara>If <literal>expr</literal> evaluates to true, <literal>block1</literal> will be executed, otherwise <literal>block2</literal> will be executed.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>if ( expr1 ) block1 elseif ( expr2 ) block2 else block3</literal></term>
+      <listitem><simpara>If <literal>expr</literal> evaluates to true, <literal>block1</literal> will be executed. Otherwise, <literal>expr2</literal> will be tested and if it evaluates to true, <literal>block2</literal> will be executed. If both <literal>expr1</literal> and <literal>expr2</literal> evaluate to false, <literal>block3</literal> is executed.</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>foreach var ( expr ) block</literal></term>
+      <listitem><simpara><literal>block</literal> will be executed once for each element in the regular or associative array given in <literal>expr</literal>. On each iteration, an element of the array (or key of an associative array element) will be placed into the variable declared in <varname>var</varname>. <function>foreach</function> can also be used on strings, in which case the iteration variable must be a string and this variable will contain a character from the string with each iteration.</simpara></listitem>
+    </varlistentry>
+    </variablelist>
+  </section>
+</section>
+
+<section id='&s2.idroot;langref.functions'>
+  <title>Functions</title>
+  <para>Functions in S2 can be simple functions, methods of a class, or call functions written in the backend language from the <literal>builtin</literal> layer.</para>
+  <para>Functions can return data in any simple internal datatype, or <returnvalue>void</returnvalue> if no return data is required.</para>
+  <section id='&s2.idroot;langref.functions.declaration'>
+    <title>Declaration</title>
+    <para>Declaring a function within a class is done as follows:</para>
+    <programlisting>class SomeClass {
+    function dostuff(int para1, string para2) : string;
+}</programlisting>
+    <para>This declares a function called <methodname>dostuff</methodname> in the <classname>SomeClass</classname> class with two parameters and which returns a string. The colon and type keyword may be omitted where a function will return <returnvalue>void</returnvalue>.</para>
+    <para>Functions outside classes are declared in the same way:</para>
+    <programlisting>function dostuff(int para1, string para2);</programlisting>
+    <para>Functions outside classes do not need to be declared, but if they are not declared they must be defined before they are called.</para>
+    <para>Built-in functions can be declared in the core layer using the <literal>builtin</literal> keyword in the function prototype:</para>
+    <programlisting>function builtin ehtml(string s) : string;
+class string {
+    function builtin ends_with (string sub) : bool;
+}</programlisting>
+    <para>Functions can have some or no parameters, in the latter case the parentheses may be omitted in declaration. If several functions of the same name exist with different parameters, they can be defined as follows:</para>
+    <programlisting>function dostuff(int para1);
+function dostuff;</programlisting>
+  </section>
+  <section id='&s2.idroot;langref.functions.calling'>
+    <title>Calling</title>
+    <para>Functions outside classes can be called using the following syntax:</para>
+    <programlisting>dostuff();
+dostuff(5);</programlisting>
+    <para>Functions in classes are envoked from an instance of the class as follows:</para>
+    <programlisting>$thingy->dostuff(45,"boink");</programlisting>
+    <para>Note that the parentheses <emphasis>are</emphasis> required when envoking a function.</para>
+  </section>
+</section>
+
+<section id='&s2.idroot;langref.classes'>
+  <title>Classes</title>
+  <para>Base classes are defined using the following syntax:</para>
+  <programlisting>class Image {
+    var string url;
+    var int w;
+    var int h;
+    var string alt;
+    var string extrahtml;
+    var string title;
+    var string longdesc;
+    function output;
+}</programlisting>
+  <para>A base class can be extended like this:</para>
+  <programlisting>class Button extends Image {
+    var string linkurl;
+    var int bordersize;
+}</programlisting>
+  <para>All members of <classname>Image</classname> are now valid in <classname>Button</classname>, with the addition of our two new members <varname>linkurl</varname> and <varname>bordersize</varname>. The function <methodname>Button::output</methodname> will override <methodname>Image::output</methodname> if it exists, otherwise <methodname>Image::output</methodname> will be used as a fallback.</para>
+  <para>See the <link linkend="&s2.idroot;langref.variables">variable</link> and <link linkend="&s2.idroot;langref.functions">function</link> reference for the syntax for accessing members of classes.</para>
+</section>
+
 <section id='&s2.idroot;langref.layerinfo'>
   <title><varname>layerinfo</varname> declarations</title>
   <para>You can use the <varname>layerinfo</varname> declaration to set arbitrary meta-data for a layer. However, certain meta-data keys and values are required for each type of layer.</para>
@@ -54,7 +303,9 @@ layerinfo author_name = "Jon Doe";
 layerinfo author_email = "jondoe@email.addr";
 layerinfo des = "A beautiful polka-dotted yellow sunrise with lots of yellow & orange.";
 set bgcolor = "#ffff00";
-set fgcolor = "#ffc000";]]></programlisting>
+    set fgcolor = "#ffc000";]]></programlisting>
+  <section id="&s2.idroot;langref.layerinfo.keys">
+    <title>Keys</title>
   <variablelist>
     <title>Required <varname>layerinfo</varname> keys:</title>
     <varlistentry>
@@ -78,7 +329,7 @@ set fgcolor = "#ffc000";]]></programlisting>
     </varlistentry>
   </variablelist>
   <variablelist>
-    <title>Supported layerinfo keys:</title>
+    <title>Supported <varname>layerinfo</varname> keys:</title>
     <varlistentry>
       <term><varname>des</varname></term>
       <listitem><simpara>longer description of layer</simpara></listitem>
@@ -91,9 +342,90 @@ set fgcolor = "#ffc000";]]></programlisting>
       <term><varname>author_email</varname></term>
       <listitem><simpara>author's email address</simpara></listitem>
     </varlistentry>
-  </variablelist>
+    </variablelist>
+  </section>
 </section>
+
 <section id='&s2.idroot;langref.properties'>
-  <title><varname>property</varname> declarations</title>
-  <remark>FIXME: describe all property attributes</remark>
+  <title>Properties</title>
+  <para>Properties are single values which are exposed by the core and layout layers and set in all subsequent layers to configure aspects of a style. Properties can be of any primitive type as well as any class which provides both a <function>toString()</function> function which returns a string representation of its data and a constructor function named after the class which accepts a <parameter>string</parameter> as a parameter and returns an object based on that string.</para>
+  <section id='&s2.idroot;langref.properties.declaration'>
+    <title>Declaration</title>
+    <para>Properties are defined using the following syntax:</para>
+    <programlisting>property int page_recent_items {
+      des = "Number of journal entries to show on recent entry page";
+      min = 5;
+      max = 50;
+}</programlisting>
+    <para>The following attributes are available for all properties:</para>
+    <variablelist>
+      <varlistentry>
+        <term><varname>des</varname></term>
+        <listitem><simpara><emphasis role="bold">Required</emphasis> - A textual description of this property.</simpara></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>values</varname></term>
+        <listitem><simpara>A string setting the acceptable values of this property, along with a natural language description of each, in the format <literal>"value1|Description1|value2|Description2"</literal> and so on.</simpara></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>example</varname></term>
+        <listitem><simpara>An example of what might be put in this field. Can be used when it's not obvious what the value should look like.</simpara></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>note</varname></term>
+        <listitem><simpara>A note to be displayed with the field to enter this value.</simpara></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>noui</varname></term>
+        <listitem><simpara>Suppresses the display of this property in the editing GUI.</simpara></listitem>
+      </varlistentry>
+    </variablelist>
+    <para>There are also attributes only available for specific types of property:</para>
+    <variablelist>
+      <title>Attributes for integer properties</title>
+      <varlistentry>
+        <term><varname>max</varname></term>
+        <listitem><simpara>The maximum value permitted.</simpara></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>min</varname></term>
+        <listitem><simpara>The minimum value permitted.</simpara></listitem>
+      </varlistentry>
+    </variablelist>
+    <variablelist>
+      <title>Attributes for string properties</title>
+      <varlistentry>
+        <term><varname>maxlength</varname></term>
+        <listitem><simpara>The maximum amount of characters this property can contain.</simpara></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>size</varname></term>
+        <listitem><simpara>The size (in characters) of text widget which should be used to set this property from an interface.</simpara></listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+  <section id='&s2.idroot;langref.properties.set'>
+    <title>Setting</title>
+    <para>The <function>set</function> command is used to set the values of properties from all layers:</para>
+    <programlisting>set text_read_comment = "Read 1 comment";</programlisting>
+    <para>The value set by the highest layer will be used.</para>
+  </section>
+  <section id='&s2.idroot;langref.properties.use'>
+    <title>Use</title>
+    <para>In order to use a property from the core layer in a layout, you should first tell the system that you are going to use it. This makes it appear in the customization UI if applicable.</para>
+    <programlisting>property use property_name;</programlisting>
+    <para>All layers can use properties as variables as described in the variables section above:</para>
+    <programlisting>print $*property_name;</programlisting>
+  </section>
+</section>
+
+<section id='&s2.idroot;langref.docstrings'>
+  <title>DocStrings</title>
+  <para>You can add short documentation strings to your classes, methods, data members and functions by placing them in quotes inside the declaration, like so:</para>
+  <programlisting>class Example "An example class" {
+    var string some_string "An example data member";
+    function some_method() : int "An example method";
+}
+function some_function() "An example global function";</programlisting>
+  <para>These are made available to the S2 backend support code, and applications may provide some kind of documentation browsing facility or the ability to generate static files containing documentation.</para>
 </section>
