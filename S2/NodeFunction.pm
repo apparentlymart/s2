@@ -116,6 +116,10 @@ sub check {
     if ($cname && $cname eq $funcName) {
         $this->{'isCtor'} = 1;
     }
+    
+    if ($ck->isFuncBuiltin($funcID)) {
+        S2::error($this, "Can't override built-in functions");
+    }
 
     # if this function is global, no declaration is done, but if
     # this is class-scoped, we must check the class exists and
