@@ -15,6 +15,7 @@ my %layercomp;   # lid -> compiled time (when loaded from database)
 my %layerinfo;   # lid -> key -> value
 my %layerset;    # lid -> key -> value
 my %layerprop;   # lid -> prop -> { type/key => "string"/val }
+my %layerprops;  # lid -> arrayref of hashrefs
 my %layerfunc;   # lid -> funcnum -> sub{}
 my %funcnum;     # funcID -> funcnum
 my $funcnummax;  # maxnum in use already by funcnum, above.
@@ -93,6 +94,7 @@ sub unregister_layer
     delete $layerinfo{$lid};
     delete $layerset{$lid};
     delete $layerprop{$lid};
+    delete $layerprops{$lid};
     delete $layerfunc{$lid};
 }
 
@@ -179,13 +181,30 @@ sub get_layer_info
 sub register_property
 {
     my ($lid, $propname, $props) = @_;
+    $props->{'name'} = $propname;
     $layerprop{$lid}->{$propname} = $props;
+    push @{$layerprops{$lid}}, $props;
+}
+
+sub get_properties
+{
+    my ($lid) = @_;
+    return () unless $layerprops{$lid};
+    return @{$layerprops{$lid}};
 }
 
 sub register_set
 {
     my ($lid, $propname, $val) = @_;
     $layerset{$lid}->{$propname} = $val;
+}
+
+sub get_set
+{
+    my ($lid, $propname) = @_;
+    my $v = $layerset{$lid}->{$propname};
+    return undef unless defined $v;
+    return ref $v ? $v->[0] : $v;  # return just value, not coderef of ctor
 }
 
 sub register_function

@@ -12,8 +12,8 @@ The layers from the bottom to top are:
 	  Core
           I18n-C
 	  Layout
-	  Theme
 	  I18n
+	  Theme
 	  User
 
 
@@ -146,8 +146,8 @@ In summary, the layers are:
 
 	  Layout    -- an S1 "style", but see note below.
 
-	  Theme     \
-	  I18n       - Tweaking a layout.
+          i18n     \
+	  Theme      - Tweaking a layout.
 	  User      /
 
 Although we called a layout a "style" in S1, in S2 we're going to be
