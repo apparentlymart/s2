@@ -355,7 +355,7 @@ sub parse {
     # defined test
     if ($t == $S2::TokenKeyword::DEFINED) {
         $nt->{'type'} = $DEFINEDTEST;
-        $nt->eatToken($toker);
+        $nt->setStart($nt->eatToken($toker));
         $nt->{'subExpr'} = parse S2::NodeTerm $toker;
         $nt->addNode($nt->{'subExpr'});
         return $nt;
