@@ -167,8 +167,7 @@ sub getRealChar # () : char
 
 sub forceNextChar # (ch) : void
 {
-    my $this = shift;
-    my $ch = shift;
+    my ($this, $ch) = @_;
     return $this->{'sc'}->forceNextChar($ch);
 }
 

@@ -27,23 +27,34 @@ sub fillBuf
     return $this->{'buflen'};
 }
 
+sub advance_pos
+{
+    my $this = shift;
+    if (++$this->{'bufpos'} >= $this->{'buflen'}) {
+        $this->{'buf'} = undef;
+        $this->{'buflen'} = 0;
+        $this->{'bufpos'} = 0;
+    }
+}
+
 sub peek
 {
     my ($this, $getting) = @_;
 
     if (defined $this->{'forceNext'}) {
-        undef $this->{'forceNext'} if $getting;
-        return $this->{'forceNext'};
+        my $nx = $this->{'forceNext'};
+        if ($getting) {
+            undef $this->{'forceNext'};
+            $this->advance_pos($this);
+            return $nx;
+        }
     }
+
     unless ($this->{'buflen'} || $this->fillBuf()) {
         return undef;
     }
     my $ch = substr($this->{'buf'}, $this->{'bufpos'}, 1);
-    if ($getting && ++$this->{'bufpos'} >= $this->{'buflen'}) {
-        $this->{'buf'} = undef;
-        $this->{'buflen'} = 0;
-        $this->{'bufpos'} = 0;
-    }
+    $this->advance_pos() if $getting;
     return $ch;
 }
 
@@ -84,7 +95,7 @@ sub getRealChar
 {
     my $this = shift;
     my $ch = $this->getChar();
-    die "Unexpected end of file!" unless defined $ch;
+    S2::error(locationString($this), "Unexpected end of file!") unless defined $ch;
     return $ch;
 }
 
