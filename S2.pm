@@ -475,6 +475,29 @@ sub Color__blue {
     $this->{'b'};
 }
 
+sub Color__inverse {
+    my ($ctx, $this) = @_;
+    my $new = {
+        '_type' => 'Color',
+        'r' => 255 - $this->{'r'},
+        'g' => 255 - $this->{'g'},
+        'b' => 255 - $this->{'b'},
+    };
+    Color__make_string($new);
+    return $new;
+}
+
+sub Color__average {
+    my ($ctx, $this, $other) = @_;
+    my $new = {
+        '_type' => 'Color',
+        'r' => int(($this->{'r'} + $other->{'r'}) / 2),
+        'g' => int(($this->{'g'} + $other->{'g'}) / 2),
+        'b' => int(($this->{'b'} + $other->{'b'}) / 2),
+    };
+    Color__make_string($new);
+    return $new;
+
 
 1;
 
