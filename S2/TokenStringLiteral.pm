@@ -33,6 +33,7 @@ sub new
             $text =~ s/\\n/\n/g;
             $text =~ s/\\\"/\"/g;
             $text =~ s/\\\$/\$/g;
+            $text =~ s/\\\\/\\/g;
         }
     } else {
         die;

@@ -106,7 +106,7 @@ sub makeToken # () method private : Token
 
     # finishing or trying to finish an open quoted string
     if ($this->{'inString'} == 1 &&
-        $$c =~ /\G((\\\"|\\\$|[^\"\$])*)(\")?/sgc) {
+        $$c =~ /\G((\\[\\\"\$]|[^\"\$])*)(\")?/sgc) {
         my $source = $1;
         my $closed = $3 ? 1 : 0;
         return S2::TokenStringLiteral->new(undef, $source, 0, $closed);
@@ -114,13 +114,13 @@ sub makeToken # () method private : Token
 
     # finishing a triple quoted string
     if ($this->{'inString'} == 3) {
-        if ($$c =~ /\G((\\\"|\\\$|[^\$])*?)\"\"\"/sgc) {
+        if ($$c =~ /\G((\\[\\\"\$]|[^\$])*?)\"\"\"/sgc) {
             my $source = $1;
             return S2::TokenStringLiteral->new(undef, $source, 0, 3);
         }
 
         # not finishing a triple quoted string (end in $)
-        if ($$c =~ /\G((\\\"|\\\$|[^\$])*)/sgc) {
+        if ($$c =~ /\G((\\[\\\"\$]|[^\$])*)/sgc) {
             my $source = $1;
             return S2::TokenStringLiteral->new(undef, $source, 0, 0);
         }
@@ -129,19 +129,19 @@ sub makeToken # () method private : Token
     # not in a string, but one's starting
     if ($this->{'inString'} == 0 && $$c =~ /\G\"/gc) {
         # triple start and triple end
-        if ($$c =~ /\G\"\"((\\\"|\\\$|[^\$])*?)\"\"\"/gc) {
+        if ($$c =~ /\G\"\"((\\[\\\"\$]|[^\$])*?)\"\"\"/gc) {
             my $source = $1;
             return S2::TokenStringLiteral->new(undef, $source, 3, 3);
         }
         
         # triple start and variable end
-        if ($$c =~ /\G\"\"((\\\"|\\\$|[^\$])*)/gc) {
+        if ($$c =~ /\G\"\"((\\[\\\"\$]|[^\$])*)/gc) {
             my $source = $1;
             return S2::TokenStringLiteral->new(undef, $source, 3, 0);
         }
         
         # single start and maybe end
-        if ($$c =~ /\G((\\\"|\\\$|[^\"\$])*)(\")?/gc) {
+        if ($$c =~ /\G((\\[\\\"\$]|[^\"\$])*)(\")?/gc) {
             my $source = $1;
             my $closed = $3 ? 1 : 0;
             return S2::TokenStringLiteral->new(undef, $source, 1, $closed);
