@@ -19,7 +19,7 @@ sub canStart {
 sub parse {
     my ($class, $toker) = @_;
     my $n = new S2::NodeReturnStmt;
-    $n->setStart($n->requireToken($S2::TokenKeyword::RETURN));
+    $n->setStart($n->requireToken($toker, $S2::TokenKeyword::RETURN));
 
     # optional return expression
     if (S2::NodeExpr->canStart($toker)) {

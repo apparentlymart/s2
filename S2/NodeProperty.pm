@@ -6,6 +6,7 @@ package S2::NodeProperty;
 use strict;
 use S2::Node;
 use S2::NodeNamedType;
+use S2::NodePropertyPair;
 use vars qw($VERSION @ISA);
 
 $VERSION = '1.0';
@@ -69,12 +70,12 @@ sub parse {
     }
 
     $n->requireToken($toker, $S2::TokenPunct::LBRACE);
-    while (S2::NodePropertyPair::canStart($toker)) {
-        my $pair = S2::NodePropertyPair::parse($toker);
+    while (S2::NodePropertyPair->canStart($toker)) {
+        my $pair = S2::NodePropertyPair->parse($toker);
         push @{$n->{'tokenlist'}}, $pair;
         push @{$n->{'pairs'}}, $pair;
     }
-    $n->requireToken($toker, $S2::TokenPunct::BBRACE);        
+    $n->requireToken($toker, $S2::TokenPunct::RBRACE);
 
     return $n;
 }

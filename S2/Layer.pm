@@ -8,6 +8,7 @@ use S2::NodeLayerInfo;
 use S2::NodeProperty;
 use S2::NodeSet;
 use S2::NodeFunction;
+use S2::NodeClass;
 
 sub new
 {
@@ -52,18 +53,13 @@ sub new
             next;
         }
 
-=pod
+        if (S2::NodeClass->canStart($toker)) {
+            push @$nodes, S2::NodeClass->parse($toker);
+            next;
+        }
 
-	    if (NodeClass.canStart(toker)) {
-		nodes.add(NodeClass.parse(toker));
-		continue;
-	    }
-=cut
-
-        # ...
-
-    S2::error($t, "Unknown token encountered while parsing layer: " .
-              $t->toString());
+        S2::error($t, "Unknown token encountered while parsing layer: " .
+                  $t->toString());
     }
 
     bless $this, $class;

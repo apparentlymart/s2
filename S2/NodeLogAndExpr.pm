@@ -19,7 +19,7 @@ sub new {
 
 sub canStart {
     my ($class, $toker) = @_;
-    $S2::NodeEqExpr->canStart($toker);
+    S2::NodeEqExpr->canStart($toker);
 }
 
 sub parse {

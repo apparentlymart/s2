@@ -7,6 +7,8 @@ use strict;
 use S2::Node;
 use S2::NodeExpr;
 use S2::NodeArrayLiteral;
+use S2::NodeArguments;
+
 use vars qw($VERSION @ISA
             $INTEGER $STRING $BOOL $VARREF $SUBEXPR
             $DEFINEDTEST $SIZEFUNC $REVERSEFUNC $ISNULLFUNC
@@ -73,7 +75,8 @@ sub getType {
         return $S2::Type::STRING;
     }
     
-    if ($type == $SUBEXPR) { return $this->{'subExpr'}->getType($ck); }
+    if ($type == $SUBEXPR) { return $this->{'subExpr'}->getType($ck, $wanted); }
+
     if ($type == $BOOL) { return $S2::Type::BOOL; }
 
     if ($type == $DEFINEDTEST) {
@@ -161,7 +164,7 @@ sub getType {
             unless $ck->getInFunction();
 
         if ($type == $METHCALL) {
-            my $vartype = $this->{'var'}->getType($ck);
+            my $vartype = $this->{'var'}->getType($ck, $wanted);
             S2::error($this, "Cannot call a method on an array or hash")
                 unless $vartype->isSimple();
 
@@ -224,7 +227,7 @@ sub makeAsString {
         $this->{'type'} = $METHCALL;
         $this->{'funcIdent'} = new S2::TokenIdent "toString";
         $this->{'funcClass'} = $bt;
-        $this->{'funcArgs'} = S2::NodeArguments->makeEmptyArgs();
+        $this->{'funcArgs'} = new S2::NodeArguments; # empty
         $this->{'funcID_noclass'} = "toString()";
         $this->{'funcID'} = "${bt}::toString()";
         $this->{'funcBuiltin'} = $ck->isFuncBuiltin($this->{'funcID'});
@@ -255,7 +258,7 @@ sub parse {
     # boolean literal
     if ($t == $S2::TokenKeyword::TRUE ||
         $t == $S2::TokenKeyword::FALSE) {
-        $nt->{'type'} == $BOOL;
+        $nt->{'type'} = $BOOL;
         $nt->{'boolValue'} = $t == $S2::TokenKeyword::TRUE;
         $nt->eatToken($toker);
         return $nt;
@@ -391,7 +394,7 @@ sub parse {
         $t == $S2::TokenKeyword::NULL) {
         $nt->{'type'} = $t == $S2::TokenKeyword::NEW ? $NEW : $NEWNULL;
         $nt->eatToken($toker);
-        $nt->newClass($nt->getIdent($toker));
+        $nt->{'newClass'} = $nt->getIdent($toker);
         return $nt;
     }
 
@@ -518,7 +521,7 @@ sub asPerl {
 
     if ($type == $SIZEFUNC) {
         if ($this->{'subType'}->isArrayOf()) {
-            $o->write("scalar(@{");
+            $o->write("scalar(\@{");
             $this->{'subExpr'}->asPerl($bp, $o);
             $o->write("})");
         } elsif ($this->{'subType'}->equals($S2::Type::STRING)) {
@@ -580,7 +583,7 @@ sub asPerl {
                 $o->write(",");
                 $o->write($bp->getLayerID());
                 $o->write(",");
-                $o->write($this->{'derefLine'});
+                $o->write($this->{'derefLine'}+0);
                 if ($this->{'var'}->isSuper()) {
                     $o->write(",1");
                 }

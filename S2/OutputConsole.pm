@@ -12,11 +12,11 @@ sub new {
 }
 
 sub write {
-    print @_[1];
+    print $_[1];
 }
 
 sub writeln {
-    print @_[1], "\n";
+    print $_[1], "\n";
 }
 
 sub newline {

@@ -19,7 +19,7 @@ sub new
 sub clone
 {
     my $this = shift;
-    return new($this->{'line'}, $this->{'col'});
+    return new S2::FilePos($this->{'line'}, $this->{'col'});
 }
 
 sub locationString

@@ -43,9 +43,9 @@ sub parse {
 sub canStart {
     my ($class, $toker) = @_;
     my $t = $toker->peek();
-    return isa($t, "S2::TokenIdent") ||
-        isa($t, "S2::TokenIntegerLiteral") ||
-        isa($t, "S2::TokenStringLiteral");
+    return $t->isa("S2::TokenIdent") ||
+        $t->isa("S2::TokenIntegerLiteral") ||
+        $t->isa("S2::TokenStringLiteral");
 }
 
 sub getText { shift->{'text'}; }
