@@ -19,6 +19,12 @@ sub new {
     bless $node, $class;
 }
 
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'tokenlist'};
+    $this->{'typenode'}->cleanForFreeze();
+}
+
 sub parse {
     my ($class, $toker) = @_;
     my $n = new S2::NodeNamedType;

@@ -19,6 +19,13 @@ sub new {
     bless $node, $class;
 }
 
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'tokenlist'};
+    delete $this->{'docstring'};
+    $this->{'typenode'}->cleanForFreeze;
+}
+
 sub getType { shift->{'type'}; }
 sub getName { shift->{'name'}; }
 sub getDocString { shift->{'docstring'}; }

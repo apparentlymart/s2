@@ -71,9 +71,6 @@ if ($output eq "html" || $output eq "s2") {
 
     $layerMain = makeLayer($filename, $layertype, $ck);
         
-    $S2::Compile::topLayerName = $layerMain->getLayerInfo("name");
-    $S2::Compile::topLayerType = $layerMain->{'type'};
-
     my $o = new S2::OutputConsole();
     my $be = undef;
         
