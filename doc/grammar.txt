@@ -54,9 +54,12 @@ ClassVarDecl := "var" <NamedType> ";"
 
 NodeProperty.java
 -------------------------
-Prop := "property" "builtin" NativeType ident ";" 
+Prop := "property" "builtin" Type ident ";" 
 			     |
-        "property" NativeType ident "{" <PropertyPair>* "}"
+        "property" Type ident "{" <PropertyPair>* "}"
+                             |
+        "property" ("use" | "hide") Type ";"
+
 
 NodePropertyPair.java
 -------------------------
