@@ -240,9 +240,9 @@ public class Checker
     }
 
     // check to see if a class or parents has an
-    // "asString" string member
+    // "as_string" string member
     public boolean classHasAsString (String clas) {
-	Type et = memberType(clas, "asString");
+	Type et = memberType(clas, "as_string");
 	if (et != null && et.equals(Type.STRING))
 	    return true;
 	return false;

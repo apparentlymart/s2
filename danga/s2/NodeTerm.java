@@ -232,7 +232,7 @@ public class NodeTerm extends Node
 			return true;
 		    }
 
-		    // class has $.asString string member
+		    // class has $.as_string string member
 		    if (ck.classHasAsString(bt)) {
 			var.useAsString();
 			return true;

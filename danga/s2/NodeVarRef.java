@@ -124,11 +124,11 @@ public class NodeVarRef extends Node
     }
 
     // if told by NodeTerm.java, add another varlevel to point to
-    // this object's $.asString
+    // this object's $.as_string
     public void useAsString ()
     {
 	VarLevel vl = new VarLevel();
-	vl.var = "asString";
+	vl.var = "as_string";
 	vl.derefs = new LinkedList();  // empty
 	levels.add(vl);
     }
