@@ -70,7 +70,7 @@ sub asHTML
     if ($this->{'chars'} =~ m![\[\]\(\)\{\}]!) {
         $o->write("<span class=\"b\">$this->{'chars'}</span>");
     } else {
-        $o->write("<span class=\"p\">$this->{'chars'}</span>");
+        $o->write("<span class=\"p\">" . S2::BackendHTML::quoteHTML($this->{'chars'}) . "</span>");
     }
 }
 

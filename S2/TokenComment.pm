@@ -33,7 +33,7 @@ sub isNecessary { return 0; }
 sub asHTML
 {
     my ($this, $o) = @_;
-    $o->write("<span class=\"c\">$this->{'chars'}</span>");
+    $o->write("<span class=\"c\">" . S2::BackendHTML::quoteHTML($this->{'chars'}) . "</span>");
 }
 
 1;
