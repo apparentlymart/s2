@@ -40,33 +40,42 @@ class TokenIdent extends Token {
 	return false;
     }
 
-    public static Token scan (Tokenizer t) 
+    public static Token scan (Tokenizer t)
     {
 	StringBuffer tbuf = new StringBuffer(15);
-    
+
 	while ((t.peekChar() >= 'a' && t.peekChar() <= 'z') ||
 	       (t.peekChar() >= 'A' && t.peekChar() <= 'Z') ||
 	       (t.peekChar() >= '0' && t.peekChar() <= '9') ||
 	       (t.peekChar() == '_'))
 	    {
-	
+
 		tbuf.append(t.getChar());
 	    }
-    
+
 	String token = tbuf.toString();
 	Token kwtok = TokenKeyword.tokenFromString(token);
 	Token ret = (kwtok != null) ? kwtok : new TokenIdent(token);
-	
+
 	return ret;
     }
 
-    public void asHTML (Output o) 
+    public void asHTML (Output o)
     {
 	String c = BackendHTML.IdentColor;
 	if (type == TYPE) c = BackendHTML.TypeColor;
 	else if (type == STRING) c = BackendHTML.StringColor;
 
-	o.write("<font color=" + c + ">" + ident + "</font>");
+        // FIXME: TODO: Don't hardcode internal types, intelligently recognise
+        //             places where types and class references occur and
+        //             make them class="t"
+        if (ident.equals("int") || ident.equals("void") ||
+            ident.equals("string") || ident.equals("bool")) {
+
+	    o.write("<span class=\"t\">" + ident + "</span>");
+	} else {
+	    o.write("<span class=\"i\">" + ident + "</span>");
+        }
     }
 
 }

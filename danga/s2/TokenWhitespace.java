@@ -23,7 +23,7 @@ class TokenWhitespace extends Token {
     public static Token scan (Tokenizer t)
     {
 	StringBuffer tbuf = new StringBuffer(200);
-    
+
 	while ((t.peekChar() == ' '  || t.peekChar() == '\t' ||
 		t.peekChar() == '\n' || t.peekChar() == '\r')) {
 	    tbuf.append(t.getChar());
@@ -31,14 +31,13 @@ class TokenWhitespace extends Token {
 
 	return new TokenWhitespace(tbuf.toString());
     }
-  
+
     public void asHTML (Output o) {
 	StringTokenizer st = new StringTokenizer(ws, "\n", true);
 	while (st.hasMoreTokens()) {
 	    String s = st.nextToken();
-	    if (s.equals("\n")) {
-		if (BackendHTML.addBreaks) { o.write("<br>"); }
-		o.newline();
+	    if (s.equals("\n") && BackendHTML.addBreaks) {
+		o.write("<br />\n");
 	    } else {
 		o.write(s);
 	    }

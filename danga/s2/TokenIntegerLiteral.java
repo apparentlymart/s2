@@ -26,21 +26,21 @@ class TokenIntegerLiteral extends Token {
 	return ret.toString();
     }
 
-    public static Token scan (Tokenizer t) 
+    public static Token scan (Tokenizer t)
     {
 	StringBuffer tbuf = new StringBuffer(15);
-    
+
 	while (t.peekChar() >= '0' && t.peekChar() <= '9') {
 	    tbuf.append(t.getChar());
 	}
-    
+
 	return new TokenIntegerLiteral((new Integer(tbuf.toString())).intValue());
     }
 
-    public void asHTML (Output o) 
+    public void asHTML (Output o)
     {
-	o.write("<font color=" + BackendHTML.IntegerColor + ">" + 
-		val + "</font>");
+	o.write("<span class=\"n\">" +
+		val + "</span>");
     }
 
 }

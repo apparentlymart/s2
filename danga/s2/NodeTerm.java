@@ -218,7 +218,7 @@ public class NodeTerm extends Node
 	    }
 	    return t;
 	}
-        
+
         if (type == ARRAY) {
             return subExpr.getType(ck, wanted);
         }
@@ -275,26 +275,6 @@ public class NodeTerm extends Node
 	return false;
     }
 
-    public static NodeTerm makeStringCtorCall (String type, String val)
-    {
-	NodeTerm nt = new NodeTerm();
-	nt.type = FUNCCALL;
-	nt.funcIdent = new TokenIdent(type);
-	nt.funcClass = type;
-	nt.funcArgs = NodeArguments.makeEmptyArgs();
-	nt.funcArgs.addArg(new NodeExpr(makeStringLiteral(val)));
-	nt.callFromSet = true; // force get_func_num lookup in asPerl
-	return nt;
-    }
-
-    public static NodeTerm makeStringLiteral (String val)
-    {
-	NodeTerm nt = new NodeTerm();
-	nt.type = STRING;
-	nt.tokStr = new TokenStringLiteral(val);
-	return nt;
-    }
-
     public static Node parse (Tokenizer toker) throws Exception
     {
 	NodeTerm nt = new NodeTerm();
@@ -329,7 +309,7 @@ public class NodeTerm extends Node
                 nt.setStart(nt.tokStr);
 		return nt;
 	    }
-            
+
             // interpolated string literal (turn into a subexpr)
             LinkedList toklist = new LinkedList();
 
@@ -339,7 +319,7 @@ public class NodeTerm extends Node
             nt.tokStr.setQuotesRight(ql);
             Node lhs = nt;
             FilePos filepos = (FilePos) nt.tokStr.getFilePos();
-            
+
             boolean loop = true;
             while (loop) {
                 Node rhs = null;
@@ -351,7 +331,7 @@ public class NodeTerm extends Node
                     rhsnt.type = NodeTerm.STRING;
                     rhsnt.tokStr = (TokenStringLiteral) rhsnt.eatToken(toker);
                     toklist.add(rhsnt.tokStr.clone());  // cloned before it's changed.
-                    
+
                     if (ts.getQuotesRight() == ql) {
                         loop = false;
                     }
@@ -366,7 +346,7 @@ public class NodeTerm extends Node
                     throw new Exception("Error parsing "+
                                         "interpolated string.");
                 }
-                
+
                 // don't make a sum out of a blank string on either side
                 boolean join = true;
                 if (lhs instanceof NodeTerm) {
@@ -464,7 +444,7 @@ public class NodeTerm extends Node
 	    // check for -> after, like: $object->method(arg1, arg2, ...)
 	    if (toker.peek().equals(TokenPunct.DEREF)) {
                 nt.derefLine = toker.peek().getFilePos().line;
-                
+
 		nt.eatToken(toker);
 		nt.type = METHCALL;
 		// don't return... parsing continues below.
@@ -483,7 +463,7 @@ public class NodeTerm extends Node
 
 	    return nt;
 	}
-        
+
         // array/hash literal
         if (NodeArrayLiteral.canStart(toker)) {
             nt.type = ARRAY;
@@ -712,7 +692,7 @@ public class NodeTerm extends Node
                     o.write(derefLine);
                     if (var.isSuper()) {
                         o.write(",1");
-                    } 
+                    }
 		    o.write(")}->");
 		} else if (type == METHCALL || callFromSet) {
                     o.write("$_ctx->[VTABLE]->{get_func_num(");

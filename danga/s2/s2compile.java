@@ -7,6 +7,10 @@ import java.util.Hashtable;
 
 class s2compile
 {
+
+    public static String topLayerName;
+    public static String topLayerType;
+
     public static void main (String[] args) throws Exception
     {
 	if (args.length < 3 || args.length % 2 != 1) { usage(); return; }
@@ -77,6 +81,9 @@ class s2compile
             return;
         }
         layerMain = makeLayer(filename, layertype, ck);
+
+        topLayerName = layerMain.getLayerInfo("name");
+        topLayerType = layerMain.type;
 
 	Output o = new OutputConsole();
 	Backend be = null;
