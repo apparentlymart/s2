@@ -59,6 +59,11 @@ sub get_property_value
     return $ctx->[PROPS]->{$k};
 }
 
+sub get_lang_code
+{
+    return get_property_value($_[0], 'lang_current');
+}
+
 sub make_context
 {
     my (@lids) = @_;
