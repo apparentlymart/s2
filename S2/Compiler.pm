@@ -31,6 +31,9 @@ sub compile_source {
     } else {
         $this->{'checker'}->checkLayer($s2l);
         $be = new S2::BackendPerl($s2l, $opts->{'layerid'}, $opts->{'untrusted'});
+        if ($opts->{'builtinPackage'}) {
+            $be->setBuiltinPackage($opts->{'builtinPackage'});
+        }
     }
     $be->output($o);
     return 1;

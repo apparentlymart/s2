@@ -313,24 +313,32 @@ sub function_exists
 sub run_code
 {
     my ($ctx, $entry, @args) = @_;
+    run_function($ctx, $entry, @args);
+    return 1;
+}
+
+sub run_function
+{
+    my ($ctx, $entry, @args) = @_;
     my $fnum = get_func_num($entry);
     my $code = $ctx->[VTABLE]->{$fnum};
     unless (ref $code eq "CODE") {
         die "S2::run_code: Undefined function $entry ($fnum $code)\n";
     }
+    my $val;
     eval {
         local $SIG{__DIE__} = undef;
         local $SIG{ALRM} = sub { die "Style code didn't finish running in a timely fashion.  ".
                                      "Possible causes: <ul><li>Infinite loop in style or layer</li>\n".
                                      "<li>Database busy</li></ul>\n" };
         alarm 4;
-        $code->($ctx, @args);
+        $val = $code->($ctx, @args);
         alarm 0;
     };
     if ($@) {
         die "Died in S2::run_code running $entry: $@\n";
     }
-    return 1;
+    return $val;
 }
 
 sub get_func_num

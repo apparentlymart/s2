@@ -12,9 +12,13 @@ sub new {
         'layer' => $l,
         'layerID' => $layerID,
         'untrusted' => $untrusted,
+        'package' => '',
     };
     bless $this, $class;
 }
+
+sub getBuiltinPackage { shift->{'package'}; }
+sub setBuiltinPackage { my $t = shift; $t->{'package'} = shift; }
 
 sub getLayerID { shift->{'layerID'}; }
 sub getLayerIDString { shift->{'layerID'}; }
