@@ -30,12 +30,13 @@ sub pout
 
 sub make_context
 {
-    my ($lids) = @_;
+    my (@lids) = @_;
+    if (ref $lids[0] eq "ARRAY") { @lids = @{$lids[0]}; } # 1st arg can be array ref
     my $ctx = [];
     undef $@;
 
     ## load all the layers & make the vtable
-    foreach my $lid (0, @$lids)
+    foreach my $lid (0, @lids)
     {
 	## build the vtable
 	foreach my $fn (keys %{$layerfunc{$lid}}) {
@@ -109,6 +110,21 @@ sub load_layer
 	system($cmd) and die "Failed to run!\n";
     }
     return load_layer_file($cfile);
+}
+
+sub load_layers_from_db
+{
+    my ($db, @layers) = @_;
+    @layers = grep { ! exists $layer{$_} } @layers;
+    return 1 unless @layers;
+    my $in = join(',', map { $_+0 } @layers);
+    my $sth = $db->prepare("SELECT compdata FROM s2compiled WHERE s2lid IN ($in)");
+    $sth->execute;
+    while (my $comp = $sth->fetchrow_array) {
+        eval $comp;
+        return 0 if $@;
+    }
+    return 1;
 }
 
 sub load_layer_file
