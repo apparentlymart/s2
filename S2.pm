@@ -4,7 +4,7 @@
 package S2;
 
 use strict;
-use vars qw($pout $pout_s);  # public interface:  sub refs to print and print safely
+use vars qw($pout $pout_s %Domains $CurrentDomain);  # public interface:  sub refs to print and print safely
 
 $pout = sub { print @_; };
 $pout_s = sub { print @_; };
@@ -16,36 +16,49 @@ use constant PROPS => 2;
 use constant SCRATCH => 3;  # embedder-defined use
 use constant LAYERLIST => 4;  # arrayref of layerids which made the context
 
-my %layer;       # lid -> time()
-my %layercomp;   # lid -> compiled time (when loaded from database)
-my %layerinfo;   # lid -> key -> value
-my %layerset;    # lid -> key -> value
-my %layerprop;   # lid -> prop -> { type/key => "string"/val }
-my %layerprops;  # lid -> arrayref of hashrefs
-my %layerprophide; # lid -> prop -> 1
-my %layerfunc;   # lid -> funcnum -> sub{}
-my %layerclass;  # lid -> classname -> hashref
-my %layerglobal; # lid -> signature -> hashref
-my %layerpropgroups; # lid -> [ group_ident* ]
-my %layerpropgroupname; # lid -> group_ident -> text_name
-my %layerpropgroupprops; # lid -> group_ident -> [ prop_ident* ]
-my %funcnum;     # funcID -> funcnum
-my $funcnummax;  # maxnum in use already by funcnum, above.
+%Domains = ();
+$CurrentDomain = 'unset';
+
+sub set_domain
+{
+    my $name = shift;
+    $Domains{ $name } ||= {
+        layer               => undef, # time()
+        layecomp            => undef, # compiled time (when loaded from database)
+        layerinfo           => undef, # key -> value
+        layerset            => undef, # key -> value
+        layerprop           => undef, # prop -> { type/key => "string"/val }
+        layerprops          => undef, # arrayref of hashrefs
+        layerprophide       => undef, # prop -> 1
+        layerfunc           => undef, # funcnum -> sub{}
+        layerclass          => undef, # classname -> hashref
+        layerglobal         => undef, # signature -> hashref
+        layerpropgroups     => undef, # [ group_ident* ]
+        layerpropgroupname  => undef, # group_ident -> text_name
+        layerpropgroupprops => undef, # group_ident -> [ prop_ident* ]
+        funcnum             => undef, # funcID -> funcnum
+        funcnummax          => 0, # maxnum in use already by funcnum, above.
+    };
+
+    $CurrentDomain = $name;
+}
 
 sub get_layer_all
 {
     my $lid = shift;
-    return undef unless $layer{$lid};
+    my $domain = $Domains{$CurrentDomain};
+
+    return undef unless $domain->{layer}{$lid};
     return {
-        'layer' => $layer{$lid},
-        'info' => $layerinfo{$lid},
-        'set' => $layerset{$lid},
-        'prop' => $layerprop{$lid},
-        'class' => $layerclass{$lid},
-        'global' => $layerglobal{$lid},
-        'propgroupname' => $layerpropgroupname{$lid},
-        'propgroups' => $layerpropgroups{$lid},
-        'propgroupprops' => $layerpropgroupprops{$lid},
+        layer          => $domain->{layer}{$lid},
+        info           => $domain->{layerinfo}{$lid},
+        set            => $domain->{layerset}{$lid},
+        prop           => $domain->{layerprop}{$lid},
+        class          => $domain->{layerclass}{$lid},
+        global         => $domain->{layerglobal}{$lid},
+        propgroupname  => $domain->{layerpropgroupname}{$lid},
+        propgroups     => $domain->{layerpropgroups}{$lid},
+        propgroupprops => $domain->{layerpropgroupprops}{$lid},
     };
 }
 
@@ -71,32 +84,34 @@ sub make_context
     my $ctx = [];
     undef $@;
 
+    my $domain = $Domains{$CurrentDomain};
+
     ## load all the layers & make the vtable
     foreach my $lid (0, @lids)
     {
-	## build the vtable
-	foreach my $fn (keys %{$layerfunc{$lid}}) {
-	    $ctx->[VTABLE]->{$fn} = $layerfunc{$lid}->{$fn};
-	}
+        ## build the vtable
+        foreach my $fn (keys %{$domain->{layerfunc}{$lid}}) {
+            $ctx->[VTABLE]->{$fn} = $domain->{layerfunc}{$lid}->{$fn};
+        }
 
-	## ignore further stuff for layer IDs of 0
-	next unless $lid;
+        ## ignore further stuff for layer IDs of 0
+        next unless $lid;
 
         ## FIXME: load the layer if not loaded, using registered
         ## loader sub.
 
-	## setup the property values
-	foreach my $p (keys %{$layerset{$lid}}) {
-            my $v = $layerset{$lid}->{$p};
+        ## setup the property values
+        foreach my $p (keys %{$domain->{layerset}{$lid}}) {
+            my $v = $domain->{layerset}{$lid}->{$p};
 
             # this was the old format, but only used for Color constructors,
             # so we can change it to the new format:
             $v = S2::Builtin::Color__Color($v->[0])
-                if (ref $v eq "ARRAY" && scalar(@$v) == 2 && 
+                if (ref $v eq "ARRAY" && scalar(@$v) == 2 &&
                     ref $v->[1] eq "CODE");
 
-	    $ctx->[PROPS]->{$p} = $v;
-	}
+            $ctx->[PROPS]->{$p} = $v;
+        }
     }
 
     $ctx->[LAYERLIST] = [ @lids ];
@@ -109,7 +124,8 @@ sub get_style_modtime
 
     my $high = 0;
     foreach (@{$ctx->[LAYERLIST]}) {
-        $high = $layercomp{$_} if $layercomp{$_} > $high;
+        $high = $Domains{$CurrentDomain}{layercomp}{$_}
+            if $Domains{$CurrentDomain}{layercomp}{$_} > $high;
     }
     return $high;
 }
@@ -117,32 +133,34 @@ sub get_style_modtime
 sub register_class
 {
     my ($lid, $classname, $info) = @_;
-    $layerclass{$lid}->{$classname} = $info;
+    $Domains{$CurrentDomain}{layerclass}{$lid}{$classname} = $info;
 }
 
 sub register_layer
 {
     my ($lid) = @_;
-    unregister_layer($lid) if $layer{$lid};
-    $layer{$lid} = time();
+    unregister_layer($lid) if $Domains{$CurrentDomain}{layer}{$lid};
+    $Domains{$CurrentDomain}{layer}{$lid} = time();
 }
 
 sub unregister_layer
 {
     my ($lid) = @_;
-    delete $layer{$lid};
-    delete $layercomp{$lid};
-    delete $layerinfo{$lid};
-    delete $layerset{$lid};
-    delete $layerprop{$lid};
-    delete $layerprops{$lid};
-    delete $layerprophide{$lid};
-    delete $layerfunc{$lid};
-    delete $layerclass{$lid};
-    delete $layerglobal{$lid};
-    delete $layerpropgroups{$lid};
-    delete $layerpropgroupprops{$lid};
-    delete $layerpropgroupname{$lid};
+    my $domain = $Domains{$CurrentDomain};
+
+    delete $domain->{layer}{$lid};
+    delete $domain->{layercomp}{$lid};
+    delete $domain->{layerinfo}{$lid};
+    delete $domain->{layerset}{$lid};
+    delete $domain->{layerprop}{$lid};
+    delete $domain->{layerprops}{$lid};
+    delete $domain->{layerprophide}{$lid};
+    delete $domain->{layerfunc}{$lid};
+    delete $domain->{layerclass}{$lid};
+    delete $domain->{layerglobal}{$lid};
+    delete $domain->{layerpropgroups}{$lid};
+    delete $domain->{layerpropgroupprops}{$lid};
+    delete $domain->{layerpropgroupname}{$lid};
 }
 
 sub load_layer
@@ -155,7 +173,7 @@ sub load_layer
         unregister_layer($lid);
         die "Layer \#$lid: $err";
     }
-    $layercomp{$lid} = $comptime;
+    $Domains{$CurrentDomain}{layercomp}{$lid} = $comptime;
     return 1;
 }
 
@@ -164,11 +182,13 @@ sub load_layers_from_db
     my ($db, @layers) = @_;
     my $maxtime = 0;
     my @to_load;
+    my $domain = $Domains{$CurrentDomain};
+
     foreach my $lid (@layers) {
         $lid += 0;
-        if (exists $layer{$lid}) {
-            $maxtime = $layercomp{$lid} if $layercomp{$lid} > $maxtime;
-            push @to_load, "(s2lid=$lid AND comptime>$layercomp{$lid})";
+        if (exists $domain->{layer}{$lid}) {
+            $maxtime = $domain->{layercomp}{$lid} if $domain->{layercomp}{$lid} > $maxtime;
+            push @to_load, "(s2lid=$lid AND comptime>$domain->{layercomp}{$lid})";
         } else {
             push @to_load, "s2lid=$lid";
         }
@@ -184,7 +204,7 @@ sub load_layers_from_db
             unregister_layer($id);
             die "Layer \#$id: $err";
         }
-        $layercomp{$id} = $comptime;
+        $domain->{layercomp}{$id} = $comptime;
         $maxtime = $comptime if $comptime > $maxtime;
     }
     return $maxtime;
@@ -193,60 +213,62 @@ sub load_layers_from_db
 sub layer_loaded
 {
     my ($id) = @_;
-    return $layercomp{$id};
+    return $Domains{$CurrentDomain}{layercomp}{$id};
 }
 
 sub set_layer_info
 {
     my ($lid, $key, $val) = @_;
-    $layerinfo{$lid}->{$key} = $val;
+    $Domains{$CurrentDomain}{layerinfo}{$lid}->{$key} = $val;
 }
 
 sub get_layer_info
 {
     my ($lid, $key) = @_;
-    return undef unless $layerinfo{$lid};
-    return $key ? $layerinfo{$lid}->{$key} : %{$layerinfo{$lid}};
+    return undef unless $Domains{$CurrentDomain}{layerinfo}{$lid};
+    return $key
+        ? $Domains{$CurrentDomain}{layerinfo}{$lid}->{$key}
+        : %{$Domains{$CurrentDomain}{layerinfo}{$lid}};
 }
 
 sub register_property
 {
     my ($lid, $propname, $props) = @_;
     $props->{'name'} = $propname;
-    $layerprop{$lid}->{$propname} = $props;
-    push @{$layerprops{$lid}}, $props;
+    $Domains{$CurrentDomain}{layerprop}{$lid}->{$propname} = $props;
+    push @{$Domains{$CurrentDomain}{layerprops}{$lid}}, $props;
 }
 
 sub register_property_use
 {
     my ($lid, $propname) = @_;
-    push @{$layerprops{$lid}}, $propname;
+    push @{$Domains{$CurrentDomain}{layerprops}{$lid}}, $propname;
 }
 
 sub register_property_hide
 {
     my ($lid, $propname) = @_;
-    $layerprophide{$lid}->{$propname} = 1;
+    $Domains{$CurrentDomain}{layerprophide}{$lid}->{$propname} = 1;
 }
 
 sub register_propgroup_name
 {
     my ($lid, $gname, $name) = @_;
-    $layerpropgroupname{$lid}->{$gname} = $name;
+    $Domains{$CurrentDomain}{layerpropgroupname}{$lid}->{$gname} = $name;
 }
 
 sub register_propgroup_props
 {
     my ($lid, $gname, $list) = @_;
-    $layerpropgroupprops{$lid}->{$gname} = $list;
-    push @{$layerpropgroups{$lid}}, $gname;
+    $Domains{$CurrentDomain}{layerpropgroupprops}{$lid}->{$gname} = $list;
+    push @{$Domains{$CurrentDomain}{layerpropgroups}{$lid}}, $gname;
 }
 
 sub is_property_hidden
 {
     my ($lids, $propname) = @_;
     foreach (@$lids) {
-        return 1 if $layerprophide{$_}->{$propname};
+        return 1 if $Domains{$CurrentDomain}{layerprophide}{$_}->{$propname};
     }
     return 0;
 }
@@ -254,46 +276,46 @@ sub is_property_hidden
 sub get_property
 {
     my ($lid, $propname) = @_;
-    return $layerprop{$lid}->{$propname};
+    return $Domains{$CurrentDomain}{layerprop}{$lid}->{$propname};
 }
 
 sub get_properties
 {
     my ($lid) = @_;
-    return () unless $layerprops{$lid};
-    return @{$layerprops{$lid}};
+    return () unless $Domains{$CurrentDomain}{layerprops}{$lid};
+    return @{$Domains{$CurrentDomain}{layerprops}{$lid}};
 }
 
 sub get_property_groups
 {
     my $lid = shift;
-    return @{$layerpropgroups{$lid} || []};
+    return @{$Domains{$CurrentDomain}{layerpropgroups}{$lid} || []};
 }
 
 sub get_property_group_props
 {
     my ($lid, $group) = @_;
-    return () unless $layerpropgroupprops{$lid};
-    return @{$layerpropgroupprops{$lid}->{$group} || []};
+    return () unless $Domains{$CurrentDomain}{layerpropgroupprops}{$lid};
+    return @{$Domains{$CurrentDomain}{layerpropgroupprops}{$lid}->{$group} || []};
 }
 
 sub get_property_group_name
 {
     my ($lid, $group) = @_;
-    return unless $layerpropgroupname{$lid};
-    return $layerpropgroupname{$lid}->{$group};
+    return unless $Domains{$CurrentDomain}{layerpropgroupname}{$lid};
+    return $Domains{$CurrentDomain}{layerpropgroupname}{$lid}->{$group};
 }
 
 sub register_set
 {
     my ($lid, $propname, $val) = @_;
-    $layerset{$lid}->{$propname} = $val;
+    $Domains{$CurrentDomain}{layerset}{$lid}->{$propname} = $val;
 }
 
 sub get_set
 {
     my ($lid, $propname) = @_;
-    my $v = $layerset{$lid}->{$propname};
+    my $v = $Domains{$CurrentDomain}{layerset}{$lid}->{$propname};
     return undef unless defined $v;
     return $v;
 }
@@ -305,17 +327,17 @@ sub register_global_function
     my ($lid, $func, $rtype, $docstring, $attrs) = @_;
 
     # need to make the signature:  foo(int a, int b) -> foo(int,int)
-    return unless 
+    return unless
         $func =~ /^(.+?\()(.*)\)$/;
     my ($signature, @args) = ($1, split(/\s*\,\s*/, $2));
     foreach (@args) { s/\s+\w+$//; } # strip names
     $signature .= join(",", @args) . ")";
-    $layerglobal{$lid}->{$signature} = {
+    $Domains{$CurrentDomain}{layerglobal}{$lid}->{$signature} = {
         'returntype' => $rtype,
         'docstring' => $docstring,
         'args' => $func,
         'attrs' => $attrs,
-    };    
+    };
 }
 
 sub register_function
@@ -327,8 +349,8 @@ sub register_function
 
     # now, remember that closure.
     foreach my $fi (@$names) {
-	my $num = get_func_num($fi);
-	$layerfunc{$lid}->{$num} = $closure;
+        my $num = get_func_num($fi);
+        $Domains{$CurrentDomain}{layerfunc}{$lid}->{$num} = $closure;
     }
 }
 
@@ -385,8 +407,11 @@ sub run_function
 sub get_func_num
 {
     my $name = shift;
-    return $funcnum{$name} if exists $funcnum{$name};
-    return $funcnum{$name} = ++$funcnummax;
+    my $domain = $Domains{$CurrentDomain};
+
+    return $domain->{funcnum}{$name}
+        if exists $domain->{funcnum}{$name};
+    return $domain->{funcnum}{$name} = ++$domain->{funcnummax};
 }
 
 sub get_object_func_num
@@ -402,7 +427,7 @@ sub get_object_func_num
 }
 
 # Called by NodeForeachStmt
-sub get_characters 
+sub get_characters
 {
     my $string = shift;
     use utf8;
