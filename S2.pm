@@ -344,11 +344,11 @@ sub get_func_num
 
 sub get_object_func_num
 {
-    my ($type, $inst, $func, $s2lid, $s2line) = @_;
+    my ($type, $inst, $func, $s2lid, $s2line, $is_super) = @_;
     if (ref $inst ne "HASH" || $inst->{'_isnull'}) {
         die "Method called on null $type object at layer \#$s2lid, line $s2line.\n";
     }
-    $type = $inst->{'_type'};
+    $type = $inst->{'_type'} unless $is_super;
     return get_func_num("${type}::$func");
 }
 

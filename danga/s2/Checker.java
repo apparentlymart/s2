@@ -29,6 +29,7 @@ public class Checker
     // per function
     private int funcNum = 0;
     private Hashtable funcNums;     // FuncID -> Integer(funcnum)
+    private LinkedList funcNames;   // Strings
     
     public Checker ()
     {
@@ -59,7 +60,14 @@ public class Checker
 	}
     }
     public NodeClass getClass (String name) {
+        if (name == null) return null;
 	return (NodeClass) classes.get(name);
+    }
+
+    public String getParentClassName (String name) {
+        NodeClass nc = getClass(name);
+        if (nc == null) return null;
+        return nc.getParentName();
     }
 
     public boolean isValidType (Type t) {
@@ -227,17 +235,22 @@ public class Checker
     public void resetFunctionNums () {
 	funcNum = 0;
 	funcNums = new Hashtable();
+        funcNames = new LinkedList();
     }
     public int functionNum (String funcID) {
 	Integer num = (Integer) funcNums.get(funcID);
 	if (num == null) {
 	    num = new Integer(++funcNum);
 	    funcNums.put(funcID, num);
+            funcNames.add(funcID);
 	}
 	return num.intValue();
     }
     public Hashtable getFuncNums () {
 	return funcNums;
+    }
+    public LinkedList getFuncNames () {
+	return funcNames;
     }
 
     // check if type 't' is a subclass of 'w'
