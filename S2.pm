@@ -278,18 +278,12 @@ sub register_function
 {
     my ($lid, $names, $code) = @_;
 
-    # register the function names first, before we eval the code 
-    # to get the closure, because the subref might be recursive,
-    # in which case it'll die if it needs to call itself and it
-    # doesn't think it exists yet.
-    foreach my $fi (@$names) { register_func_num($fi); }
-
     # run the code to get the sub back with its closure data filled.
     my $closure = $code->();
 
     # now, remember that closure.
     foreach my $fi (@$names) {
-	my $num = register_func_num($fi);
+	my $num = get_func_num($fi);
 	$layerfunc{$lid}->{$num} = $closure;
     }
 }
@@ -326,20 +320,11 @@ sub run_code
     return 1;
 }
 
-sub register_func_num
+sub get_func_num
 {
     my $name = shift;
     return $funcnum{$name} if exists $funcnum{$name};
     return $funcnum{$name} = ++$funcnummax;
-}
-
-sub get_func_num
-{
-    my $name = shift;
-    my $num = $funcnum{$name};
-    return $num if $num;
-
-    die "S2::get_func_num: Undefined function $name\n";
 }
 
 sub get_object_func_num
