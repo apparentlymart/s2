@@ -14,6 +14,7 @@ use constant VTABLE => 0;
 use constant STATICS => 1;
 use constant PROPS => 2;
 use constant SCRATCH => 3;  # embedder-defined use
+use constant LAYERLIST => 4;  # arrayref of layerids which made the context
 
 my %layer;       # lid -> time()
 my %layercomp;   # lid -> compiled time (when loaded from database)
@@ -87,6 +88,7 @@ sub make_context
 	}
     }
 
+    $ctx->[LAYERLIST] = [ @lids ];
     return $ctx;
 }
 
