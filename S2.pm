@@ -24,7 +24,7 @@ sub set_domain
     my $name = shift;
     $Domains{ $name } ||= {
         layer               => undef, # time()
-        layecomp            => undef, # compiled time (when loaded from database)
+        layercomp           => undef, # compiled time (when loaded from database)
         layerinfo           => undef, # key -> value
         layerset            => undef, # key -> value
         layerprop           => undef, # prop -> { type/key => "string"/val }
@@ -216,10 +216,23 @@ sub load_layers_from_db
     return $maxtime;
 }
 
+# returns the modtime of a loaded layer; if a second parameter is specified,
+# that is the maximum age in seconds to consider the layer loaded for.  if a
+# layer is older than that time, it is automatically unloaded and undef is
+# returned to the caller.
 sub layer_loaded
 {
-    my ($id) = @_;
-    return $Domains{$CurrentDomain}{layercomp}{$id};
+    my ($id, $maxage) = @_;
+    my $modtime = $Domains{$CurrentDomain}{layercomp}{$id};
+    return $modtime unless $maxage && $modtime;
+
+    # layer must be defined and loaded and we must have a max age at this point
+    my $age = time() - $Domains{$CurrentDomain}{layer}{$id};
+    return $modtime if $age <= $maxage;
+
+    # layer is invalid; unload it and say it's not loaded
+    unregister_layer($id);
+    return undef;
 }
 
 sub set_layer_info
