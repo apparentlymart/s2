@@ -21,6 +21,14 @@ sub new {
     bless $node, $class;
 }
 
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'tokenlist'};
+    delete $this->{'docstring'};
+    foreach (@{$this->{'functions'}}) { $_->cleanForFreeze(); }
+    foreach (@{$this->{'vars'}}) { $_->cleanForFreeze(); }
+}
+
 sub canStart {
     my ($class, $toker) = @_;
     return $toker->peek() == $S2::TokenKeyword::CLASS;

@@ -18,6 +18,14 @@ sub new {
     bless $node, $class;
 }
 
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'tokenlist'};
+    delete $this->{'docstring'};
+    $this->{'formals'}->cleanForFreeze() if $this->{'formals'};
+    $this->{'rettype'}->cleanForFreeze() if $this->{'rettype'};
+}
+
 sub getDocString { shift->{'docstring'}; }
 
 sub canStart {

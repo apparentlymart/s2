@@ -17,6 +17,12 @@ sub new {
     bless $node, $class;
 }
 
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'tokenlist'};
+    foreach (@{$this->{'listFormals'}}) { $_->cleanForFreeze; }
+}
+
 sub parse {
     my ($class, $toker, $isDecl) = @_;
     my $n = new S2::NodeFormals;

@@ -14,6 +14,11 @@ sub new {
     bless $node, $class;
 }
 
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'tokenlist'};
+}
+
 sub setStart {
     my ($this, $arg) = @_;
 

@@ -4,6 +4,34 @@
 package S2::Checker;
 
 use strict;
+use vars qw($VERSION);
+
+# version should be incremented whenever any internals change.
+# the external mechanisms which serialize checker objects should
+# then include in their hash/db/etc the version, so any change
+# in version invalidates checker caches and forces a full re-compile
+$VERSION = '1.0';
+
+#    // combined (all layers)
+#    private Hashtable classes;      // class name    -> NodeClass
+#    private Hashtable props;        // property name -> Type
+#    private Hashtable funcs;        // FuncID -> return type
+#    private Hashtable funcBuiltin;  // FuncID -> Boolean (is builtin)
+#    private LinkedList localblocks; // NodeStmtBlock scopes .. last is deepest (closest)
+#    private Type returnType;
+#    private String funcClass;       // current function class
+#    private Hashtable derclass;     // classname  -> LinkedList<classname>
+#    private boolean inFunction;     // checking in a function now?
+
+#    // per-layer
+#    private Hashtable funcDist;     // FuncID -> [ distance, NodeFunction ]
+#    private Hashtable funcIDs;      // NodeFunction -> Set<FuncID>
+#    private boolean hitFunction;    // true once a function has been declared/defined
+
+#    // per function
+#    private int funcNum = 0;
+#    private Hashtable funcNums;     // FuncID -> Integer(funcnum)
+#    private LinkedList funcNames;   // Strings
 
 sub new
 {
@@ -17,6 +45,23 @@ sub new
         'localblocks' => [],
     };
     bless $this, $class;
+}
+
+sub cleanForFreeze {
+    my $this = shift;
+    delete $this->{'funcDist'};
+    delete $this->{'funcIDs'};
+    delete $this->{'hitFunction'};
+    delete $this->{'funcNum'};
+    delete $this->{'funcNums'};
+    delete $this->{'funcNames'};
+    $this->{'localBlocks'} = [];
+    delete $this->{'returnType'};
+    delete $this->{'funcClass'};
+    delete $this->{'inFunction'};
+    foreach my $nc (values %{$this->{'classes'}}) {
+        $nc->cleanForFreeze();
+    }
 }
 
 sub addClass {
