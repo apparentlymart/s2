@@ -57,6 +57,8 @@ class TokenStringLiteral extends Token {
     {
 	boolean inTriple = false;
 	boolean continued = false;
+
+        FilePos pos = t.getPos();
 	
 	if (t.inString == 0)  {
 	    // see if this is a triple quoted string,
@@ -82,7 +84,10 @@ class TokenStringLiteral extends Token {
 	StringBuffer tbuf = new StringBuffer(inTriple ? 500 : 80);
     
 	while (true) {
-	    if (t.peekChar() == '"') {
+            char peekchar = t.peekChar();
+            if (peekchar == (char)-1) {
+                throw new Exception("Run-away string.  Check for unbalanced quote types on string literals.");
+            } else if (peekchar == '"') {
 		if (! inTriple) {
 		    t.getChar();
 		    t.inString = 0;

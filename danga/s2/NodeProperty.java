@@ -51,7 +51,7 @@ public class NodeProperty extends Node
     {
 	String name = nt.getName();
 	Type type = nt.getType();
-	
+
 	if (l.getType().equals("i18n")) {
 	    // FIXME: as a special case, allow an i18n layer to
 	    // to override the 'des' property of a property, so
@@ -74,6 +74,12 @@ public class NodeProperty extends Node
 	    throw new Exception("Properties must be scalars, not arrays or hashes "+
 				"at "+nt.getFilePos());
 	}
+
+        String basetype = type.baseType();
+        if (! Type.isPrimitive(basetype) && ck.getClass(basetype) == null) {
+            throw new Exception("Can't define a property of an unknown class "+
+                                "at "+nt.getFilePos());
+        }
 	
 	// all is well, so register this property with its type
 	ck.addProperty(name, type);	

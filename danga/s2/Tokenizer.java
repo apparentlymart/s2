@@ -11,6 +11,8 @@ public class Tokenizer
     // these are public for the Tokens to access when scanning:  (no 'friend' classes in Java.  :/)
     public int inString;     // can be 0, 1, or 3.  (string types of none, normal, triple quote)
   
+    boolean varToker = false;
+
     public Tokenizer (InputStream is)
     {
 	sc = new Scanner(is);
@@ -23,6 +25,7 @@ public class Tokenizer
     {
 	Tokenizer vt = new Tokenizer(null); // null unimportant--- setting scanner later
 	vt.inString = 0;  // note: we probably _are_ in a string.
+        vt.varToker = true;
 
 	// clone everything else:
 	vt.masterTokenizer = masterTokenizer;
@@ -70,6 +73,10 @@ public class Tokenizer
 	nxtoken.pos = pos;
 
 	return nxtoken;
+    }
+
+    public FilePos getPos () {
+        return new FilePos(sc.line, sc.col);
     }
 
     private Token makeToken () throws Exception
