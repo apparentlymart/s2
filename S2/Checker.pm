@@ -270,11 +270,15 @@ sub typeIsa {
     return 0;
 }
 
-# check to see if a class or parents has a "toString()" method
+# check to see if a class or parents has a "toString()" or "as_string()" method.
+# returns the method name found.
 sub classHasToString {
     my ($this, $clas) = @_;
-    my $et = $this->functionType("${clas}::toString()");
-    return $et && $et->equals($S2::Type::STRING);
+    foreach my $methname (qw(toString as_string)) {
+        my $et = $this->functionType("${clas}::$methname()");
+        return $methname if $et && $et->equals($S2::Type::STRING);
+    }
+    return undef;
 }
 
 # check to see if a class or parents has an "as_string" string member
