@@ -49,14 +49,12 @@ sub getType {
     my $rt = $this->{'rhs'}->getType($ck, $lt);
 
     if ($lt->isReadOnly()) {
-        die("Left-hand side of assignment at " . $this->getFilePos()->toString() .
-            " is a read-only value.\n");
+        S2::error($this, "Left-hand side of assignment is a read-only value.");
     }
 
     if (! $this->{'lhs'}->isa('S2::NodeTerm') ||
         ! $this->{'lhs'}->isLValue()) {
-        die "Left-hand side of assignment at " . $this->getFilePos()->toString() .
-            " must be an lvalue.\n";
+        S2::error($this, "Left-hand side of assignment must be an lvalue.");
     }
 
     return $lt if $ck->typeIsa($rt, $lt);
@@ -68,8 +66,7 @@ sub getType {
         return $lt if $lt->equals($rt);
     }
 
-    die("Can't assign type " . $rt->toString . " to " . $lt->toString . " at " .
-        $this->getFilePos->toString . "\n");
+    S2::error($this, "Can't assign type " . $rt->toString . " to " . $lt->toString);
 }
 
 sub asS2 {

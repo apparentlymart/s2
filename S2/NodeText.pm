@@ -35,7 +35,7 @@ sub parse {
         $nt->addToken($toker->getToken());
         $nt->{'text'} = $t->getString();
     } else {
-        die "Expecting text (integer, string, or identifer)\n";
+        S2::error($t, "Expecting text (integer, string, or identifer)");
     }
 
     return $nt;

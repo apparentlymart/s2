@@ -51,9 +51,8 @@ sub getType {
     my $rt = $this->{'rhs'}->getType($ck);
 
     if (! $lt->equals($rt)) {
-        die "The types of the left and right hand side of " .
-            "equality test expression don't match at " .
-            $this->getFilePos->toString . "\n";
+        S2::error($this, "The types of the left and right hand side of " .
+                  "equality test expression don't match.");
     }
 
     if ($lt->equals($S2::Type::STRING) ||
@@ -62,8 +61,7 @@ sub getType {
         return $S2::Type::BOOL;
     }
 
-    die "Only string and int types can be compared at ".
-        $this->getFilePos->toString . "\n";
+    S2::error($this, "Only string and int types can be compared>");
 }
 
 sub asS2 {

@@ -55,15 +55,13 @@ sub getType {
 
     if ($this->{'bNegative'}) {
         unless ($t->equals($S2::Type::INT)) {
-            die "Can't use unary minus on non-integer at " .
-                $this->{'expr'}->getFilePos->toString . "\n";
+            S2::error($this->{'expr'}, "Can't use unary minus on non-integer.");
         }
         return $S2::Type::INT;
     }
     if ($this->{'bNot'}) {
         unless ($t->equals($S2::Type::BOOL)) {
-            die "Can't use negation operator on boolean-integer at " .
-                $this->{'expr'}->getFilePos->toString . "\n";
+            S2::error($this->{'expr'}, "Can't use negation operator on boolean-integer.");
         }
         return $S2::Type::BOOL;
     }

@@ -85,8 +85,7 @@ sub getType {
             $this->{'subType'}->isArrayOf() ||
             $this->{'subType'}->isHashOf() ||
             $this->{'subType'}->equals($S2::Type::STRING);
-        die "Can't use size on expression that's not a string, hash or array ".
-            "at " . $this->getFilePos->toString . "\n";
+        S2::error($this, "Can't use size on expression that's not a string, hash or array.");
     }
 
     if ($type == $REVERSEFUNC) {
@@ -100,8 +99,7 @@ sub getType {
         return $this->{'subType'} if
             $this->{'subType'}->isArrayOf();
 
-        die "Can't reverse on expression that's not a string or array " .
-            "at " . $this->getFilePos->toString . "\n";
+        S2::error($this, "Can't reverse on expression that's not a string or array.");
     }
 
     if ($type == $ISNULLFUNC || $type == $DEFINEDTEST) {
@@ -112,27 +110,27 @@ sub getType {
             my $nt = $this->{'subExpr'};
             if ($nt->{'type'} != $VARREF && $nt->{'type'} != $FUNCCALL &&
                 $nt->{'type'} != $METHCALL) {
-                die("$op must only be used on an object variable, ".
-                    "function call or method call at ".$this->getFilePos->toString . "\n");
+                S2::error($this, "$op must only be used on an object variable, ".
+                          "function call or method call.");
             }
         } else {
-            die("$op must only be used on an object variable, ".
-                "function call or method call at ".$this->getFilePos->toString . "\n");
+            S2::error($this, "$op must only be used on an object variable, ".
+                      "function call or method call.");
         }
 
         # can't be used on arrays and hashes
         unless ($this->{'subType'}->isSimple()) {
-            die("Can't use $op on an array or hash at " . $this->getFilePos->toString . "\n");
+            S2::error($this, "Can't use $op on an array or hash.");
         }
         
         # not primitive types either
         if ($this->{'subType'}->isPrimitive()) {
-            die("Can't use $op on primitive types at ".$this->getFilePos->toString . "\n");
+            S2::error($this, "Can't use $op on primitive types.");
         }
         
         # nor void
         if ($this->{'subType'}->equals($S2::Type::VOID)) {
-            die("Can't use $op on a void value at ".$this->getFilePos->toString . "\n");
+            S2::error($this, "Can't use $op on a void value.");
         }
         
         return $S2::Type::BOOL;
@@ -142,16 +140,14 @@ sub getType {
         my $clas = $this->{'newClass'}->getIdent();
         my $nc = $ck->getClass($clas);
         unless ($nc) {
-            die("Can't instantiate unknown class at " .
-                $this->getFilePos->toString . "\n");
+            S2::error($this, "Can't instantiate unknown class.");
         }
         return new S2::Type $clas;
     }
 
     if ($type == $VARREF) {
         unless ($ck->getInFunction()) {
-            die "Can't reference a variable outside of a function at " .
-                $this->getFilePos->toString . "\n";
+            S2::error($this, "Can't reference a variable outside of a function.");
         }
         return $this->{'var'}->getType($ck, $wanted);
     }
@@ -291,6 +287,9 @@ sub parse {
         while ($loop) {
             my $rhs = undef;
             my $tok = $toker->peek();
+            unless ($tok) {
+                S2::error($tok, "Unexpected end of file.  Unclosed string literal?");
+            }
             if ($tok->isa('S2::TokenStringLiteral')) {
                 $rhs = new S2::NodeTerm;
                 $ts = $tok;

@@ -7,7 +7,7 @@ use S2;
 
 my $opt_output;
 my $opt_warn;
-my $opt_perl;
+my $opt_perl = 1;
 my $opt_force;
 GetOptions("output" => \$opt_output,
 	   "warnings" => \$opt_warn,

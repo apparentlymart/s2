@@ -47,9 +47,8 @@ sub getType {
     my $rt = $this->{'rhs'}->getType($ck);
 
     if (! $lt->equals($rt) || ! $lt->isBoolable()) {
-        die "The left and right side of the 'or' expression must ".
-            "both be of either type bool or int at ".
-            $this->getFilePos->toString . "\n";
+        S2::error($this, "The left and right side of the 'or' expression must ".
+                  "both be of either type bool or int.");
     }
 
     return $S2::Type::BOOL;
