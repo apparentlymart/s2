@@ -4,6 +4,7 @@
 use strict;
 use Getopt::Long;
 use S2;
+use S2::Compiler;
 
 my $opt_output;
 my $opt_perl = 1;
@@ -56,33 +57,43 @@ foreach my $f (@files)
 	}
     }
 
+    my $result;
+    my $cerr = undef;
+
     if ($build) {
 	my $error_file = "error-runtests.dat";
-	my $cmd = "$to_run -output perl -layerid 1 -layertype core $TESTDIR/$f 2>$error_file 1> $pfile";
-	print STDERR "# $cmd\n";
-	my $ret = system($cmd);
-        if ($ret) {
-	    unlink $pfile;
-	    rename $error_file, $pfile;
-	} else {
-	    unlink $error_file;
-	}
-	if (-z $pfile) {
-	    push @errors, [ $f, "Failed to compiled." ];
-	}
-    }
 
-    my $source;
-    open (SS, $pfile) or die "Couldn't open $pfile";
-    { local $/; $source = <SS>; }
-    close SS;
+        open(IN,'<',"$TESTDIR/$f");
+        my $source = join('',<IN>);
+        close(IN);
+
+        my $ck = new S2::Checker;
+        my $cplr = S2::Compiler->new({ 'checker' => $ck });
+        
+        eval { 
+            $cplr->compile_source({
+                'type' => 'core',
+                'source' => \$source,
+                'output' => \$result,
+                'layerid' => 1,
+                'untrusted' => 0,
+                'builtinPackage' => "S2::Builtin",
+                'format' => 'perl',
+            });
+        };
+        if ($@) {
+            $cerr = $@;
+            push @errors, [ $f, "Failed to compile" ];
+            print "$cerr\n" if $opt_verbose;
+        }
+    }
 
     my $output = "";
     my $error;
-    if ($source =~ /^\#\!/) {
+    if ($result =~ /^\#\!/) {
 	S2::set_output(sub { $output .= $_[0]; });
 	S2::unregister_layer(1);
-	  eval $source;
+	  eval $result;
 	  $error = $@ if $@;
 	  my $ctx = S2::make_context([ 1 ]);
 	  eval {
@@ -90,7 +101,7 @@ foreach my $f (@files)
 	  };
 	  $error = $@ if $@;
       } else {
-	  $error = $source;
+	  $error = $cerr;
       }
     
     if ($opt_output) {
