@@ -78,7 +78,15 @@ sub make_context
 
 	## setup the property values
 	foreach my $p (keys %{$layerset{$lid}}) {
-	    $ctx->[PROPS]->{$p} = $layerset{$lid}->{$p};
+            my $v = $layerset{$lid}->{$p};
+
+            # this was the old format, but only used for Color constructors,
+            # so we can change it to the new format:
+            $v = S2::Builtin::Color__Color($v->[0])
+                if (ref $v eq "ARRAY" && scalar(@$v) == 2 && 
+                    ref $v->[1] eq "CODE");
+
+	    $ctx->[PROPS]->{$p} = $v;
 	}
     }
 
