@@ -6,13 +6,13 @@ use Getopt::Long;
 use S2;
 
 my $opt_output;
-my $opt_warn;
 my $opt_perl = 1;
 my $opt_force;
+my $opt_verbose;
 GetOptions("output" => \$opt_output,
-	   "warnings" => \$opt_warn,
            "perl" => \$opt_perl,
            "force" => \$opt_force,
+	   "verbose" => \$opt_verbose,
            );
 
 my $runwhat = shift;
@@ -49,7 +49,7 @@ foreach my $f (@files)
     my $ptime = (stat($pfile))[9];
 
     my $build = $opt_force ? 1 : 0;
-    if ($opt_warn || -s $pfile == 0) { $build = 1; }
+    if (-s $pfile == 0) { $build = 1; }
     unless ($ptime > $stime && $ptime > $jtime) {
 	if ($stime > $ptime || $jtime > $ptime) {
 	    $build = 1;
@@ -57,31 +57,42 @@ foreach my $f (@files)
     }
 
     if ($build) {
-	my $no_warn = "2> /dev/null ";
-	if ($opt_warn) { $no_warn = ""; }
-	my $cmd = "$to_run -output perl -layerid 1 -layertype core $TESTDIR/$f $no_warn> $pfile";
+	my $error_file = "error-runtests.dat";
+	my $cmd = "$to_run -output perl -layerid 1 -layertype core $TESTDIR/$f 2>$error_file 1> $pfile";
 	print STDERR "# $cmd\n";
 	my $ret = system($cmd);
-        if ($ret) { die "Failed to run!\n"; } 
+        if ($ret) {
+	    unlink $pfile;
+	    rename $error_file, $pfile;
+	} else {
+	    unlink $error_file;
+	}
 	if (-z $pfile) {
 	    push @errors, [ $f, "Failed to compiled." ];
 	}
     }
 
-    my $output = "";
-    S2::set_output(sub { $output .= $_[0]; });
-    S2::unregister_layer(1);
-    unless (S2::load_layer_file($pfile)) {
-        die $@;
-    }
-    my $ctx = S2::make_context([ 1 ]);
-    eval {
-        S2::run_code($ctx, "main()");
-    };
-    if ($@) {
-        $output .= "ERROR: $@";
-    }
+    my $source;
+    open (SS, $pfile) or die "Couldn't open $pfile";
+    { local $/; $source = <SS>; }
+    close SS;
 
+    my $output = "";
+    my $error;
+    if ($source =~ /^\#\!/) {
+	S2::set_output(sub { $output .= $_[0]; });
+	S2::unregister_layer(1);
+	  eval $source;
+	  $error = $@ if $@;
+	  my $ctx = S2::make_context([ 1 ]);
+	  eval {
+	      S2::run_code($ctx, "main()");
+	  };
+	  $error = $@ if $@;
+      } else {
+	  $error = $source;
+      }
+    
     if ($opt_output) {
 	print $output;
     }
@@ -94,8 +105,24 @@ foreach my $f (@files)
 	if (trim($output) ne trim($goodout)) {
 	    push @errors, [ $f, "Output differs." ];
 	}
-    } else {
-	push @errors, [ $f, "No expected output file." ];
+    } elsif ($output) {
+	push @errors, [ $f, "Output, and no expected output file." ];
+    }
+
+    my $efile = "$TESTDIR/$f.err";
+    my $gooderror;
+    if (-e $efile) {
+	open (E, $efile);
+	$gooderror = join('',<E>);
+	close E;
+	$gooderror = trim($gooderror);
+	if ($error !~ /\Q$gooderror\E/) {
+	    push @errors, [ $f, "Wrong error encountered" ];
+	    print "$f: $error\n" if $opt_verbose;
+	}
+    } elsif ($error) {
+	push @errors, [ $f, "Error occured, but not anticipated." ];
+	print "$f: $error\n" if $opt_verbose;
     }
 }
 

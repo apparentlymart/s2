@@ -51,6 +51,7 @@ sub getType {
     unless ($ctype->isBoolable()) {
         S2::error($this, "Conditional expression not of type boolean.");
     }
+
     my $lt = $this->{'true_expr'}->getType($ck);
     my $rt = $this->{'false_expr'}->getType($ck);
     unless ($lt->equals($rt)) {
