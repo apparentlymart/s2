@@ -14,7 +14,7 @@ RECOMMENDED:
 
 MAGIC:
 
-       uniqname = When layers are redistributed, they need a uniqname
+       redist_uniq = When layers are redistributed, they need a uniqname
               that never changes so they can be found and upgraded on
               any installation, regardless of that system's system
               account userid and s2lid values.  the compiler or web
