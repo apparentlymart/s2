@@ -167,12 +167,12 @@ sub makeToken # () method private : Token
         return S2::TokenIntegerLiteral->new($iv);
     }
     
-    if ($$c =~ /\G\#.*\n/gc) {
+    if ($$c =~ /\G\#.*\n?/gc) {
         return S2::TokenComment->new($&);
     }
 
     if ($$c =~ /.+/gc) {
-        S2::error($this, "Parse error!  Unknown token.");
+        S2::error($this->getPos(), "Parse error!  Unknown token.  ($&)");
     }
     
     return undef;
