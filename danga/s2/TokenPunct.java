@@ -36,6 +36,7 @@ class TokenPunct extends Token {
     public static final TokenPunct BITOR  = new TokenPunct("|");
     public static final TokenPunct MULT   = new TokenPunct("*");
     public static final TokenPunct DIV    = new TokenPunct("/");
+    public static final TokenPunct MOD    = new TokenPunct("%");
     public static final TokenPunct NOT    = new TokenPunct("!");
     public static final TokenPunct DOT    = new TokenPunct(".");
     public static final TokenPunct LBRACE = new TokenPunct("{");
@@ -151,6 +152,10 @@ class TokenPunct extends Token {
 	if (t.peekChar() == '/') {
 	    t.getChar();
 	    return TokenPunct.DIV;
+	}
+	if (t.peekChar() == '%') {
+	    t.getChar();
+	    return TokenPunct.MOD;
 	}
     
 	if (t.peekChar() == '!') {

@@ -1,0 +1,14 @@
+
+layerinfo "type" = "core";
+layerinfo "majorversion" = "1";
+
+function main() {
+    var int first = 7;
+    var int second = 5;
+    println "$first + $second = " + ($first + $second);
+    println "$first - $second = " + ($first - $second);
+    println "$second - $first = " + ($second - $first);
+    println "$first * $second = " + ($first * $second);
+    println "$first / $second = " + ($first / $second);
+    println "$first % $second = " + ($first % $second);
+}

@@ -16,7 +16,8 @@ public class NodeProduct extends Node
 	Node lhs = NodeUnaryExpr.parse(toker);
 
 	while (toker.peek().equals(TokenPunct.MULT) ||
-	       toker.peek().equals(TokenPunct.DIV)) {
+	       toker.peek().equals(TokenPunct.DIV) ||
+               toker.peek().equals(TokenPunct.MOD)) {
 	    lhs = parseAnother(toker, lhs);
 	}
 	return lhs;
@@ -45,11 +46,11 @@ public class NodeProduct extends Node
 	Type lt = lhs.getType(ck);
 	Type rt = rhs.getType(ck);
 	if (! rt.equals(Type.INT)) {
-	    throw new Exception("Right hand side of * operator is not an integer at "+
+	    throw new Exception("Right hand side of " + op.getPunct() + " operator is not an integer at "+
 				rhs.getFilePos());
 	}
 	if (! lt.equals(Type.INT)) {
-	    throw new Exception("Left hand side of * operator is not an integer at "+
+	    throw new Exception("Left hand side of " + op.getPunct() + " operator is not an integer at "+
 				lhs.getFilePos());
 	}
 	
@@ -77,6 +78,8 @@ public class NodeProduct extends Node
                 o.write(" * ");
             else if (op == TokenPunct.DIV)
                 o.write(" / ");
+            else if (op == TokenPunct.MOD)
+                o.write(" % ");
 	    rhs.asPerl(bp, o);
             if (op == TokenPunct.DIV)
                 o.write(")");
