@@ -48,6 +48,7 @@ class TokenPunct extends Token {
     public static final TokenPunct COMMA  = new TokenPunct(",");
     public static final TokenPunct QMARK  = new TokenPunct("?");
     public static final TokenPunct DOLLAR = new TokenPunct("$");
+    public static final TokenPunct HASSOC = new TokenPunct("=>");
 
     public static Token scan (Tokenizer t)
     {
@@ -81,6 +82,9 @@ class TokenPunct extends Token {
 	    if (t.peekChar() == '=') {
 		t.getChar();
 		return TokenPunct.EQ;
+            } else if (t.peekChar() == '>') {
+                t.getChar();
+                return TokenPunct.HASSOC;
 	    } else {
 		return TokenPunct.ASSIGN;
 	    }

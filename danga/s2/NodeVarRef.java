@@ -172,29 +172,28 @@ public class NodeVarRef extends Node
 	ListIterator levi = levels.listIterator();
 	VarLevel lev = (VarLevel) levi.next();
 
+	Type vart = null;
+
 	// properties
 	if (type == PROPERTY) {
-	    // properties are simple:  can only be of form $*\w+ ...
-	    // only simple types, and no levels.
-	    if (levels.size() > 1 || lev.derefs.size() > 0) {
-		throw new Exception("Malformed property variable at "+getFilePos());
-	    }
-            Type t = ck.propertyType(lev.var);
-            if (t == null)
+            vart = ck.propertyType(lev.var);
+            if (vart == null)
                 throw new Exception("Unknown property at "+getFilePos());
-	    return t;
+            vart = (Type) vart.clone();
 	}
 
 	// local variables.
-	Type vart = null;
 	if (type == LOCAL) {
 	    vart = (Type) ck.localType(lev.var);
 	    if (vart == null) {
 		throw new Exception("Unknown local variable $"+lev.var+" at "+
 				    getFilePos());
-	    } else {
-		vart = (Type) vart.clone();  // since we'll be modifying it
 	    }
+	}
+        
+        // properties & locals
+        if (type == PROPERTY || type == LOCAL) {
+            vart = (Type) vart.clone();  // since we'll be modifying it
 
 	    // dereference [] and {} stuff
 	    doDerefs(ck, lev.derefs, vart);
@@ -206,7 +205,7 @@ public class NodeVarRef extends Node
 	    } else {
 		lev = (VarLevel) levi.next();
 	    }
-	}
+        }
 
 	// initialize the name of the current object
 	if (type == OBJECT) {
@@ -218,28 +217,23 @@ public class NodeVarRef extends Node
 	    vart = new Type(curclass);
 	}
 
-	if (type == OBJECT || type==LOCAL) {
-
-	    while (lev != null) {
-		NodeClass nc = ck.getClass(vart.toString());
-		if (nc == null)
-		    throw new Exception("Can't use members of undefined class "+vart+" at "+getFilePos());
-		vart = nc.getMemberType(lev.var);
-		if (vart == null) {
-		    throw new Exception("Can't find member '"+lev.var+"' in '"+nc.getName()+"'");
-		}
-		vart = (Type) vart.clone();
-		
-		// dereference [] and {} stuff
-		doDerefs(ck, lev.derefs, vart);
-
-		lev = levi.hasNext() ? (VarLevel) levi.next() : null;
-	    }
-
-	    return vart;
-	}
-	
-	throw new Exception("Unknown var type");
+        while (lev != null) {
+            NodeClass nc = ck.getClass(vart.toString());
+            if (nc == null)
+                throw new Exception("Can't use members of undefined class "+vart+" at "+getFilePos());
+            vart = nc.getMemberType(lev.var);
+            if (vart == null) {
+                throw new Exception("Can't find member '"+lev.var+"' in '"+nc.getName()+"'");
+            }
+            vart = (Type) vart.clone();
+            
+            // dereference [] and {} stuff
+            doDerefs(ck, lev.derefs, vart);
+            
+            lev = levi.hasNext() ? (VarLevel) levi.next() : null;
+        }
+        
+        return vart;
     }
 
     private void doDerefs (Checker ck, LinkedList derefs, Type vart) throws Exception

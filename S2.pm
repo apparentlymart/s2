@@ -78,17 +78,7 @@ sub make_context
 
 	## setup the property values
 	foreach my $p (keys %{$layerset{$lid}}) {
-	    my $v = $layerset{$lid}->{$p};
-	    if (ref $v eq "ARRAY") {
-		# then this property is assigning to an object,
-		# which means the property's object type must
-		# have a constructor which takes a string.  the
-		# second array element in this property
-		# is a sub which will return the real value.
-
-		$v = $v->[1]->($ctx);
-	    }
-	    $ctx->[PROPS]->{$p} = $v;
+	    $ctx->[PROPS]->{$p} = $layerset{$lid}->{$p};
 	}
     }
 
@@ -255,7 +245,7 @@ sub get_set
     my ($lid, $propname) = @_;
     my $v = $layerset{$lid}->{$propname};
     return undef unless defined $v;
-    return ref $v ? $v->[0] : $v;  # return just value, not coderef of ctor
+    return $v;
 }
 
 # the whole point here is just to get the docstring.
@@ -440,19 +430,19 @@ sub string__repeat
 
 sub Color__Color
 {
-    my ($ctx, $s) = @_;
+    my ($s) = @_;
     my $this = { '_type' => 'Color' };
     $this->{'r'} = hex(substr($s, 1, 2));
     $this->{'g'} = hex(substr($s, 3, 2));
     $this->{'b'} = hex(substr($s, 5, 2));
-    Color__make_string($ctx, $this);
+    Color__make_string($this);
     return $this;
 }
 
 
 sub Color__make_string
 {
-    my ($ctx, $this) = @_;
+    my ($this) = @_;
     $this->{'as_string'} = sprintf("\#%02x%02x%02x",
 				  $this->{'r'},
 				  $this->{'g'},
@@ -461,19 +451,19 @@ sub Color__make_string
 
 sub Color__red {
     my ($ctx, $this, $v) = @_;
-    if ($v) { $this->{'r'} = $v; Color__make_string($ctx, $this); }
+    if ($v) { $this->{'r'} = $v; Color__make_string($this); }
     $this->{'r'};
 }
 
 sub Color__green {
     my ($ctx, $this, $v) = @_;
-    if ($v) { $this->{'g'} = $v; Color__make_string($ctx, $this); }
+    if ($v) { $this->{'g'} = $v; Color__make_string($this); }
     $this->{'g'};
 }
 
 sub Color__blue {
     my ($ctx, $this, $v) = @_;
-    if ($v) { $this->{'b'} = $v; Color__make_string($ctx, $this); }
+    if ($v) { $this->{'b'} = $v; Color__make_string($this); }
     $this->{'b'};
 }
 

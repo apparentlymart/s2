@@ -3,10 +3,7 @@ package danga.s2;
 public class NodeSet extends Node
 {
     String key;
-    String val;
-    Type type;
-
-    NodeTerm nodevalue;
+    NodeExpr value;
 
     public static boolean canStart (Tokenizer toker) throws Exception
     {
@@ -18,7 +15,6 @@ public class NodeSet extends Node
     public static Node parse (Tokenizer toker) throws Exception
     {
 	NodeText nkey;
-	NodeText nval;
 	NodeSet ns = new NodeSet();
 	
 	ns.setStart(ns.requireToken(toker, TokenKeyword.SET));
@@ -28,13 +24,12 @@ public class NodeSet extends Node
 
 	ns.requireToken(toker, TokenPunct.ASSIGN);
 
-	nval = (NodeText) NodeText.parse(toker);
-	ns.addNode(nval);
+	ns.value = (NodeExpr) NodeExpr.parse(toker);
+	ns.addNode(ns.value);
 
 	ns.requireToken(toker, TokenPunct.SCOLON);
 
 	ns.key = nkey.getText();
-	ns.val = nval.getText();
 
 	return ns;
     }
@@ -44,35 +39,47 @@ public class NodeSet extends Node
 	o.tabwrite("set ");
 	o.write(Backend.quoteString(key));
 	o.write(" = ");
-	o.write(Backend.quoteString(val));
+        value.asS2(o);
 	o.writeln(";");
     }
 
     public void check (Layer l, Checker ck) throws Exception
     {
-	type = ck.propertyType(key);
+	Type ltype = ck.propertyType(key);
+
+        ck.setInFunction(false);
 
 	// check to see that the thing we're setting exists
-	if (type == null) {
+	if (ltype == null) {
 	    throw new Exception("Can't set non-existent property '" + key + "' at " +
 				getFilePos());
 	}
 
+        Type rtype = value.getType(ck, ltype);
+        
+        if (! ltype.equals(rtype)) {
+            throw new Exception("Property value is of wrong type at "+getFilePos());
+        }
+
 	// simple case... assigning a primitive
-	if (type.isPrimitive()) {
-	    nodevalue = null;
+	if (ltype.isPrimitive()) {
+            // TODO: check that value.isLiteral()
+            // TODO: check value's type matches
 	    return;
 	}
 
-        if (ck.getClass(type.baseType()) == null) {
+        Type base = new Type(ltype.baseType());
+        if (base.isPrimitive()) {
+            return;
+        } else if (ck.getClass(ltype.baseType()) == null) {
             throw new Exception("Can't set property of unknown type at "+
                                 getFilePos());
         }
 
 	// more complex case... calling a constructor to generate
 	// the value
-	nodevalue = NodeTerm.makeStringCtorCall(type.baseType(), val);
-	nodevalue.getType(ck);
+	//nodevalue = NodeTerm.makeStringCtorCall(type.baseType(), val);
+	//nodevalue.getType(ck);
     }
 
     public void asPerl (BackendPerl bp, Indenter o)
@@ -81,21 +88,16 @@ public class NodeSet extends Node
 	o.tabwrite("register_set("+
 		   bp.getLayerIDString() + "," +
 		   bp.quoteString(key) + ",");
-	
-	// two cases to handle here:
-
-	// Simple case, when setting a property of a primitive type
-	if (nodevalue == null) {
-	    o.writeln(bp.quoteString(val) + ");");
-	    return;
-	}
+	value.asPerl(bp, o);
+        o.writeln(");");
+        return;
 
 	// Second case: setting a property that's a class, so code
 	// must be run to invoke the class constructor with that string.
 	// however, the raw string value still needs to be accessible easily
 	// to things like the GUI configurator, so the "value" here is
 	// really an arrayref with [ realvalue, coderef ].
-	
+	/*
 	o.writeln("[" + bp.quoteString(val) + ", sub {");
 	o.tabIn();
 	o.tabwriteln("my $_ctx = shift;");
@@ -104,7 +106,7 @@ public class NodeSet extends Node
 	o.writeln(";");
 	o.tabOut();
 	o.tabwriteln("}]);");
-
+        */
     }
 
 };
