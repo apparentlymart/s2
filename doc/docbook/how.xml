@@ -1,5 +1,6 @@
 <title>Behind the Scenes</title>
-<subtitle>How it all works, in a nutshell</subtitle>
+  <section>
+    <title>How it all works, in a nutshell</title>
 <para>
   The web app get a request and decides what user it's for, and what type of resource it's for.
   </para>
@@ -32,3 +33,4 @@
   on the object it just instantiated.  From here, S2 code runs, printing what
   it wants, and invoking methods on other objects in its huge data structure
   which may also print. </para>
+</section>
