@@ -88,7 +88,9 @@ sub check {
     };
     $check_assign->($expr);
 
+    $ck->pushLocalBlock($this->{'thenblock'});
     $this->{'thenblock'}->check($l, $ck);
+    $ck->popLocalBlock();
 
     foreach my $ne (@{$this->{'elseifexprs'}}) {
         $t = $ne->getType($ck);
@@ -97,11 +99,16 @@ sub check {
     }
 
     foreach my $sb (@{$this->{'elseifblocks'}}) {
+        $ck->pushLocalBlock($sb);
         $sb->check($l, $ck);
+        $ck->popLocalBlock();
     }
 
-    $this->{'elseblock'}->check($l, $ck) if
-        $this->{'elseblock'};
+    if ($this->{'elseblock'}) {
+        $ck->pushLocalBlock($this->{'elseblock'});
+        $this->{'elseblock'}->check($l, $ck);
+        $ck->popLocalBlock();
+    }
 }
 
 sub asS2 {
