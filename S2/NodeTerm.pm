@@ -217,6 +217,10 @@ sub isLValue {
 # make the object interpolate in a string
 sub makeAsString {
     my ($this, $ck) = @_;
+
+    if ($this->{'type'} == $STRING) {
+        return $this->{'nodeString'}->makeAsString($ck);
+    }
     return 0 unless $this->{'type'} == $VARREF;
 
     my $t = $this->{'var'}->getType($ck);
@@ -361,6 +365,7 @@ sub parse {
         $rnt->{'type'} = $STRING;
         $rnt->{'nodeString'} = $lhs;
         $rnt->addNode($lhs);
+
         return $rnt;
     }
     
