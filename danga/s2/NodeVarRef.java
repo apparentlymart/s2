@@ -210,7 +210,12 @@ public class NodeVarRef extends Node
 
 	// initialize the name of the current object
 	if (type == OBJECT) {
-	    vart = new Type(ck.getCurrentFunctionClass());
+            String curclass = ck.getCurrentFunctionClass();
+            if (curclass == null) {
+                throw new Exception("Can't reference member variable in non-method "+
+                                    "function at "+getFilePos());
+            }
+	    vart = new Type(curclass);
 	}
 
 	if (type == OBJECT || type==LOCAL) {
