@@ -21,6 +21,9 @@ public class Indenter
     public void write (String s) { o.write(s); }
     public void writeln (String s) { o.writeln(s); }
 
+    public void write (int i) { o.write(i); }
+    public void writeln (int i) { o.writeln(i); }
+
     public void tabwrite (String s) { doTab(); o.write(s); }
     public void tabwriteln (String s) { doTab(); o.writeln(s); }
 

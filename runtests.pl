@@ -66,7 +66,12 @@ foreach my $f (@files)
         die $@;
     }
     my $ctx = S2::make_context([ 1 ]);
-    S2::run_code($ctx, "main()");
+    eval {
+        S2::run_code($ctx, "main()");
+    };
+    if ($@) {
+        $output .= "ERROR: $@";
+    }
 
     if ($opt_output) {
 	print $output;
@@ -77,7 +82,7 @@ foreach my $f (@files)
 	open (O, $ofile);
 	my $goodout = join('',<O>);
 	close O;
-	if ($output ne $goodout) {
+	if (trim($output) ne trim($goodout)) {
 	    push @errors, [ $f, "Output differs." ];
 	}
     } else {
@@ -97,3 +102,11 @@ foreach my $e (@errors)
 }
 print STDERR "\n";
 exit 1;
+
+sub trim
+{
+    my $a = shift;
+    $a =~ s/^\s+//;
+    $a =~ s/\s+$//;
+    return $a;
+}
