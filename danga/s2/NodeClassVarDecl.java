@@ -30,7 +30,7 @@ public class NodeClassVarDecl extends Node
     {
 	NodeClassVarDecl n = new NodeClassVarDecl();
 
-        n.requireToken(toker, TokenKeyword.VAR);
+        n.setStart(n.requireToken(toker, TokenKeyword.VAR));
         
 	n.typenode = (NodeType) NodeType.parse(toker);
 	n.type = n.typenode.getType();
