@@ -18,6 +18,7 @@ sub error {
     while (my ($p, $f, $l) = caller($i++)) {
         $errmsg .= "  $p, $f, $l\n";
     }
+    undef $S2::CUR_COMPILER;
     die $errmsg;
 }
 

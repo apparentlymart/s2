@@ -14,6 +14,7 @@ use S2::Util;
 use S2::OutputConsole;
 use S2::BackendPerl;
 use S2::BackendHTML;
+use S2::Compiler;
 
 my $output;
 my $layerid;
@@ -51,16 +52,13 @@ if ($output eq "tokens") {
 
 
 my $ck;
-my $layerMain;
-
-# TODO: respect cmdline option to pre-load serialized checker to
-#       avoid having to make one by reparsing source of core[+layout]
-
 if ($output eq "html" || $output eq "s2") {
     $ck = undef;
 } else {
     $ck = new S2::Checker;
 }
+
+my $layerMain;
 
 if (! defined $layertype) {
     die "Unspecified layertype.\n";
@@ -75,32 +73,31 @@ if (! defined $layertype) {
     die "Invalid layertype.\n";
 }
 
-$layerMain = makeLayer($filename, $layertype, $ck);
 
-my $o = new S2::OutputConsole();
-my $be = undef;
-
-if ($output eq "html") {
-    $be = new S2::BackendHTML($layerMain);
-}
-
-if ($output eq "s2") {
-    $be = new S2::BackendS2($layerMain);
-}
+my $cplr = S2::Compiler->new({ 'checker' => $ck });
+my $compiled;
 
 if ($output eq "perl") {
     die "No layerid specified" unless $layerid;
-    $be = new S2::BackendPerl($layerMain, $layerid, $opt_untrusted);
 }
 
-unless ($be) {
-    die("No backend found for '$output'\n'");
+eval { 
+    $cplr->compile_source({
+	'type' => $layertype,
+	'source' => getFileBody($filename),
+	'output' => \$compiled,
+	'layerid' => $layerid,
+	'untrusted' => $opt_untrusted,
+	'builtinPackage' => "S2::Builtin",
+	'format' => $output,
+    });
+};
+if ($@) {
+    die "Compile error: $@\n";
 }
 
-$be->output($o);
-$o->flush();
+print $compiled;
 exit 0;
-
 
 ###################### functions
 

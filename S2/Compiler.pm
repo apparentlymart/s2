@@ -21,21 +21,26 @@ sub new # (fh) class method
 
 sub compile_source {
     my ($this, $opts) = @_;
+    $S2::CUR_COMPILER = $this;
     my $ref = ref $opts->{'source'} ? $opts->{'source'} : \$opts->{'source'};
     my $toker = S2::Tokenizer->new($ref);
     my $s2l = S2::Layer->new($toker, $opts->{'type'});
     my $o = new S2::OutputScalar($opts->{'output'});
     my $be;
+    $opts->{'format'} ||= "perl";
     if ($opts->{'format'} eq "html") {
         $be = new S2::BackendHTML($s2l);
-    } else {
+    } elsif ($opts->{'format'} eq "perl") {
         $this->{'checker'}->checkLayer($s2l);
         $be = new S2::BackendPerl($s2l, $opts->{'layerid'}, $opts->{'untrusted'});
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
+    } else {
+	S2::error("Unknown output type in S2::Compiler");
     }
     $be->output($o);
+    undef $S2::CUR_COMPILER;
     return 1;
 }
 

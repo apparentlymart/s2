@@ -17,8 +17,6 @@ function main ()
   $t = new Oak;    $t->grow();
   var Tree notree; 
   $notree->grow();
-  $notree->grow();
-  $notree->grow();
 }
 
 

@@ -74,14 +74,26 @@ sub willReturn {
 sub check {
     my ($this, $l, $ck) = @_;
 
-    my $t = $this->{'expr'}->getType($ck);
+    my $expr = $this->{'expr'};
+
+    my $t = $expr->getType($ck);
     S2::error($this, "Non-boolean if test") unless $t->isBoolable();
+
+    my $check_assign = sub {
+	my $ex = shift;
+	my $innerexpr = $ex->getExpr;
+	if ($innerexpr->isa("S2::NodeAssignExpr")) {
+	    S2::error($ex, "Assignments not allowed bare in conditionals.  Did you mean to use == instead?  If not, wrap assignment in parens.");
+	  }
+    };
+    $check_assign->($expr);
 
     $this->{'thenblock'}->check($l, $ck);
 
     foreach my $ne (@{$this->{'elseifexprs'}}) {
         $t = $ne->getType($ck);
         S2::error($ne, "Non-boolean if test") unless $t->isBoolable();
+	$check_assign->($ne);
     }
 
     foreach my $sb (@{$this->{'elseifblocks'}}) {

@@ -59,7 +59,8 @@ sub asPerl {
 
 sub asPerl_bool {
     my ($this, $bp, $o) = @_;
-    my $s2type = $this->getType();
+    my $ck = $S2::CUR_COMPILER->{'checker'};
+    my $s2type = $this->getType($ck);
 
     # already boolean
     if ($s2type->equals($S2::Type::BOOL) || $s2type->equals($S2::Type::INT)) {
