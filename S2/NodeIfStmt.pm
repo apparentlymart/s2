@@ -102,7 +102,7 @@ sub asPerl {
 
     # if
     $o->tabwrite("if (");
-    $this->{'expr'}->asPerl($bp, $o);
+    $this->{'expr'}->asPerl_bool($bp, $o);
     $o->write(") ");
     $this->{'thenblock'}->asPerl($bp, $o);
 	
@@ -111,7 +111,7 @@ sub asPerl {
     foreach my $expr (@{$this->{'elseifexprs'}}) {
         my $block = $this->{'elseifblocks'}->[$i++];
         $o->write(" elsif (");
-        $expr->asPerl($bp, $o);
+        $expr->asPerl_bool($bp, $o);
         $o->write(") ");
         $block->asPerl($bp, $o);
     }
@@ -123,4 +123,3 @@ sub asPerl {
     }
     $o->newline();
 }
-

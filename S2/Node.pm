@@ -17,6 +17,7 @@ sub new {
 sub cleanForFreeze {
     my $this = shift;
     delete $this->{'tokenlist'};
+    delete $this->{'_cache_type'};
 }
 
 sub setStart {
@@ -54,6 +55,43 @@ sub asS2 {
 sub asPerl {
     my ($this, $bp, $o) = @_;
     $o->tabwriteln("###${this}::asPerl###");
+}
+
+sub asPerl_bool {
+    my ($this, $bp, $o) = @_;
+    my $s2type = $this->getType();
+
+    # already boolean
+    if ($s2type->equals($S2::Type::BOOL) || $s2type->equals($S2::Type::INT)) {
+        $this->asPerl($bp, $o);
+        return;
+    }
+    
+    # S2 semantics and perl semantics differ ("0" is true in S2)
+    if ($s2type->equals($S2::Type::STRING)) {
+        $o->write("((");
+        $this->asPerl($bp, $o);
+        $o->write(") ne '')");
+        return;
+    }
+
+    # is the object defined?
+    if ($s2type->isSimple()) {
+        $o->write("S2::check_defined(");
+        $this->asPerl($bp, $o);
+        $o->write(")");
+        return;
+    }
+
+    # does the array have elements?
+    if ($s2type->isArrayOf() || $s2type->isHashOf()) {
+        $o->write("S2::check_elements(");
+        $this->asPerl($bp, $o);
+        $o->write(")");
+        return;
+    }
+
+    S2::error($this, "Unhandled internal case for NodeTerm::asPerl_bool()");
 }
 
 sub setTokenList {

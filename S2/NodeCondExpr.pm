@@ -70,10 +70,12 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
-    $this->{'test_expr'}->asPerl($bp, $o);
+    $o->write("(");
+    $this->{'test_expr'}->asPerl_bool($bp, $o);
     $o->write(" ? ");
     $this->{'true_expr'}->asPerl($bp, $o);
     $o->write(" : ");
     $this->{'false_expr'}->asPerl($bp, $o);
+    $o->write(")");
 }
 

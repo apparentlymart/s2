@@ -62,6 +62,12 @@ sub canStart {
 
 sub getType {
     my ($this, $ck, $wanted) = @_;
+    return $this->{'_cache_type'} if exists $this->{'_cache_type'};
+    $this->{'_cache_type'} = _getType($this, $ck, $wanted);
+}
+
+sub _getType {
+    my ($this, $ck, $wanted) = @_;
     my $type = $this->{'type'};
 
     if ($type == $INTEGER) { return $S2::Type::INT; }
