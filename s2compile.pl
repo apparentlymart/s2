@@ -23,6 +23,7 @@ my $layertype;
 my $opt_untrusted = 0;
 my ($opt_core, $opt_layout);
 my $outfile;
+my $opt_listbuiltin;
 
 exit usage() unless
     GetOptions("output=s" => \$output,
@@ -32,14 +33,20 @@ exit usage() unless
                "layout=s" => \$opt_layout,
                "untrusted" => \$opt_untrusted,
                "outfile=s" => \$outfile,
+               "listbuiltin" => \$opt_listbuiltin,
                );
 
 exit usage() unless @ARGV == 1;
 
 my $filename = shift @ARGV;
 
-unless ($output) {
+unless ($output || $opt_listbuiltin) {
     print STDERR "No output format specified\n";
+    exit 1;
+}
+
+if ($output && $opt_listbuiltin) {
+    print STDERR "--output and --listbuiltin are mutually exclusive options.\n";
     exit 1;
 }
 
@@ -62,22 +69,42 @@ if ($output eq "html" || $output eq "s2") {
 
 my $layerMain;
 
-if (! defined $layertype) {
-    die "Unspecified layertype.\n";
-} elsif ($layertype eq "core") {
-    # nothing.
-} elsif ($layertype eq "i18nc" || $layertype eq "layout") {
-    makeLayer($opt_core, "core", $ck);
-} elsif ($layertype eq "theme" || $layertype eq "i18n" || $layertype eq "user") {
-    makeLayer($opt_core, "core", $ck);
-    makeLayer($opt_layout, "layout", $ck);
-} else {
-    die "Invalid layertype.\n";
+if ($output ne 'html') {
+    if (! defined $layertype) {
+        die "Unspecified layertype.\n";
+    } elsif ($layertype eq "core") {
+        # nothing.
+    } elsif ($layertype eq "i18nc" || $layertype eq "layout") {
+        makeLayer($opt_core, "core", $ck);
+    } elsif ($layertype eq "theme" || $layertype eq "i18n" || $layertype eq "user") {
+        makeLayer($opt_core, "core", $ck);
+        makeLayer($opt_layout, "layout", $ck);
+    } else {
+        die "Invalid layertype.\n";
+    }
 }
-
 
 my $cplr = S2::Compiler->new({ 'checker' => $ck });
 my $compiled;
+
+if ($opt_listbuiltin) {
+    # User wants a list of declared builtins instead of output code,
+    # so we don't need to bother with the code generation phase.
+    makeLayer($filename, $layertype, $ck);
+
+    # This is currently pretty nasty, grovelling around inside Checker's
+    # internal data structures.
+    my $funcs = $ck->{funcAttr};
+    
+    foreach my $f (keys %$funcs) {
+        my $func = $funcs->{$f};
+        if ($func->{builtin}) {
+            print "$f\n";
+        }
+    }
+    
+    exit(0);
+}
 
 if ($output eq "perl") {
     die "No layerid specified" unless $layerid;
@@ -106,6 +133,7 @@ if (defined $outfile) {
 else {
     print $compiled;
 }
+
 exit 0;
 
 ###################### functions
@@ -150,6 +178,8 @@ Options:
    --core <filename>     Core S2 file, if layertype after core
    --layout <filename>   Layout S2 file, if compiling layer after layout
    --outfile <filename>  Optional file to write result to instead of stdout
+   --listbuiltin         If compile is successful, will produce a list of
+                        declared builtin functions instead of code.
 
 Perl output options:
    --layerid <int>       Set layerID for database
