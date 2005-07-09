@@ -41,19 +41,23 @@ sub parse {
         $n->{'set_list'} = 1;
         $n->requireToken($toker, $S2::TokenPunct::LBRACE);
         my $node;
-        do
+        while ($toker->peek() != ($S2::TokenPunct::RBRACE))
         {
             $node = undef;
             if (S2::NodeProperty->canStart($toker)) {
                 $node = S2::NodeProperty->parse($toker);
                 push @{$n->{'list_props'}}, $node;
             }
-            if (S2::NodeSet->canStart($toker)) {
+            elsif (S2::NodeSet->canStart($toker)) {
                 $node = S2::NodeSet->parse($toker);
                 push @{$n->{'list_sets'}}, $node;
             }
+            else {
+                my $offender = $toker->peek();
+                S2::error($offender, "Unexpected ".$offender->toString());
+            }
             $n->addNode($node) if $node;
-        } while ($node);
+        }
         $n->requireToken($toker, $S2::TokenPunct::RBRACE);
     } else {
         $n->{'set_name'} = 1;
