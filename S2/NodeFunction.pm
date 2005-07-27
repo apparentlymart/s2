@@ -99,7 +99,7 @@ sub parse {
         $n->requireToken($toker, $S2::TokenPunct::SCOLON);
         return $n;
     }
-    
+
     # otherwise, keep parsing the function definition.
     $n->{'stmts'} = parse S2::NodeStmtBlock $toker;
     $n->addNode($n->{'stmts'});
@@ -109,7 +109,7 @@ sub parse {
 
 sub getFormals { shift->{'formals'}; }
 sub getName { shift->{'name'}->getIdent(); }
-sub getReturnType { 
+sub getReturnType {
     my $this = shift;
     return $this->{'rettype'} ? $this->{'rettype'}->getType() : $S2::Type::VOID;
 }
@@ -127,7 +127,7 @@ sub check {
     # later to complain if it then sees a new class declaration.
     # (builtin functions are okay)
     $ck->setHitFunction(1) unless $this->{'attr'}->{'builtin'};
-    
+
     my $funcName = $this->{'name'}->getIdent();
     my $cname = $this->className();
     my $funcID = S2::Checker::functionID($cname, $funcName, $this->{'formals'});
@@ -183,8 +183,8 @@ sub check {
         # non-class function.  register all variations of the formals.
         my $fvs = S2::NodeFormals::variations($this->{'formals'}, $ck);
         foreach my $fv (@$fvs) {
-            my $derFuncID = S2::Checker::functionID($cname, 
-                                                    $this->getName(), 
+            my $derFuncID = S2::Checker::functionID($cname,
+                                                    $this->getName(),
                                                     $fv);
             $ck->setFuncDistance($derFuncID, { 'nf' => $this, 'dist' => 0 });
 
@@ -192,20 +192,20 @@ sub check {
                 # only core and layout layers can define new functions
                 S2::error($this, "Only core and layout layers can define new functions.");
             }
-    
+
             $ck->addFunction($derFuncID, $t, $this->{'attr'});
         }
     }
-	
+
     # check the formals
     $this->{'formals'}->check($l, $ck) if $this->{'formals'};
 
-    
+
     # check the statement block
     if ($this->{'stmts'}) {
         # prepare stmts to be checked
         $this->{'stmts'}->setReturnType($t);
-        
+
         # make sure $this is accessible in a class method
         # FIXME: not in static functions, once we have static functions
         if ($cname) {
@@ -213,8 +213,8 @@ sub check {
         } else {
             $this->{'stmts'}->addLocalVar("this", $S2::Type::VOID);  # prevent its use
         }
-        
-        # make sure $this is accessible in a class method 
+
+        # make sure $this is accessible in a class method
         # that has a parent.
         my $pname = $ck->getParentClassName($cname); # String
         if (defined $pname) {
@@ -222,9 +222,9 @@ sub check {
         } else {
             $this->{'stmts'}->addLocalVar("super", $S2::Type::VOID);  # prevent its use
         }
-        
+
         $this->{'formals'}->populateScope($this->{'stmts'}) if $this->{'formals'};
-        
+
         $ck->setCurrentFunctionClass($cname);   # for $.member lookups
         $ck->pushLocalBlock($this->{'stmts'});
         $this->{'stmts'}->check($l, $ck);
@@ -270,7 +270,7 @@ sub asPerl {
     foreach my $funcID (@{$this->{'ck'}->getFuncIDs($this)}) {
         $o->write($bp->quoteString($funcID) . ", ");
     }
-     
+
     $o->writeln("], sub {");
     $o->tabIn();
 
@@ -294,7 +294,7 @@ sub asPerl {
     # now, return the closure
     $o->tabwriteln("return sub {");
     $o->tabIn();
-	
+
     # setup function argument/ locals
     $o->tabwrite("my (\$_ctx");
     if ($this->{'classname'} && ! $this->{'isCtor'}) {
@@ -310,11 +310,11 @@ sub asPerl {
 
     $o->writeln(") = \@_;");
     # end function locals
-    
+
     $this->{'stmts'}->asPerl($bp, $o, 0);
     $o->tabOut();
     $o->tabwriteln("};");
-    
+
     # end the outer sub
     $o->tabOut();
     $o->tabwriteln("});");
@@ -332,7 +332,7 @@ sub className {
     my $this = shift;
     return undef unless $this->{'classname'};
     return $this->{'classname'}->getIdent();
-        
+
 }
 
 # private
@@ -355,7 +355,7 @@ sub registerFunction {
     my $et = $ck->functionType($funcID);
     my $rt = $this->getReturnType();
 
-    # check that function is either currently undefined or 
+    # check that function is either currently undefined or
     # defined with the same type, otherwise complain
     if ($et && ! $et->equals($rt)) {
         S2::error($this, "Can't redefine function '$fname' with return ".
@@ -369,24 +369,24 @@ sub registerFunction {
 __END__
 
 
-    public void asS2 (Indenter o) 
+    public void asS2 (Indenter o)
     {
-	o.tabwrite("function " + totalName());
-	if (formals != null) {
-	    o.write(" ");
-	    formals.asS2(o);
-	}
-	if (rettype != null) {
-	    o.write(" : ");
-	    rettype.asS2(o);
-	}
-	if (stmts != null) {
-	    o.write(" ");
-	    stmts.asS2(o);
-	    o.newline();
-	} else {
-	    o.writeln(";");
-	}
+        o.tabwrite("function " + totalName());
+        if (formals != null) {
+            o.write(" ");
+            formals.asS2(o);
+        }
+        if (rettype != null) {
+            o.write(" : ");
+            rettype.asS2(o);
+        }
+        if (stmts != null) {
+            o.write(" ");
+            stmts.asS2(o);
+            o.newline();
+        } else {
+            o.writeln(";");
+        }
     }
 
 
