@@ -5,6 +5,7 @@ package S2;
 
 use strict;
 use vars qw($pout $pout_s %Domains $CurrentDomain);  # public interface:  sub refs to print and print safely
+use Time::HiRes ();
 
 $pout = sub { print @_; };
 $pout_s = sub { print @_; };
@@ -408,18 +409,31 @@ sub run_function
         die "S2::run_code: Undefined function $entry ($fnum $code)\n";
     }
     my $val;
+    $S2::sub_ctr = 0;                # incremented by NodeFunction.pm's perl output
+    $S2::depth_check_every = 16;     # checked by NodeFunction.pm's perl output
+    $S2::last_depth_check = Time::HiRes::time();  # checked by check_depth() below
+
+    my $timed_out = 0;
+
     eval {
-        local $SIG{__DIE__} = undef;
-        local $SIG{ALRM} = sub { die "Style code didn't finish running in a timely fashion.  ".
-                                     "Possible causes: <ul><li>Infinite loop in style or layer</li>\n".
-                                     "<li>Database busy</li></ul>\n" };
-        alarm 4;
+        local $SIG{ALRM} = sub {
+            $timed_out = 1;
+            die "TIMEOUT";
+        };
+        alarm(4);
         $val = $code->($ctx, @args);
-        alarm 0;
+        alarm(0);
     };
-    if ($@) {
+    alarm(0);
+
+    if ($timed_out) {
+        die "Style code didn't finish running in a timely fashion.  ".
+            "Possible causes: <ul><li>Infinite loop in style or layer</li>\n".
+            "<li>Database busy</li></ul>\n";
+    } elsif ($@) {
         die "Died in S2::run_code running $entry: $@\n";
     }
+
     return $val;
 }
 
@@ -441,8 +455,23 @@ sub get_object_func_num
     }
     $type = $inst->{'_type'} unless $is_super;
     my $fn = get_func_num("${type}::$func");
-    #Apache->request->log_error("get_object_func_num(${type}::$func) = $fn");
     return $fn;
+}
+
+sub check_depth {
+    my $now = Time::HiRes::time();
+    return if $S2::last_depth_check < $now - 0.15;
+    $S2::last_depth_check = $now;
+
+    my $i = 0;
+    my %seen;
+    while (1) {
+        my ($pkg, $filename, $line) = caller($i++);
+        if (++$seen{"$filename:$line"} >= 10) {
+            die "Excessive recursion detected and stopped.\n";
+        }
+        return if ! $pkg || ! $line;
+    }
 }
 
 # Called by NodeForeachStmt
