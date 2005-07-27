@@ -295,6 +295,9 @@ sub asPerl {
     $o->tabwriteln("return sub {");
     $o->tabIn();
 
+    # now dump the recursion depth checker
+    $o->tabwriteln("S2::check_depth() if ++\$S2::sub_ctr % \$S2::depth_check_every == 0;");
+
     # setup function argument/ locals
     $o->tabwrite("my (\$_ctx");
     if ($this->{'classname'} && ! $this->{'isCtor'}) {
