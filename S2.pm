@@ -463,11 +463,13 @@ sub check_depth {
     return if $S2::last_depth_check < $now - 0.15;
     $S2::last_depth_check = $now;
 
+    my $max_recursion = $S2::MAX_RECURSION || 50;
+
     my $i = 0;
     my %seen;
     while (1) {
         my ($pkg, $filename, $line) = caller($i++);
-        if (++$seen{"$filename:$line"} >= 10) {
+        if (++$seen{"$filename:$line"} >= $max_recursion) {
             die "Excessive recursion detected and stopped.\n";
         }
         return if ! $pkg || ! $line;
