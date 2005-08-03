@@ -621,9 +621,8 @@ sub asPerl {
                 $o->write($bp->getLayerID());
                 $o->write(",");
                 $o->write($this->{'derefLine'}+0);
-                if ($this->{'var'}->isSuper()) {
-                    $o->write(",1");
-                }
+                $o->write($this->{'var'}->isSuper() ? ",1" : ",0");
+                $o->write(",\$_ctx");
                 $o->write(")}->");
             } elsif ($type == $METHCALL) {
                 $o->write("\$_ctx->[VTABLE]->{get_func_num(");

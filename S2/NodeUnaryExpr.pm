@@ -5,7 +5,7 @@ package S2::NodeUnaryExpr;
 
 use strict;
 use S2::Node;
-use S2::NodeIncExpr;
+use S2::NodeInstanceOf;
 use vars qw($VERSION @ISA);
 
 $VERSION = '1.0';
@@ -21,7 +21,7 @@ sub canStart {
     my ($class, $toker) = @_;
     return $toker->peek() == $S2::TokenPunct::MINUS ||
         $toker->peek() == $S2::TokenPunct::NOT ||
-        S2::NodeIncExpr->canStart($toker);
+        S2::NodeInstanceOf->canStart($toker);
 }
 
 sub parse {
@@ -37,7 +37,7 @@ sub parse {
         $n->eatToken($toker);
     }
 
-    my $expr = parse S2::NodeIncExpr $toker;
+    my $expr = parse S2::NodeInstanceOf $toker;
     
     if ($n->{'bNegative'} || $n->{'bNot'}) {
         $n->{'expr'} = $expr;
