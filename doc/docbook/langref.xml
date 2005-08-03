@@ -172,6 +172,7 @@
       <tbody>
         <row><entry>left</entry><entry>Terms (literals, expressions in parentheses, variables, function/method calls, named unary operators)</entry></row>
         <row><entry>nonassoc</entry><entry>++ --</entry></row>
+        <row><entry>left</entry><entry>instanceof isa as</entry></row>
         <row><entry>right</entry><entry>not -</entry></row>
         <row><entry>left</entry><entry>* / %</entry></row>
         <row><entry>left</entry><entry>+ -</entry></row>
@@ -241,6 +242,27 @@
     <para>The two binary logical operators are usually used in an <literal>if</literal> statement to
     include two or more comparisons.</para>
   </section>
+  <section id="&s2.idroot;langref.operators.type">
+    <title>Type Conversion/Testing Operators</title>
+    <para>These functions operate on object values only. Their left operand is the subject, while the
+    right operand is a class name.</para>
+    <informaltable frame='none'>
+      <tgroup cols='3'>
+        <tbody>
+          <row><entry><literal>isa</literal></entry><entry>Returns true if the object can be typecasted to the given class</entry></row>
+          <row><entry><literal>instanceof</literal></entry><entry>Returns true if the type of the object is exactly the classname given.</entry></row>
+          <row><entry><literal>as</literal></entry><entry>Cast the given value to the classname given, but only if the object's runtime type is compatible. If not, returns a null object.</entry></row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+    <para>The S2 language uses <emphasis>dynamic binding</emphasis>, which means that an object's type
+      may be a subclass of the class of the variable which holds it. These functions allow the programmer
+      to test the runtime type and, assuming the runtime type is compatible, convert (or <emphasis>cast</emphasis>)
+      to a different variable type.</para>
+    <para>When calling methods on an object, it is the type of the object which determines which function will
+      be called, not the type of the variable on which the arrow operator is applied.</para>
+  </section>
+
   <section id="&s2.idroot;langref.operators.other">
     <title>Other Operators</title>
     <para>These operators don't really fit into a category of their own, and have perhaps non-obvious functions.</para>

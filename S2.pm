@@ -16,6 +16,7 @@ use constant STATICS => 1;
 use constant PROPS => 2;
 use constant SCRATCH => 3;  # embedder-defined use
 use constant LAYERLIST => 4;  # arrayref of layerids which made the context
+use constant CLASSES => 5;  # hashref of classnames mapped to class metadata
 
 %Domains = ();
 $CurrentDomain = 'unset';
@@ -112,6 +113,11 @@ sub make_context
                     ref $v->[1] eq "CODE");
 
             $ctx->[PROPS]->{$p} = $v;
+        }
+
+        # fill the classes hash
+        foreach my $cn (keys %{$domain->{layerclass}{$lid}}) {
+            $ctx->[CLASSES]->{$cn} = $domain->{layerclass}{$lid}{$cn};
         }
     }
 
@@ -449,10 +455,37 @@ sub get_func_num
 
 sub get_object_func_num
 {
-    my ($type, $inst, $func, $s2lid, $s2line, $is_super) = @_;
+    my ($type, $inst, $func, $s2lid, $s2line, $is_super, $ctx) = @_;
+
+    my $err = sub {
+        my ($msg) = shift;
+        die "$msg at ".layer_name($ctx,$s2lid)." line $s2line";
+    };
+
     if (ref $inst ne "HASH" || $inst->{'_isnull'}) {
-        die "Method called on null $type object at layer \#$s2lid, line $s2line.\n";
+        $err->("Method called on null $type object");
     }
+
+    if ($is_super) {
+        # Old versions of s2compile didn't pass context in, so
+        # the old behavior (static binding) is still supported
+        # for old layers.
+
+        if (defined $ctx) {
+            my $classname = $inst->{_type};
+            my $cla = $ctx->[CLASSES]{$classname};
+
+            $err->("Encountered object of unknown class '$classname'") unless $cla;
+
+            unless ($type = $cla->{parent}) {
+               $err->("\$super used on orphan class $classname");
+            }
+        }
+    }
+    else {
+        $type = $inst->{_type};
+    }
+
     $type = $inst->{'_type'} unless $is_super;
     my $fn = get_func_num("${type}::$func");
     return $fn;
@@ -511,6 +544,50 @@ sub interpolate_object {
     # if we get here, we know something went wrong
     my $type = $obj->{_type} || $cname || "undef";
     return "$type::$method call failed.";
+}
+
+sub layer_name {
+    my ($ctx, $layerid) = @_;
+    my $layerinfo = $Domains{$CurrentDomain}{layerinfo}{$layerid};
+    if (! defined($layerinfo) || ! $layerinfo->{name}) {
+        return "layer \#$layerid";
+    }
+    else {
+        return "'$layerinfo->{name}' (\#$layerid)";
+    }
+}
+
+sub downcast_object {
+    my ($ctx, $obj, $toclass, $layerid, $line) = @_;
+
+    # If the object is null, just return it
+    return $obj unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+
+    my $fromclass = $obj->{_type};
+    return undef unless object_isa($ctx, $obj, $toclass);
+
+    return $obj;
+}
+
+sub object_isa {
+    my ($ctx, $obj, $qclass) = @_;
+
+    my $actclass = $obj->{_type};
+
+    my $classes = $ctx->[CLASSES];
+
+    my $tc = $actclass;
+    my $okay = 0;
+    while (defined $tc) {
+        if ($tc eq $qclass) {
+            $okay = 1;
+            last;
+        }
+        my $ntc = $classes->{$tc};
+        $tc = $ntc ? $ntc->{parent} : undef;
+    }
+
+    return $okay;
 }
 
 sub notags {
