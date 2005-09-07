@@ -3,19 +3,28 @@
 layerinfo "type" = "core";
 layerinfo "majorversion" = 0;
 
-class Dog
+class Animal
+{
+  function out;
+}
+
+class Dog extends Animal
 {
   var string name;
-  function out;
+  var int weight;
 }
 
 class KillerDog extends Dog
 {
-  var int weight;
+}
+
+function Animal::out {
+  println "I'm an animal!";
 }
 
 function Dog::out {
   println "I'm a dog named \"$.name\".";
+  $super->out();
 }
 
 function KillerDog::out {
