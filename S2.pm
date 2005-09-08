@@ -465,27 +465,6 @@ sub get_object_func_num
     if (ref $inst ne "HASH" || $inst->{'_isnull'}) {
         $err->("Method called on null $type object");
     }
-
-    if ($is_super) {
-        # Old versions of s2compile didn't pass context in, so
-        # the old behavior (static binding) is still supported
-        # for old layers.
-
-        if (defined $ctx) {
-            my $classname = $inst->{_type};
-            my $cla = $ctx->[CLASSES]{$classname};
-
-            $err->("Encountered object of unknown class '$classname'") unless $cla;
-
-            unless ($type = $cla->{parent}) {
-               $err->("\$super used on orphan class $classname");
-            }
-        }
-    }
-    else {
-        $type = $inst->{_type};
-    }
-
     $type = $inst->{'_type'} unless $is_super;
     my $fn = get_func_num("${type}::$func");
     return $fn;
