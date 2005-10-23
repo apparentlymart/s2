@@ -66,6 +66,8 @@ sub parse {
             my $nm = parse S2::NodeFunction $toker, 1;
             push @{$n->{'functions'}}, $nm;
             $n->addNode($nm);
+        } else {
+            S2::error($t, "Unexpected keyword ".$t->getIdent());
         }
     }
     $n->requireToken($toker, $S2::TokenPunct::RBRACE);
