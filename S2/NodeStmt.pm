@@ -8,6 +8,7 @@ use S2::Node;
 use S2::NodePrintStmt;
 use S2::NodeIfStmt;
 use S2::NodeReturnStmt;
+use S2::NodeBranchStmt;
 use S2::NodeDeleteStmt;
 use S2::NodeForeachStmt;
 use S2::NodeVarDeclStmt;
@@ -40,6 +41,9 @@ sub parse {
 
     return S2::NodeReturnStmt->parse($toker)
         if S2::NodeReturnStmt->canStart($toker);
+
+    return S2::NodeBranchStmt->parse($toker)
+        if S2::NodeBranchStmt->canStart($toker);
 
     return S2::NodeDeleteStmt->parse($toker)
         if S2::NodeDeleteStmt->canStart($toker);

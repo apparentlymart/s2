@@ -182,6 +182,10 @@ sub getCurrentFunctionClass { shift->{'funcClass'}; }
 sub setInFunction { my $this = shift; $this->{'inFunction'} = shift; }
 sub getInFunction { shift->{'inFunction'}; }
 
+sub pushBreakable { shift->{inBreakable}++; }
+sub popBreakable { shift->{inBreakable}--; }
+sub inBreakable { return shift->{inBreakable} > 0; }
+
 # variable lookup
 sub pushLocalBlock {
     my ($this, $nb) = @_;  # nb  = NodeStmtBlock

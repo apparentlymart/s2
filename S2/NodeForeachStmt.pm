@@ -97,7 +97,9 @@ sub check {
     }
 
     $ck->pushLocalBlock($this->{'stmts'});
+    $ck->pushBreakable($this->{'stmts'});
     $this->{'stmts'}->check($l, $ck);
+    $ck->popBreakable($this->{'stmts'});
     $ck->popLocalBlock();
 }
 
