@@ -121,6 +121,22 @@ sub make_context
         }
     }
 
+    ### remove properties values which don't match their declared
+    ### enumeration set
+    foreach my $lid (@lids) {
+        foreach my $pname (get_property_names($lid)) {
+            next unless $ctx->[PROPS]{$pname};
+
+            my $prop = get_property($lid, $pname);
+            next unless $prop->{values};
+
+            my %okay = split(/\|/, $prop->{values});
+            unless ($okay{$ctx->[PROPS]{$pname}}) {
+                delete $ctx->[PROPS]{$pname};
+            }
+        }
+    }
+
     $ctx->[LAYERLIST] = [ @lids ];
     return $ctx;
 }
@@ -303,6 +319,12 @@ sub get_property
 {
     my ($lid, $propname) = @_;
     return $Domains{$CurrentDomain}{layerprop}{$lid}->{$propname};
+}
+
+sub get_property_names
+{
+    my ($lid) = @_;
+    return keys %{ $Domains{$CurrentDomain}{layerprop}{$lid} };
 }
 
 sub get_properties
