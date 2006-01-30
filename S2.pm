@@ -412,6 +412,14 @@ sub set_output_safe
     $pout_s = shift;
 }
 
+sub get_output {
+    return $pout;
+}
+
+sub get_output_safe {
+    return $pout_s;
+}
+
 sub function_exists
 {
     my ($ctx, $func) = @_;
