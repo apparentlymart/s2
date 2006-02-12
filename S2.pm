@@ -129,6 +129,7 @@ sub make_context
 
             my $prop = get_property($lid, $pname);
             next unless $prop->{values};
+            next if $prop->{allow_other};
 
             my %okay = split(/\|/, $prop->{values});
             unless ($okay{$ctx->[PROPS]{$pname}}) {
