@@ -136,6 +136,14 @@ sub isPrimitive {
         $t->equals($BOOL);
 }
 
+sub baseIsPrimitive {
+    my $self = shift;
+    return $self->isPrimitive() ||
+           $self->{baseType} eq 'string' ||
+           $self->{baseType} eq 'int' ||
+           $self->{baseType} eq 'bool';
+}
+
 sub isReadOnly {
     shift->{'readOnly'};
 }
