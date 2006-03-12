@@ -2,6 +2,7 @@
 #
 
 use Data::Dumper;
+use Storable;
 use strict;
 use FindBin;
 use lib "$FindBin::Bin";
@@ -24,6 +25,7 @@ my $opt_untrusted = 0;
 my ($opt_core, $opt_layout);
 my $outfile;
 my $opt_listbuiltin;
+my $ckoutfile;
 
 exit usage() unless
     GetOptions("output=s" => \$output,
@@ -34,6 +36,7 @@ exit usage() unless
                "untrusted" => \$opt_untrusted,
                "outfile=s" => \$outfile,
                "listbuiltin" => \$opt_listbuiltin,
+               "dumpchecker=s" => \$ckoutfile,
                );
 
 exit usage() unless @ARGV == 1;
@@ -134,6 +137,10 @@ else {
     print $compiled;
 }
 
+if ($ckoutfile) {
+    Storable::store($ck, $ckoutfile);
+}
+
 exit 0;
 
 ###################### functions
@@ -180,6 +187,9 @@ Options:
    --outfile <filename>  Optional file to write result to instead of stdout
    --listbuiltin         If compile is successful, will produce a list of
                         declared builtin functions instead of code.
+   --dumpchecker <filename>
+                         If compile is successful, will write a serialized
+                        checker object to the given filename.
 
 Perl output options:
    --layerid <int>       Set layerID for database
