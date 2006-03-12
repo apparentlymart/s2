@@ -98,7 +98,7 @@ sub getParentClassName {
 sub isValidType {
     my ($this, $t) = @_;
     return 0 unless $t;
-    return 1 if $t->isPrimitive();
+    return 1 if $t->baseIsPrimitive();
     return defined $this->getClass($t->baseType());
 }
 
