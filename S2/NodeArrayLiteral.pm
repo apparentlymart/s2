@@ -88,11 +88,15 @@ sub getType {
     my ($this, $ck, $wanted) = @_;
 
     # in case of empty array [] or hash {}, the type is what they wanted,
-    # if they wanted something, otherwise void[] or void{}
+    # if they wanted an array/hash, otherwise void[] or void{}
     my $t;
     my $vals = scalar @{$this->{'vals'}};
     unless ($vals) {
-        return $wanted if $wanted;
+        if ($wanted) {
+            if (($this->{isArray} && $wanted->isArrayOf()) || ($this->{isHash} && $wanted->isHashOf())) {
+                return $wanted;
+            }
+        }
         $t = new S2::Type("void");
         $t->makeArrayOf() if $this->{'isArray'};
         $t->makeHashOf() if $this->{'isHash'};
