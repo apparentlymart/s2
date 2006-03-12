@@ -138,6 +138,7 @@ else {
 }
 
 if ($ckoutfile) {
+    $ck->cleanForFreeze();
     Storable::store($ck, $ckoutfile);
 }
 
