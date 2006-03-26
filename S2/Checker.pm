@@ -342,13 +342,6 @@ sub checkLayer {
     foreach my $n (@$nodes) {
         $n->check($lay, $this);
     }
-
-    if ($lay->getType() eq "core") {
-        my $mv = $lay->getLayerInfo("majorversion");
-        unless (defined $mv) {
-            S2::error(undef, "Core layers must declare 'majorversion' layerinfo.");
-        }
-    }
 }
 
 sub functionID {

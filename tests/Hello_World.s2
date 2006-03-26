@@ -1,7 +1,6 @@
 #-*-c++-*-
 
 layerinfo "type" = "core";
-layerinfo "majorversion" = 0;
 
 property string blah;
 set "blah" = "foo";
