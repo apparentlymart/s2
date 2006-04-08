@@ -4,11 +4,12 @@
 package S2;
 
 use strict;
-use vars qw($pout $pout_s %Domains $CurrentDomain);  # public interface:  sub refs to print and print safely
+use vars qw($pout $pout_s %Domains $CurrentDomain $run_timeout);  # public interface:  sub refs to print and print safely
 use Time::HiRes ();
 
 $pout = sub { print @_; };
 $pout_s = sub { print @_; };
+$run_timeout = 4;
 
 ## array indexes into $_ctx (which shows up in compiled S2 code)
 use constant VTABLE => 0;
@@ -413,6 +414,10 @@ sub set_output_safe
     $pout_s = shift;
 }
 
+sub set_run_timeout {
+    $run_timeout = shift() + 0;
+}
+
 sub get_output {
     return $pout;
 }
@@ -457,11 +462,11 @@ sub run_function
             $timed_out = 1;
             die "TIMEOUT";
         };
-        alarm(4);
+        alarm($run_timeout) if $run_timeout;
         $val = $code->($ctx, @args);
-        alarm(0);
+        alarm(0) if $run_timeout;
     };
-    alarm(0);
+    alarm(0) if $run_timeout;
 
     if ($timed_out) {
         die "Style code didn't finish running in a timely fashion.  ".
