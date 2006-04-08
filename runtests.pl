@@ -92,6 +92,7 @@ foreach my $f (@files)
     my $error;
     if ($result =~ /^\#\!/) {
         S2::set_output(sub { $output .= $_[0]; });
+        S2::set_run_timeout(0);
         S2::unregister_layer(1);
           eval $result;
           $error = $@ if $@;
