@@ -13,7 +13,7 @@ my $opt_verbose;
 GetOptions("output" => \$opt_output,
            "perl" => \$opt_perl,
            "force" => \$opt_force,
-	   "verbose" => \$opt_verbose,
+           "verbose" => \$opt_verbose,
            );
 
 my $runwhat = shift;
@@ -28,9 +28,9 @@ if ($runwhat) {
 } else {
     opendir(D, $TESTDIR) || die "Can't open 'tests' directory.\n";
     while (my $f = readdir(D)) {
-	if (-f "$TESTDIR/$f" && $f =~ /\.s2$/) {
-	    push @files, $f;
-	}
+        if (-f "$TESTDIR/$f" && $f =~ /\.s2$/) {
+            push @files, $f;
+        }
     }
     closedir(D);
     @files = sort @files;
@@ -52,16 +52,16 @@ foreach my $f (@files)
     my $build = $opt_force ? 1 : 0;
     if (-s $pfile == 0) { $build = 1; }
     unless ($ptime > $stime && $ptime > $jtime) {
-	if ($stime > $ptime || $jtime > $ptime) {
-	    $build = 1;
-	}
+        if ($stime > $ptime || $jtime > $ptime) {
+            $build = 1;
+        }
     }
 
     my $result;
     my $cerr = undef;
 
     if ($build) {
-	my $error_file = "error-runtests.dat";
+        my $error_file = "error-runtests.dat";
 
         open(IN,'<',"$TESTDIR/$f");
         my $source = join('',<IN>);
@@ -91,49 +91,49 @@ foreach my $f (@files)
     my $output = "";
     my $error;
     if ($result =~ /^\#\!/) {
-	S2::set_output(sub { $output .= $_[0]; });
-	S2::unregister_layer(1);
-	  eval $result;
-	  $error = $@ if $@;
-	  my $ctx = S2::make_context([ 1 ]);
-	  eval {
-	      S2::run_code($ctx, "main()");
-	  };
-	  $error = $@ if $@;
+        S2::set_output(sub { $output .= $_[0]; });
+        S2::unregister_layer(1);
+          eval $result;
+          $error = $@ if $@;
+          my $ctx = S2::make_context([ 1 ]);
+          eval {
+              S2::run_code($ctx, "main()");
+          };
+          $error = $@ if $@;
       } else {
-	  $error = $cerr;
+          $error = $cerr;
       }
     
     if ($opt_output) {
-	print $output;
+        print $output;
     }
 
     my $ofile = "$TESTDIR/$f.out";
     if (-e $ofile) {
-	open (O, $ofile);
-	my $goodout = join('',<O>);
-	close O;
-	if (trim($output) ne trim($goodout)) {
-	    push @errors, [ $f, "Output differs." ];
-	}
+        open (O, $ofile);
+        my $goodout = join('',<O>);
+        close O;
+        if (trim($output) ne trim($goodout)) {
+            push @errors, [ $f, "Output differs." ];
+        }
     } elsif ($output) {
-	push @errors, [ $f, "Output, and no expected output file." ];
+        push @errors, [ $f, "Output, and no expected output file." ];
     }
 
     my $efile = "$TESTDIR/$f.err";
     my $gooderror;
     if (-e $efile) {
-	open (E, $efile);
-	$gooderror = join('',<E>);
-	close E;
-	$gooderror = trim($gooderror);
-	if ($error !~ /\Q$gooderror\E/) {
-	    push @errors, [ $f, "Wrong error encountered" ];
-	    print "$f: $error\n" if $opt_verbose;
-	}
+        open (E, $efile);
+        $gooderror = join('',<E>);
+        close E;
+        $gooderror = trim($gooderror);
+        if ($error !~ /\Q$gooderror\E/) {
+            push @errors, [ $f, "Wrong error encountered" ];
+            print "$f: $error\n" if $opt_verbose;
+        }
     } elsif ($error) {
-	push @errors, [ $f, "Error occurred, but not anticipated." ];
-	print "$f: $error\n" if $opt_verbose;
+        push @errors, [ $f, "Error occurred, but not anticipated." ];
+        print "$f: $error\n" if $opt_verbose;
     }
 }
 
@@ -182,9 +182,9 @@ sub Color__make_string
 {
     my ($this) = @_;
     $this->{'as_string'} = sprintf("\#%02x%02x%02x",
-				  $this->{'r'},
-				  $this->{'g'},
-				  $this->{'b'});
+                                  $this->{'r'},
+                                  $this->{'g'},
+                                  $this->{'b'});
 }
 
 # public functions
