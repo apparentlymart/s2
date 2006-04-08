@@ -45,7 +45,7 @@ sub output {
         foreach my $n (@$nodes) {
             $n->asPerl($this, $io);
         }
-        $io->writeln('return $lay;');
+        $io->writeln('$lay;');
     }
     else {
         $io->writeln("package S2;");
