@@ -42,7 +42,7 @@ sub parse {
         $n->requireToken($toker, $S2::TokenPunct::LBRACE);
         while ($toker->peek() && $toker->peek() != $S2::TokenPunct::RBRACE)
         {
-	    my $node;
+        my $node;
             if (S2::NodeProperty->canStart($toker)) {
                 $node = S2::NodeProperty->parse($toker);
                 push @{$n->{'list_props'}}, $node;
@@ -87,10 +87,15 @@ sub asPerl {
     my ($this, $bp, $o) = @_;
 
     if ($this->{'set_name'}) {
-        $o->tabwriteln("register_propgroup_name(" .
-                       $bp->getLayerIDString() . "," .
-                       "'$this->{groupident}', " .
-                       $bp->quoteString($this->{'name'}) . ");");
+        if ($bp->oo) {
+            $o->tabwrite("\$lay->register_propgroup_name(");
+        }
+        else {
+            $o->tabwrite("register_propgroup_name(".$bp->getLayerIDString().",");
+        }
+    
+        $o->writeln("'$this->{groupident}', " .
+                    $bp->quoteString($this->{'name'}) . ");");
         return;
     }
 
@@ -98,9 +103,14 @@ sub asPerl {
         $_->asPerl($bp, $o);
     }
     
-    $o->tabwriteln("register_propgroup_props(" . 
-                   $bp->getLayerIDString() . "," .
-                   "'$this->{groupident}', [".
-                   join(', ', map { $bp->quoteString($_->getName) } @{$this->{'list_props'}}) .
-                   "]);");
+    if ($bp->oo) {
+        $o->tabwrite("\$lay->register_propgroup_props(");
+    }
+    else {
+        $o->tabwrite("register_propgroup_props(".$bp->getLayerIDString().",");
+    }
+
+    $o->writeln("'$this->{groupident}', [".
+               join(', ', map { $bp->quoteString($_->getName) } @{$this->{'list_props'}}) .
+               "]);");
 }
