@@ -122,6 +122,7 @@ eval {
         'untrusted' => $opt_untrusted,
         'builtinPackage' => "S2::Builtin",
         'format' => $output,
+        'sourcename' => $filename,
     });
 };
 if ($@) {
