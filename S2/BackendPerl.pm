@@ -7,13 +7,14 @@ use strict;
 use S2::Indenter;
 
 sub new {
-    my ($class, $l, $layerID, $untrusted, $oo) = @_;
+    my ($class, $l, $layerID, $untrusted, $oo, $sourcename) = @_;
     my $this = {
         'layer' => $l,
         'layerID' => $layerID,
         'untrusted' => $untrusted,
         'package' => '',
         'oo' => $oo,
+        'sourcename' => $sourcename,
     };
     bless $this, $class;
 }
@@ -41,6 +42,7 @@ sub output {
         $io->writeln("use constant STATIC => 1;");
         $io->writeln("use constant PROPS => 2;");
         $io->writeln('my $lay = new S2::Runtime::OO::Layer;');
+        $io->writeln('$lay->set_source_name('.$this->quoteString($this->{sourcename}).');');
         my $nodes = $this->{'layer'}->getNodes();
         foreach my $n (@$nodes) {
             $n->asPerl($this, $io);

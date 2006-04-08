@@ -288,23 +288,29 @@ sub asPerl {
     # to that num -> num hash.  (benchmarking showed two
     # hashlookups on ints was faster than one on strings)
 
-    if (scalar(@{$this->{'funcNames'}})) {
-        $o->tabwriteln("my \@_l2g_func = ( undef, ");
-        $o->tabIn();
-        foreach my $id (@{$this->{'funcNames'}}) {
-            $o->tabwriteln("get_func_num(" .
-                           $bp->quoteString($id) . "),");
+    # The OO mode doesn't use _l2g_func right now, but we still generate
+    # the extra wrapped sub so that we can use it in future.
+    unless ($bp->oo) {
+        if (scalar(@{$this->{'funcNames'}})) {
+            $o->tabwriteln("my \@_l2g_func = ( undef, ");
+            $o->tabIn();
+            foreach my $id (@{$this->{'funcNames'}}) {
+                $o->tabwriteln("get_func_num(" .
+                               $bp->quoteString($id) . "),");
+            }
+            $o->tabOut();
+            $o->tabwriteln(");");
         }
-        $o->tabOut();
-        $o->tabwriteln(");");
     }
 
     # now, return the closure
     $o->tabwriteln("return sub {");
     $o->tabIn();
 
-    # now dump the recursion depth checker
-    $o->tabwriteln("S2::check_depth() if ++\$S2::sub_ctr % \$S2::depth_check_every == 0;");
+    unless ($bp->oo) {
+        # now dump the recursion depth checker
+        $o->tabwriteln("S2::check_depth() if ++\$S2::sub_ctr % \$S2::depth_check_every == 0;");
+    }
 
     # setup function argument/ locals
     $o->tabwrite("my (\$_ctx");
@@ -323,12 +329,14 @@ sub asPerl {
     # end function locals
 
     $this->{'stmts'}->asPerl($bp, $o, 0);
+
     $o->tabOut();
     $o->tabwriteln("};");
 
     # end the outer sub
     $o->tabOut();
     $o->tabwriteln("});");
+    
 }
 
 sub toString {

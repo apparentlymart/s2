@@ -70,10 +70,19 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
-    if ($bp->untrusted() || $this->{'safe'}) {
-        $o->tabwrite("\$S2::pout_s->(");
-    } else {
-        $o->tabwrite("\$S2::pout->(");
+    if ($bp->oo) {
+        if ($bp->untrusted() || $this->{'safe'}) {
+            $o->tabwrite("\$_ctx->_print_safe->(");
+        } else {
+            $o->tabwrite("\$_ctx->_print(");
+        }
+    }
+    else {
+        if ($bp->untrusted() || $this->{'safe'}) {
+            $o->tabwrite("\$S2::pout_s->(");
+        } else {
+            $o->tabwrite("\$S2::pout->(");
+        }
     }
     $this->{'expr'}->asPerl($bp, $o);
     $o->write(" . \"\\n\"") if $this->{'doNewline'};

@@ -38,7 +38,7 @@ sub compile_source {
         }
     } elsif ($opts->{'format'} eq "perloo") {
         $this->{'checker'}->checkLayer($s2l);
-        $be = new S2::BackendPerl($s2l, undef, $opts->{'untrusted'}, 1);
+        $be = new S2::BackendPerl($s2l, undef, $opts->{'untrusted'}, 1, $opts->{'sourcename'});
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
