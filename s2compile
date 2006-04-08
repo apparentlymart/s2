@@ -1,9 +1,5 @@
 #!/usr/bin/perl
 #
 
-# Perl compiler is now preferred over original Java version
-exec("$ENV{'FBHOME'}/src/s2/s2compile.pl", @ARGV);
+exec("s2compile.pl", @ARGV);
 
-# For memories: (or testing if new version has problems?)
-exec($ENV{'JAVABIN'} || "java", "-jar", 
-     "$ENV{'FBHOME'}/src/s2/s2compile.jar", @ARGV);
