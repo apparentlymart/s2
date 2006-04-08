@@ -30,6 +30,7 @@ sub parse {
     
     if ($toker->peek() == $S2::TokenKeyword::INSTANCEOF || $toker->peek() == $S2::TokenKeyword::ISA) {
         my $n = new S2::NodeInstanceOf;
+        $n->addNode($expr);
         $n->{'opline'} = $toker->peek()->getFilePos()->line;
         $n->{exact} = ($toker->peek() == $S2::TokenKeyword::INSTANCEOF);
         $n->eatToken($toker);

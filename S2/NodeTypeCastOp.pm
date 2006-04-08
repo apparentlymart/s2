@@ -30,6 +30,7 @@ sub parse {
     
     if ($toker->peek() == $S2::TokenKeyword::AS) {
         my $n = new S2::NodeTypeCastOp;
+        $n->addNode($expr);
         $n->{'opline'} = $toker->peek()->getFilePos()->line;
         $n->eatToken($toker);
         $n->{expr} = $expr;
