@@ -1,4 +1,0 @@
-You'll need a java compiler and 'jmk' (Make in Java), available here:
-
-http://sourceforge.net/projects/jmk
-

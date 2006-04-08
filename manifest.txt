@@ -1,2 +1,0 @@
-Sealed: true
-Main-Class: danga.s2.s2compile
