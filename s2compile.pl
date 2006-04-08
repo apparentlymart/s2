@@ -115,13 +115,13 @@ if ($output eq "perl") {
 
 eval { 
     $cplr->compile_source({
-	'type' => $layertype,
-	'source' => getFileBody($filename),
-	'output' => \$compiled,
-	'layerid' => $layerid,
-	'untrusted' => $opt_untrusted,
-	'builtinPackage' => "S2::Builtin",
-	'format' => $output,
+        'type' => $layertype,
+        'source' => getFileBody($filename),
+        'output' => \$compiled,
+        'layerid' => $layerid,
+        'untrusted' => $opt_untrusted,
+        'builtinPackage' => "S2::Builtin",
+        'format' => $output,
     });
 };
 if ($@) {
