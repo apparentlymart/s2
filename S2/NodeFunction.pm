@@ -249,9 +249,13 @@ sub attrsJoined {
 sub asPerl {
     my ($this, $bp, $o) = @_;
     unless ($this->{'classname'}) {
-        $o->tabwrite("register_global_function(" .
-                     $bp->getLayerIDString() . "," .
-                     $bp->quoteString($this->{'name'}->getIdent() . ($this->{'formals'} ? $this->{'formals'}->toString() : "()")) . "," .
+        if ($bp->oo) {
+            $o->tabwrite("\$lay->register_global_function(");
+        }
+        else {
+            $o->tabwrite("register_global_function(".$bp->getLayerIDString().",");
+        }
+        $o->tabwrite($bp->quoteString($this->{'name'}->getIdent() . ($this->{'formals'} ? $this->{'formals'}->toString() : "()")) . "," .
                      $bp->quoteString($this->getReturnType()->toString()));
         $o->write(", " . $bp->quoteString($this->{'docstring'}));
         $o->write(", " . $bp->quoteString($this->attrsJoined));
@@ -261,8 +265,12 @@ sub asPerl {
 
     return if $this->{'attr'}->{'builtin'};
 
-    $o->tabwrite("register_function(" . $bp->getLayerIDString() .
-                 ", [");
+    if ($bp->oo) {
+        $o->tabwrite("\$lay->register_function([");
+    }
+    else {
+        $o->tabwrite("register_function(".$bp->getLayerIDString().", [");
+    }
 
     # declare all the names by which this function would be called:
     # its base name, then all derivative classes which aren't already

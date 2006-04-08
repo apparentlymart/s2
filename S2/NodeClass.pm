@@ -212,8 +212,14 @@ sub asS2 {
 sub asPerl {
     my ($this, $bp, $o) = @_;
 
-    $o->tabwriteln("register_class(" . $bp->getLayerIDString() .
-                   ", " . $bp->quoteString($this->getName()) . ", {");
+    if ($bp->oo) {
+        $o->tabwriteln("\$lay->register_class(".$bp->quoteString($this->getName()).", {");
+    }
+    else {
+        $o->tabwriteln("register_class(" . $bp->getLayerIDString() .
+                       ", " . $bp->quoteString($this->getName()) . ", {");
+    }
+    
     $o->tabIn();
     if ($this->{'parentName'}) {
         $o->tabwriteln("'parent' => " . $bp->quoteString($this->getParentName()) . ",");

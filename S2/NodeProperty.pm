@@ -164,22 +164,37 @@ sub asPerl {
     my ($this, $bp, $o) = @_;
 
     if ($this->{'use'}) {
-        $o->tabwriteln("register_property_use(" .
-                       $bp->getLayerIDString() . "," .
-                       $bp->quoteString($this->{'uhName'}) . ");");
+        if ($bp->oo) {
+            $o->tabwriteln("\$lay->register_property_use(".$bp->quoteString($this->{'uhName'}).");");
+        }
+        else {
+            $o->tabwriteln("register_property_use(" .
+                           $bp->getLayerIDString() . "," .
+                           $bp->quoteString($this->{'uhName'}) . ");");
+        }
         return;
     }
 
     if ($this->{'hide'}) {
-        $o->tabwriteln("register_property_hide(" .
-                       $bp->getLayerIDString() . "," .
-                       $bp->quoteString($this->{'uhName'}) . ");");
+        if ($bp->oo) {
+            $o->tabwriteln("\$lay->register_property_hide(".$bp->quoteString($this->{'uhName'}).");");
+        }
+        else {
+            $o->tabwriteln("register_property_hide(" .
+                           $bp->getLayerIDString() . "," .
+                           $bp->quoteString($this->{'uhName'}) . ");");
+        }
         return;
     }
 
-    $o->tabwriteln("register_property(" .
-                   $bp->getLayerIDString() . "," .
-                   $bp->quoteString($this->{'nt'}->getName()) . ",{");
+    if ($bp->oo) {
+        $o->tabwrite("\$lay->register_property(");
+    }
+    else {
+        $o->tabwrite("register_property(".$bp->getLayerIDString().",");
+    }
+    
+    $o->writeln($bp->quoteString($this->{'nt'}->getName()) . ",{");
     $o->tabIn();
     $o->tabwriteln("\"type\"=>" . $bp->quoteString($this->{'nt'}->getType->toString) . ",");
     foreach my $pp (@{$this->{'pairs'}}) {

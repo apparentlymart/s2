@@ -56,10 +56,18 @@ sub asS2 {
 
 sub asPerl {
     my ($this, $bp, $o) = @_;
-    $o->tabwriteln("set_layer_info(" .
-                   $bp->getLayerIDString() . "," .
-                   $bp->quoteString($this->{'key'}) . "," .
-                   $bp->quoteString($this->{'val'}) . ");");
+    
+    if ($bp->oo) {
+        $o->tabwriteln("\$lay->set_layer_info(" .
+                       $bp->quoteString($this->{'key'}) . "," .
+                       $bp->quoteString($this->{'val'}) . ");");
+    }
+    else {
+        $o->tabwriteln("set_layer_info(" .
+                       $bp->getLayerIDString() . "," .
+                       $bp->quoteString($this->{'key'}) . "," .
+                       $bp->quoteString($this->{'val'}) . ");");
+    }
 }
 
 sub check {

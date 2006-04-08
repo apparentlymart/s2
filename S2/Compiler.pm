@@ -36,8 +36,14 @@ sub compile_source {
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
+    } elsif ($opts->{'format'} eq "perloo") {
+        $this->{'checker'}->checkLayer($s2l);
+        $be = new S2::BackendPerl($s2l, undef, $opts->{'untrusted'}, 1);
+        if ($opts->{'builtinPackage'}) {
+            $be->setBuiltinPackage($opts->{'builtinPackage'});
+        }
     } else {
-	S2::error("Unknown output type in S2::Compiler");
+    S2::error("Unknown output type in S2::Compiler");
     }
     $be->output($o);
     undef $S2::CUR_COMPILER;
