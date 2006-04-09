@@ -117,7 +117,12 @@ sub asPerl {
     if ($this->{'isHash'}) {
         $o->write(" (keys %{");
     } elsif ($this->{'isString'}) {
-        $o->write(" (S2::get_characters(");
+        if ($bp->oo) {
+            $o->write(" (S2::Runtime::OO::_get_characters(");
+        }
+        else {
+            $o->write(" (S2::get_characters(");
+        }
     } else {
         $o->write(" (\@{");
     }

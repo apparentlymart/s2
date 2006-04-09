@@ -93,7 +93,14 @@ sub asPerl {
         $this->{'lhs'}->getType()->equals($S2::Type::STRING);
 
     $o->write(" = ");
-    $o->write("S2::notags(") if $need_notags;
+    if ($need_notags) {
+        if ($bp->oo) {
+            $o->write("S2::Runtime::OO::_notags(");
+        }
+        else {
+            $o->write("S2::notags(");
+        }
+    }
     $this->{'rhs'}->asPerl($bp, $o);
     $o->write(")") if $need_notags;
 

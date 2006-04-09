@@ -73,7 +73,12 @@ sub asPerl {
         $o->write(")->{_type} eq ".$bp->quoteString($this->{qClass}).")");
     }
     else {
-        $o->write("S2::object_isa(\$_ctx,");
+        if ($bp->oo) {
+            $o->write("\$_ctx->_object_isa(");
+        }
+        else {
+            $o->write("S2::object_isa(\$_ctx,");
+        }
         $this->{'expr'}->asPerl($bp, $o);
         $o->write(",".$bp->quoteString($this->{qClass}).")");
     }

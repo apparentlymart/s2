@@ -49,4 +49,32 @@ sub make_context {
     return new S2::Runtime::OO::Context(@layers);
 }
 
+### Called from layer code; not public API.
+
+# Called from NodeForEachStmt to get string split into characters
+sub _get_characters {
+    my $string = shift;
+    use utf8;
+    return split(//,$string);
+}
+
+# Called from the boolification code in Node to see if an array or hash is true or false
+sub _check_elements {
+    my $obj = shift;
+    if (ref $obj eq "ARRAY") {
+        return @$obj ? 1 : 0;
+    } elsif (ref $obj eq "HASH") {
+        return %$obj ? 1 : 0;
+    }
+    return 0;
+}
+
+# Called from AssignExpr and ReturnStmt when "notags" is in effect.
+sub _no_tags {
+    my $a = shift;
+    $a =~ s/</&lt;/g;
+    $a =~ s/>/&gt;/g;
+    return $a;
+}
+
 1;

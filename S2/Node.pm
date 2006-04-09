@@ -86,7 +86,12 @@ sub asPerl_bool {
 
     # does the array have elements?
     if ($s2type->isArrayOf() || $s2type->isHashOf()) {
-        $o->write("S2::check_elements(");
+        if ($bp->oo) {
+            $o->write("S2::Runtime::OO::_check_elements(");
+        }
+        else {
+            $o->write("S2::check_elements(");
+        }
         $this->asPerl($bp, $o);
         $o->write(")");
         return;
