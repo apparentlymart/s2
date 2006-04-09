@@ -40,7 +40,7 @@ sub parse {
     $n->setStart($n->requireToken($toker, $S2::TokenPunct::DOLLAR, 0));
 
     $toker->pushInString(0);  # pretend we're not, even if we are.
-	
+    
     if ($toker->peekChar() eq "{") {
         $n->requireToken($toker, $S2::TokenPunct::LBRACE, 0);
         $n->{'braced'} = 1;
@@ -57,7 +57,7 @@ sub parse {
     } 
 
     my $requireDot = 0;
-	
+    
     # only peeking at characters, not tokens, otherwise
     # we could force tokens could be created in the wrong 
     # context.  
@@ -82,7 +82,7 @@ sub parse {
         {
             my $dr = {}; # Deref, 'type', 'expr'
             my $t = $n->eatToken($toker, 0);
-		
+        
             if ($t == $S2::TokenPunct::LBRACK) {
                 $dr->{'type'} = '[';
                 $n->addNode($dr->{'expr'} = S2::NodeExpr->parse($toker));
@@ -260,7 +260,16 @@ sub asPerl {
     } elsif ($this->{'type'} == $OBJECT) {
         $o->write("\$this");
     } elsif ($this->{'type'} == $PROPERTY) {
-        $o->write("\$_ctx->[PROPS]");
+        if ($bp->oo) {
+            # This is a bit lame, but the expression here
+            # must be an lvalue so returning the whole hashtable
+            # is the only way to go to avoid hardcoding the internals
+            # of the context object.
+            $o->write("\$_ctx->_get_properties()");
+        }
+        else {
+            $o->write("\$_ctx->[PROPS]");
+        }
         $first = 0;
     }
 

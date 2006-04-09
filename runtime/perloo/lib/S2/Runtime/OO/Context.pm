@@ -30,9 +30,9 @@ sub new {
             $vtable->{$fn} = $functions->{$fn};
         }
         
-        my $props = $lay->get_property_sets();
-        foreach my $pn (keys %{$props}) {
-            $props->{$pn} = $props->{$pn};
+        my $propsets = $lay->get_property_sets();
+        foreach my $pn (keys %{$propsets}) {
+            $props->{$pn} = $propsets->{$pn};
         }
     }
 
@@ -88,6 +88,10 @@ sub _call_method {
 
     $class = $obj->{_type} unless $is_super;
     return $self->_call_function("${class}::${meth}", [$obj, @$args], $layer, $srcline);
+}
+
+sub _get_properties {
+    return $_[0]->[PROPS];
 }
 
 sub _error {

@@ -38,9 +38,6 @@ sub output {
     if ($this->oo) {
         $io->writeln("use S2::Runtime::OO;");
         $io->writeln("use strict;");
-        $io->writeln("use constant VTABLE => 0;");
-        $io->writeln("use constant STATIC => 1;");
-        $io->writeln("use constant PROPS => 2;");
         $io->writeln('my $lay = new S2::Runtime::OO::Layer;');
         $io->writeln('$lay->set_source_name('.$this->quoteString($this->{sourcename}).');');
         my $nodes = $this->{'layer'}->getNodes();

@@ -263,7 +263,7 @@ sub asPerl {
         $o->writeln(");");
     }
 
-    return if $this->{'attr'}->{'builtin'};
+    return if $this->{'attr'}->{'builtin'} && ! $bp->oo;
 
     if ($bp->oo) {
         $o->tabwrite("\$lay->register_function([");
@@ -303,35 +303,51 @@ sub asPerl {
         }
     }
 
-    # now, return the closure
-    $o->tabwriteln("return sub {");
-    $o->tabIn();
+    if ($this->{'attr'}->{'builtin'}) {
+        # Due to an if statement above, this only actually runs in oo mode
+    
+        $o->tabwrite("return \&");
 
-    unless ($bp->oo) {
-        # now dump the recursion depth checker
-        $o->tabwriteln("S2::check_depth() if ++\$S2::sub_ctr % \$S2::depth_check_every == 0;");
-    }
-
-    # setup function argument/ locals
-    $o->tabwrite("my (\$_ctx");
-    if ($this->{'classname'} && ! $this->{'isCtor'}) {
-        $o->write(", \$this");
-    }
-
-    if ($this->{'formals'}) {
-        my $nts = $this->{'formals'}->getFormals();
-        foreach my $nt (@$nts) {
-            $o->write(", \$" . $nt->getName());
+        my $pkg = $bp->getBuiltinPackage() || "S2::Builtin";
+        $o->write("${pkg}::");
+        if ($this->{'classname'}) {
+            $o->write("$this->{'classname'}__");
         }
+        $o->write($this->{'name'}->getIdent());
+        
+        $o->writeln(";");
     }
+    else {
+        # now, return the closure
+        $o->tabwriteln("return sub {");
+        $o->tabIn();
 
-    $o->writeln(") = \@_;");
-    # end function locals
+        unless ($bp->oo) {
+            # now dump the recursion depth checker
+            $o->tabwriteln("S2::check_depth() if ++\$S2::sub_ctr % \$S2::depth_check_every == 0;");
+        }
 
-    $this->{'stmts'}->asPerl($bp, $o, 0);
+        # setup function argument/ locals
+        $o->tabwrite("my (\$_ctx");
+        if ($this->{'classname'} && ! $this->{'isCtor'}) {
+            $o->write(", \$this");
+        }
 
-    $o->tabOut();
-    $o->tabwriteln("};");
+        if ($this->{'formals'}) {
+            my $nts = $this->{'formals'}->getFormals();
+            foreach my $nt (@$nts) {
+                $o->write(", \$" . $nt->getName());
+            }
+        }
+
+        $o->writeln(") = \@_;");
+        # end function locals
+
+        $this->{'stmts'}->asPerl($bp, $o, 0);
+
+        $o->tabOut();
+        $o->tabwriteln("};");
+    }
 
     # end the outer sub
     $o->tabOut();

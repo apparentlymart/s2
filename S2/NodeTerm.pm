@@ -556,7 +556,12 @@ sub asPerl {
     }
 
     if ($type == $DEFINEDTEST) {
-        $o->write("S2::check_defined(");
+        if ($bp->oo) {
+            $o->write("\$_ctx->_is_defined(");
+        }
+        else {
+            $o->write("S2::check_defined(");
+        }
         $this->{'subExpr'}->asPerl($bp, $o);
         $o->write(")");
         return;
@@ -577,46 +582,22 @@ sub asPerl {
     }
 
     if ($type == $OBJ_INTERPOLATE) {
-        $o->write("S2::interpolate_object(\$_ctx, '$this->{'funcClass'}', ");
-        $this->{'var'}->asPerl($bp, $o);
-        $o->write(", '$this->{'objint_method'}()')");
+        if ($bp->oo) {
+            $o->write("\$_ctx->_interpolate_object(");
+            $this->{'var'}->asPerl($bp, $o);
+            $o->write(", '$this->{'objint_method'}()'");
+            $o->write(", '$this->{'funcClass'}'");
+            $o->write(")");
+        }
+        else {
+            $o->write("S2::interpolate_object(\$_ctx, '$this->{'funcClass'}', ");
+            $this->{'var'}->asPerl($bp, $o);
+            $o->write(", '$this->{'objint_method'}()')");
+        }
         return;
     }
 
     if ($type == $FUNCCALL || $type == $METHCALL) {
-
-        # Function calls in OO mode work differently
-        if ($bp->oo) {
-            if ($type == $METHCALL && ! { map { $_=>1 } qw(string int bool) }->{$this->{'funcClass'}}) {
-                $o->write("\$_ctx->_call_method(");
-                $this->{var}->asPerl($bp, $o);
-                $o->write(",");
-                $o->write($bp->quoteString($this->{'funcID_noclass'}));
-                $o->write(",");
-                $o->write($bp->quoteString($this->{'funcClass'}));
-                $o->write($this->{'var'}->isSuper() ? ",1" : ",0");
-                $o->write(",");
-            }
-            else {
-                $o->write("\$_ctx->_call_function(");
-                $o->write($bp->quoteString($this->{'funcID'}));
-                $o->write(",");
-            }
-
-            $o->write("[");
-            $this->{'funcArgs'}->asPerl($bp, $o, 0);
-            $o->write("]");
-
-            $o->write(",");
-            $o->write("\$lay");
-            $o->write(",");
-            $o->write($this->{'derefLine'}+0);
-            $o->write(",");
-
-            $o->write(")");
-            
-            return;
-        }
 
         # builtin functions can be optimized.
         if ($this->{'funcBuiltin'}) {
@@ -643,6 +624,40 @@ sub asPerl {
             }
             $o->write($this->{'funcIdent'}->getIdent());
         } else {
+
+            # Function calls in OO mode work differently
+            if ($bp->oo) {
+                if ($type == $METHCALL && ! { map { $_=>1 } qw(string int bool) }->{$this->{'funcClass'}}) {
+                    $o->write("\$_ctx->_call_method(");
+                    $this->{var}->asPerl($bp, $o);
+                    $o->write(",");
+                    $o->write($bp->quoteString($this->{'funcID_noclass'}));
+                    $o->write(",");
+                    $o->write($bp->quoteString($this->{'funcClass'}));
+                    $o->write($this->{'var'}->isSuper() ? ",1" : ",0");
+                    $o->write(",");
+                }
+                else {
+                    $o->write("\$_ctx->_call_function(");
+                    $o->write($bp->quoteString($this->{'funcID'}));
+                    $o->write(",");
+                }
+
+                $o->write("[");
+                $this->{'funcArgs'}->asPerl($bp, $o, 0);
+                $o->write("]");
+
+                $o->write(",");
+                $o->write("\$lay");
+                $o->write(",");
+                $o->write($this->{'derefLine'}+0);
+                $o->write(",");
+
+                $o->write(")");
+
+                return;
+            }
+
             if ($type == $METHCALL && $this->{'funcClass'} ne "string") {
                 $o->write("\$_ctx->[VTABLE]->{get_object_func_num(");
                 $o->write($bp->quoteString($this->{'funcClass'}));
