@@ -26,6 +26,7 @@ my ($opt_core, $opt_layout);
 my $outfile;
 my $opt_listbuiltin;
 my $ckoutfile;
+my $ckinfile;
 
 exit usage() unless
     GetOptions("output=s" => \$output,
@@ -37,6 +38,7 @@ exit usage() unless
                "outfile=s" => \$outfile,
                "listbuiltin" => \$opt_listbuiltin,
                "dumpchecker=s" => \$ckoutfile,
+               "checker=s" => \$ckinfile,
                );
 
 exit usage() unless @ARGV == 1;
@@ -67,7 +69,12 @@ my $ck;
 if ($output eq "html" || $output eq "s2") {
     $ck = undef;
 } else {
-    $ck = new S2::Checker;
+    if ($ckinfile) {
+        $ck = Storable::retrieve($ckinfile);
+    }
+    else {
+        $ck = new S2::Checker;
+    }
 }
 
 my $layerMain;
