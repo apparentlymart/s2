@@ -2,15 +2,16 @@
 package S2::Runtime::OO::Context;
 use strict;
 
-# TODO: Make this "use fields"
+# Maybe make this "use fields" later
 # For now, just keep the internals private so it can be changed later
 
 use constant VTABLE => 0;
 use constant OPTS => 1;
 use constant PROPS => 2;
-use constant SCRATCH => 3;
-use constant CALLBACK => 4;
-use constant STACK => 5;
+use constant CLASSES => 3;
+use constant SCRATCH => 4;
+use constant CALLBACK => 5;
+use constant STACK => 6;
 
 use constant STACKTRACE => 0;
 
@@ -23,6 +24,7 @@ sub new {
     
     my $vtable = {};
     my $props = {};
+    my $classes = {};
     my $callbacks = [sub{},sub{},sub{}];
 
     ## Copy the functions and props from each layer in turn
@@ -37,9 +39,31 @@ sub new {
         foreach my $pn (keys %{$propsets}) {
             $props->{$pn} = $propsets->{$pn};
         }
+
+        my $declclasses = $lay->get_class_docs();
+        foreach my $cn (keys %{$declclasses}) {
+            $classes->{$cn} = $declclasses->{$cn};
+        }
     }
 
-    my $self = [$vtable, [1], $props, {}, $callbacks, []];
+    ## If a property declares a set of acceptable values, make sure layers don't set anything else
+    foreach my $lay (@layers) {
+        my $declprops = $lay->get_property_attributes();
+        foreach my $pname (keys %$declprops) {
+            next unless defined $props->{$pname};
+
+            my $prop = $declprops->{$pname};
+            next unless defined $prop->{values};
+            next if $prop->{allow_other};
+
+            my %okay = split(/\|/, $prop->{values});
+            unless (defined $okay{$props->{$pname}}) {
+                delete $props->{$pname};
+            }
+        }
+    }
+
+    my $self = [$vtable, [1], $props, $classes, {}, $callbacks, []];
     return bless $self, $class;
 }
 
@@ -104,22 +128,67 @@ sub _print_safe {
 sub _call_function {
     my ($self, $func, $args, $layer, $srcline) = @_;
     
-    $self->_error("Unknown function $func", $layer, $srcline) unless defined $_[0]->[VTABLE]{$func};
+    unless (defined $_[0]->[VTABLE]{$func}) {
+        $self->_error("Unknown function $func", $layer, $srcline);
+        die undef;
+    }
     
     push @{$self->[STACK]}, [$func, $args, $layer, $srcline] if $self->[OPTS][STACKTRACE];
-    $_[0]->[VTABLE]{$func}->($self, @$args);
+    my $ret = $_[0]->[VTABLE]{$func}->($self, @$args);
     pop @{$self->[STACK]} if $self->[OPTS][STACKTRACE];
+    return $ret;
 }
 
 sub _call_method {
     my ($self, $obj, $meth, $class, $is_super, $args, $layer, $srcline) = @_;
-    
+
     if (ref $obj ne "HASH" || $obj->{_isnull}) {
-        $self->_error("Method called on null $class object", $layer, $srcline);
+        $self->_error("Method $meth called on null $class object", $layer, $srcline);
+        die undef;
     }
 
     $class = $obj->{_type} unless $is_super;
     return $self->_call_function("${class}::${meth}", [$obj, @$args], $layer, $srcline);
+}
+
+sub _interpolate_object {
+    my ($self, $obj, $meth, $class, $layer, $srcline) = @_;
+
+    return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return $self->_call_method($obj, $meth, $class, 0, [], $layer, $srcline);
+}
+
+sub _downcast_object {
+    my ($self, $obj, $toclass, $layer, $srcline) = @_;
+
+    # If the object is null, just return it
+    return $obj unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+
+    my $fromclass = $obj->{_type};
+    return undef unless $self->_object_isa($obj, $toclass);
+
+    return $obj;
+}
+
+sub _object_isa {
+    my ($self, $obj, $qclass) = @_;
+
+    my $actclass = $obj->{_type};
+
+    my $classes = $self->[CLASSES];
+
+    my $tc = $actclass;
+    my $okay = 0;
+    while (defined $tc) {
+        if ($tc eq $qclass) {
+            $okay = 1;
+            last;
+        }
+        my $ntc = $classes->{$tc};
+        $tc = $ntc ? $ntc->{parent} : undef;
+    }
+
+    return $okay;
 }
 
 sub _get_properties {

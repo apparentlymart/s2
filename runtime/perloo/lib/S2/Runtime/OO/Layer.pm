@@ -27,6 +27,14 @@ sub get_property_sets {
     return $_[0]->{propset};
 }
 
+sub get_property_attributes {
+    return $_[0]->{prop};
+}
+
+sub get_class_docs {
+    return $_[0]->{classdoc};
+}
+
 # These methods called by S2 layer code during load. Not public API.
 
 sub set_source_name {

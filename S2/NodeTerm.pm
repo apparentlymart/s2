@@ -587,6 +587,8 @@ sub asPerl {
             $this->{'var'}->asPerl($bp, $o);
             $o->write(", '$this->{'objint_method'}()'");
             $o->write(", '$this->{'funcClass'}'");
+            $o->write(", \$lay");
+            $o->write(", ".($this->{'derefLine'}+0));
             $o->write(")");
         }
         else {

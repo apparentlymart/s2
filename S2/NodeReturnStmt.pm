@@ -63,7 +63,14 @@ sub asPerl {
     if ($this->{'expr'}) {
         my $need_notags = $bp->untrusted() && $this->{'notags_func'};
         $o->write(" ");
-        $o->write("S2::notags(") if $need_notags;
+        if ($need_notags) {
+            if ($bp->oo) {
+                $o->write("S2::Runtime::OO::_notags(");
+            }
+            else {
+                $o->write("S2::notags(");
+            }
+        }
         $this->{'expr'}->asPerl($bp, $o);
         $o->write(")") if $need_notags;
     }

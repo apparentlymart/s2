@@ -90,9 +90,16 @@ sub asPerl {
     
     # For downcasts, need to call function at runtime to ensure the
     # object is of the correct type.
-    $o->write("S2::downcast_object(\$_ctx,");
-    $this->{'expr'}->asPerl($bp, $o);
-    $o->write(",".$bp->quoteString($this->{toClass}).",".
-              $bp->getLayerID().",$this->{opline})");
+    if ($bp->oo) {
+        $o->write("\$_ctx->_downcast_object(");
+        $this->{'expr'}->asPerl($bp, $o);
+        $o->write(",".$bp->quoteString($this->{toClass}).",\$lay,$this->{opline})");
+    }
+    else {
+        $o->write("S2::downcast_object(\$_ctx,");
+        $this->{'expr'}->asPerl($bp, $o);
+        $o->write(",".$bp->quoteString($this->{toClass}).",".
+                  $bp->getLayerID().",$this->{opline})");
+    }
 }
 
