@@ -6,10 +6,13 @@ use strict;
 # For now, just keep the internals private so it can be changed later
 
 use constant VTABLE => 0;
-use constant STATIC => 1;
+use constant OPTS => 1;
 use constant PROPS => 2;
 use constant SCRATCH => 3;
 use constant CALLBACK => 4;
+use constant STACK => 5;
+
+use constant STACKTRACE => 0;
 
 use constant PRINT => 0;
 use constant PRINT_SAFE => 1;
@@ -36,7 +39,7 @@ sub new {
         }
     }
 
-    my $self = [$vtable, undef, $props, {}, $callbacks];
+    my $self = [$vtable, [1], $props, {}, $callbacks, []];
     return bless $self, $class;
 }
 
@@ -57,9 +60,36 @@ sub set_error_handler {
 sub run {
     my ($self, $fn, @args) = @_;
     
-    $self->[VTABLE]{$fn}->($self, @args);
+    eval {
+        $self->[VTABLE]{$fn}->($self, @args);
+    };
+    if ($@) {
+        my $msg = $@;
+        $msg =~ s/\s+$//;
+        $self->_error($msg, undef, undef);
+    }
+
+    # Clean up any junk left on the call stack
+    $self->[STACK] = [];
+
 }
 
+sub get_stack_trace {
+    return $_[0]->[STACK];
+}
+
+sub do_stack_trace {
+    my ($self, $bool) = @_;
+    
+    if (defined $bool) {
+        $self->[OPTS][STACKTRACE] = $bool;
+        $bool ? $self->[OPTS][STACK] ||= [] : $self->[OPTS][STACK] = undef;
+        return $bool;
+    }
+    else {
+        return $self->[OPTS][STACKTRACE];
+    }
+}
 
 # Functions called from layer code at runtime. Not public API.
 
@@ -76,7 +106,9 @@ sub _call_function {
     
     $self->_error("Unknown function $func", $layer, $srcline) unless defined $_[0]->[VTABLE]{$func};
     
+    push @{$self->[STACK]}, [$func, $args, $layer, $srcline] if $self->[OPTS][STACKTRACE];
     $_[0]->[VTABLE]{$func}->($self, @$args);
+    pop @{$self->[STACK]} if $self->[OPTS][STACKTRACE];
 }
 
 sub _call_method {
