@@ -30,7 +30,8 @@ use S2::Runtime::OO::Context;
 use S2::Runtime::OO::Layer;
 
 sub new {
-    return bless {}, shift;
+    my ($class) = @_;
+    return bless \$class, $class;
 }
 
 sub layer_from_string {
