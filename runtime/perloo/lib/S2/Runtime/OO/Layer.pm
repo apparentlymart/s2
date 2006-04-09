@@ -10,6 +10,8 @@ sub new {
         'propgroup' => [],
         'propgroup_members' => {},
         'propgroup_name' => {},
+        'prop_use' => [],
+        'prop_hide' => {},
         'func' => {},
         'classdoc' => {},
         'globfuncdoc' => {},
@@ -69,6 +71,24 @@ sub register_propgroup_name {
     my ($self, $ident, $name) = @_;
     
     $self->{propgroup_name}{$ident} = $name;
+}
+
+sub register_propgroup_props {
+    my ($self, $groupname, $props) = @_;
+    
+    $self->{propgroup_members}{$groupname} = $props;
+}
+
+sub register_property_use {
+    my ($self, $name) = @_;
+    
+    push @{$self->{prop_use}}, $name;
+}
+
+sub register_property_hide {
+    my ($self, $name) = @_;
+    
+    $self->{prop_hide}{$name} = 1;
 }
 
 sub register_property {

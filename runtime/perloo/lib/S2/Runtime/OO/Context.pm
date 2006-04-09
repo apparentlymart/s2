@@ -83,19 +83,27 @@ sub set_error_handler {
 
 sub run {
     my ($self, $fn, @args) = @_;
+
+    if (! $self->[VTABLE]{$fn}) {
+        $self->_error("Entry point function $fn does not exist", undef, undef);
+        return;
+    }
     
+    my $ret;
     eval {
-        $self->[VTABLE]{$fn}->($self, @args);
+        $ret = $self->_call_function($fn, [@args], undef, undef);
     };
     if ($@) {
         my $msg = $@;
         $msg =~ s/\s+$//;
+        $ret = undef;
         $self->_error($msg, undef, undef);
     }
 
     # Clean up any junk left on the call stack
     $self->[STACK] = [];
 
+    return $ret;
 }
 
 sub get_stack_trace {
@@ -189,6 +197,11 @@ sub _object_isa {
     }
 
     return $okay;
+}
+
+sub _is_defined {
+    my $obj = shift;
+    return ref $obj eq "HASH" && ! $obj->{'_isnull'};
 }
 
 sub _get_properties {
