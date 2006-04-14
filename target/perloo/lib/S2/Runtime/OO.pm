@@ -39,14 +39,14 @@ sub layer_from_string {
 }
 
 sub layer_from_file {
-    return require($_[1]);
+    return do($_[1]);
 }
 
 sub make_context {
     my ($self, @layers) = @_;
     
     @layers = @{$layers[0]} if (ref $layers[0] eq 'ARRAY');
-    
+
     return new S2::Runtime::OO::Context(@layers);
 }
 
