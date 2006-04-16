@@ -5,6 +5,7 @@ package S2::Checker;
 
 use strict;
 use vars qw($VERSION);
+use Storable;
 
 # version should be incremented whenever any internals change.
 # the external mechanisms which serialize checker objects should
@@ -62,6 +63,15 @@ sub cleanForFreeze {
     foreach my $nc (values %{$this->{'classes'}}) {
         $nc->cleanForFreeze();
     }
+}
+
+sub clone {
+    my $this = shift;
+    
+    $this->cleanForFreeze();
+
+    # HACK: Throw it through Storable and back to get a deep copy of the object.
+    return Storable::thaw(Storable::freeze($this));
 }
 
 sub addClass {
