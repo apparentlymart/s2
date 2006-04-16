@@ -21,7 +21,7 @@ use constant ERROR => 2;
 
 sub new {
     my ($class, @layers) = @_;
-    
+
     my $vtable = {};
     my $props = {};
     my $classes = {};
@@ -34,7 +34,7 @@ sub new {
         foreach my $fn (keys %{$functions}) {
             $vtable->{$fn} = $functions->{$fn};
         }
-        
+
         my $propsets = $lay->get_property_sets();
         foreach my $pn (keys %{$propsets}) {
             $props->{$pn} = $propsets->{$pn};
@@ -44,6 +44,7 @@ sub new {
         foreach my $cn (keys %{$declclasses}) {
             $classes->{$cn} = $declclasses->{$cn};
         }
+
     }
 
     ## If a property declares a set of acceptable values, make sure layers don't set anything else
@@ -64,12 +65,13 @@ sub new {
     }
 
     my $self = [$vtable, [1], $props, $classes, {}, $callbacks, []];
+
     return bless $self, $class;
 }
 
 sub set_print {
     my ($self, $print, $safe_print) = @_;
-    
+
     $safe_print ||= $print;
     $self->[CALLBACK][PRINT] = $print;
     $self->[CALLBACK][PRINT_SAFE] = $safe_print;
@@ -88,13 +90,14 @@ sub run {
         $self->_error("Entry point function $fn does not exist", undef, undef);
         return;
     }
-    
+
     my $ret;
     eval {
         $ret = $self->_call_function($fn, [@args], undef, undef);
     };
     if ($@) {
         my $msg = $@;
+        print "<pre>$msg</pre>";
         $msg =~ s/\s+$//;
         $ret = undef;
         $self->_error($msg, undef, undef);
@@ -112,7 +115,7 @@ sub get_stack_trace {
 
 sub do_stack_trace {
     my ($self, $bool) = @_;
-    
+
     if (defined $bool) {
         $self->[OPTS][STACKTRACE] = $bool;
         $bool ? $self->[OPTS][STACK] ||= [] : $self->[OPTS][STACK] = undef;
@@ -135,12 +138,12 @@ sub _print_safe {
 
 sub _call_function {
     my ($self, $func, $args, $layer, $srcline) = @_;
-    
+
     unless (defined $_[0]->[VTABLE]{$func}) {
         $self->_error("Unknown function $func", $layer, $srcline);
         die undef;
     }
-    
+
     push @{$self->[STACK]}, [$func, $args, $layer, $srcline] if $self->[OPTS][STACKTRACE];
     my $ret = $_[0]->[VTABLE]{$func}->($self, @$args);
     pop @{$self->[STACK]} if $self->[OPTS][STACKTRACE];

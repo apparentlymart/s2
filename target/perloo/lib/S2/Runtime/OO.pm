@@ -13,7 +13,7 @@ S2::Runtime::OO - Object-oriented S2 runtime
     my $layout = $s2->layer_from_file('layout.pl');
     
     my $ctx = $s2->make_context($core, $layout);
-    $ctx->set_print(sub { print @_; });
+    $ctx->set_print(sub { print $_[1]; });
 
     my $page = {
         '_type' => 'Page',
@@ -28,6 +28,7 @@ package S2::Runtime::OO;
 
 use S2::Runtime::OO::Context;
 use S2::Runtime::OO::Layer;
+use strict;
 
 sub new {
     my ($class) = @_;
@@ -35,7 +36,9 @@ sub new {
 }
 
 sub layer_from_string {
-    return eval(${$_[1]});
+    my $lay = eval(${$_[1]});
+    die $@ if ($@);
+    return $lay;
 }
 
 sub layer_from_file {
