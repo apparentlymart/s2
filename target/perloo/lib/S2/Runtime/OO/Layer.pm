@@ -37,6 +37,12 @@ sub get_class_docs {
     return $_[0]->{classdoc};
 }
 
+sub get_layer_info {
+    my ($self, $key) = @_;
+    return $self->{info}{$key} if defined($key);
+    return $self->{info};
+}
+
 # These methods called by S2 layer code during load. Not public API.
 
 sub set_source_name {
