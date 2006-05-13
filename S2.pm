@@ -498,7 +498,7 @@ sub get_object_func_num
         die "$msg at ".layer_name($ctx,$s2lid)." line $s2line";
     };
 
-    if (ref $inst ne "HASH" || $inst->{'_isnull'}) {
+    unless (check_defined($inst)) {
         $err->("Method called on null $type object");
     }
     $type = $inst->{'_type'} unless $is_super;
@@ -534,7 +534,7 @@ sub get_characters
 
 sub check_defined {
     my $obj = shift;
-    return ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return ref $obj eq "HASH" && defined $obj->{'_type'} && ! $obj->{'_isnull'};
 }
 
 sub check_elements {
@@ -549,7 +549,7 @@ sub check_elements {
 
 sub interpolate_object {
     my ($ctx, $cname, $obj, $method) = @_;
-    return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return "" unless check_defined($obj);
     my $res = eval {
         # wrap in an eval in case get_object_func_num returns something invalid...
         return $ctx->[VTABLE]->{get_object_func_num($cname,$obj,$method)}->($ctx, $obj);
@@ -576,7 +576,7 @@ sub downcast_object {
     my ($ctx, $obj, $toclass, $layerid, $line) = @_;
 
     # If the object is null, just return it
-    return $obj unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return $obj unless check_defined($obj);
 
     my $fromclass = $obj->{_type};
     return undef unless object_isa($ctx, $obj, $toclass);

@@ -570,7 +570,9 @@ sub asPerl {
     if ($type == $ISNULLFUNC) {
         $o->write("(ref ");
         $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write(" ne \"HASH\" || ");
+        $o->write(" ne \"HASH\" || !(defined ");
+        $this->{'subExpr'}->asPerl($bp, $o);
+        $o->write("->{'_type'}) || ");
         $this->{'subExpr'}->asPerl($bp, $o);
         $o->write("->{'_isnull'})");
         return;
