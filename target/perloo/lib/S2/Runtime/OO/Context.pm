@@ -153,7 +153,7 @@ sub _call_function {
 sub _call_method {
     my ($self, $obj, $meth, $class, $is_super, $args, $layer, $srcline) = @_;
 
-    if (ref $obj ne "HASH" || $obj->{_isnull}) {
+    unless (_is_defined($obj)) {
         $self->_error("Method $meth called on null $class object", $layer, $srcline);
         die undef;
     }
@@ -165,7 +165,7 @@ sub _call_method {
 sub _interpolate_object {
     my ($self, $obj, $meth, $class, $layer, $srcline) = @_;
 
-    return "" unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return "" unless _is_defined($obj);
     return $self->_call_method($obj, $meth, $class, 0, [], $layer, $srcline);
 }
 
@@ -173,7 +173,7 @@ sub _downcast_object {
     my ($self, $obj, $toclass, $layer, $srcline) = @_;
 
     # If the object is null, just return it
-    return $obj unless ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return $obj unless _is_defined($obj);
 
     my $fromclass = $obj->{_type};
     return undef unless $self->_object_isa($obj, $toclass);
@@ -204,7 +204,7 @@ sub _object_isa {
 
 sub _is_defined {
     my $obj = shift;
-    return ref $obj eq "HASH" && ! $obj->{'_isnull'};
+    return ref $obj eq "HASH" && defined $obj->{'_type'} && ! $obj->{'_isnull'};
 }
 
 sub _get_properties {
