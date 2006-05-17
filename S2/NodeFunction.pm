@@ -305,8 +305,8 @@ sub asPerl {
 
     if ($this->{'attr'}->{'builtin'}) {
         # Due to an if statement above, this only actually runs in oo mode
-    
-        $o->tabwrite("return \&");
+
+        $o->tabwrite("return \\&");
 
         my $pkg = $bp->getBuiltinPackage() || "S2::Builtin";
         $o->write("${pkg}::");
@@ -314,7 +314,7 @@ sub asPerl {
             $o->write("$this->{'classname'}__");
         }
         $o->write($this->{'name'}->getIdent());
-        
+
         $o->writeln(";");
     }
     else {
@@ -352,7 +352,7 @@ sub asPerl {
     # end the outer sub
     $o->tabOut();
     $o->tabwriteln("});");
-    
+
 }
 
 sub toString {
