@@ -355,6 +355,107 @@ sub asPerl {
 
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $mangled = $backend->mangle($self->{name}->getIdent .
+        ($self->{formals} ? '(' . $self->{formals}->typeList . ')' : '()'));
+
+    my $pseudomethod = ($self->{classname} and $self->{classname}->getIdent
+        =~ /^int|bool|string$/);
+
+    if ($self->{classname}) {
+        $general->writeln('.namespace [ ' .
+            $backend->quote('_s2::_' . $self->{classname}->getIdent) . ' ]');
+
+        if ($pseudomethod) {
+            $general->writeln(".sub $mangled");
+        } else {
+            $general->writeln(".sub $mangled :method");
+        }
+    } else {
+        $general->writeln('.namespace [ "_s2" ]');
+        $general->writeln(".sub $mangled");
+    }
+
+    # Set up the local variables to the function.
+
+    $general->writeln('.param pmc myself') if $pseudomethod;
+
+    if ($self->{formals}) {
+        foreach my $arg (@{$self->{formals}->getFormals}) {
+            $general->writeln('.param ' .
+                $backend->pir_type($arg->getType) .  ' _s2l_' .
+                $arg->getName);
+        }
+    }
+
+    # The identifier-based '.namespace' directives seem to kill our 'self'
+    # variable, so we do this little hack to get around it.
+    if ($self->{classname} and not $pseudomethod) {
+        $general->writeln('.local pmc myself');
+        $general->writeln('myself = self');
+    }
+
+    if ($self->{attr}{builtin}) {
+        my $args_reg = $backend->register('P');
+        $general->writeln("$args_reg = new .ResizablePMCArray");
+
+        my $i = 0;
+
+        unless (defined $self->{classname} and
+            $self->{classname}->getIdent eq $self->{name}->getIdent) {
+            #
+            #   Built-in methods require a "context" argument as the first
+            #   argument. This isn't applicable for us, so we'll pass in null.
+            #   (Is this safe?) If we're a constructor, though, the methods
+            #   expect to be given the actual arguments right away: no context.
+            #
+
+            my $ctx_reg = $backend->register('P');
+            $general->writeln("$ctx_reg = new .Undef");
+            $general->writeln("${args_reg}[0] = $ctx_reg");
+
+            if ($self->{classname}) {
+                $general->writeln("${args_reg}[1] = myself"); 
+                $i = 2;
+            } else {
+                $i = 1;
+            }
+        }
+
+        if ($self->{formals}) {
+            foreach my $arg (@{$self->{formals}->getFormals}) {
+                $general->writeln("${args_reg}[$i] = _s2l_" . $arg->getName);
+                $i++;
+            }
+        }
+
+        my $func_reg = $backend->register('P');
+        $general->writeln(
+            qq/$func_reg = find_global "_core_embedded", "_call_perl"/);
+
+        my $package = $backend->getBuiltinPackage() || "S2::Builtin";
+        my $method = $package . '::';
+        $method .= $self->{classname}->getIdent . '__' if $self->{classname};
+        $method .= $self->{name}->getIdent;
+
+        my $ret_reg = $backend->register('P');
+        $general->writeln(qq/$ret_reg = ${func_reg}($args_reg, "$method")/);
+
+        $general->writeln(".return ($ret_reg)");
+    } else {
+        # TODO: check recursion
+
+        $self->{stmts}->asParrot($backend, $general, $main, $data);
+    }
+
+    $backend->reset_generators;
+
+    $general->writeln(".end\n");
+}
+
 sub toString {
     my $this = shift;
     return $this->className() . "...";

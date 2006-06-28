@@ -4,6 +4,7 @@
 package S2::NodeCondExpr;
 
 use strict;
+use warnings;
 use S2::Node;
 use S2::NodeRange;
 use vars qw($VERSION @ISA);
@@ -79,4 +80,32 @@ sub asPerl {
     $this->{'false_expr'}->asPerl($bp, $o);
     $o->write(")");
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my ($false_label, $last_label) = ($backend->identifier,
+        $backend->identifier);
+    my $cond_reg =
+        $self->{test_expr}->asParrot($backend, $general, $main, $data);
+    my $out_reg = $backend->register('P');
+    my $cmp_reg = $backend->register('I');
+
+    $general->writeln("$cmp_reg = istrue $cond_reg");
+    $general->writeln("eq $cmp_reg, 0, $false_label");
+    my $true_reg =
+        $self->{true_expr}->asParrot($backend, $general, $main, $data);
+    $general->writeln("$out_reg = $true_reg");
+    $general->writeln("goto $last_label");
+    $general->writeln("$false_label:");
+    my $false_reg =
+        $self->{false_expr}->asParrot($backend, $general, $main, $data);
+    $general->writeln("$out_reg = $false_reg");
+    $general->writeln("$last_label:");
+
+    return $out_reg;
+}
+
+1;
 

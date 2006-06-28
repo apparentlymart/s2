@@ -56,6 +56,14 @@ sub asPerl {
     $o->write(")") if $doCurlies;
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    return map { $_->asParrot($backend, $general, $main, $data) }
+        @{$self->{args}};
+}
+
 sub typeList {
     my ($this, $ck) = @_;
     return join(',', map { $_->getType($ck)->toString() }

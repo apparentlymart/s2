@@ -77,3 +77,16 @@ sub asPerl {
     $o->writeln(";");
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    if ($self->{expr}) {
+        $general->writeln('.return (' .
+            $self->{expr}->asParrot($backend, $general, $main, $data) . ')');
+    } else {
+        $general->writeln('.return ()');
+    }
+}
+
+1;

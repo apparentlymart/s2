@@ -479,6 +479,12 @@ sub run_function
     return $val;
 }
 
+# Parrot can use this guy to emit errors.
+sub die
+{
+    die @_;
+}
+
 sub get_func_num
 {
     my $name = shift;

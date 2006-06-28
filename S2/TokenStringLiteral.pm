@@ -187,6 +187,16 @@ sub asPerl
     $o->write($bp->quoteString($this->{'text'}));
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $reg = $backend->register('P');
+    $general->writeln("$reg = new .String");
+    $general->writeln("$reg = " . $backend->quote($self->{text}));
+    return $reg;
+}
+
 sub makeQuotes
 {
     my $i = shift;

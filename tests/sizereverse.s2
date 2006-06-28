@@ -27,5 +27,10 @@ function main ()
     {
 	println $i;
     }
+
+    var string mystr = "hello";
+    var string mystr_backwards = reverse $mystr;
+    println $mystr_backwards;
+
     println "Done.";
 }

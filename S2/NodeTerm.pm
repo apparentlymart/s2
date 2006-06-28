@@ -4,6 +4,7 @@
 package S2::NodeTerm;
 
 use strict;
+use Carp;
 use S2::Node;
 use S2::NodeExpr;
 use S2::NodeArrayLiteral;
@@ -244,6 +245,7 @@ sub makeAsString {
             $this->{'funcID_noclass'} = "$methname()";
             $this->{'funcID'} = $funcID;
             $this->{'funcBuiltin'} = 1;
+            $this->{'was_originally_interpolated'} = 1; # Parrot needs to know
         } else {
             # if it's S2-level as_string(), then we call
             # S2::interpolate_object($ctx, "ClassName", $obj, $methname)
@@ -700,6 +702,213 @@ sub asPerl {
     }
 
     die "Unknown term type";
+}
+
+sub asParrot
+{
+    use warnings;
+
+    my ($self, $backend, $general, $main, $data) = @_;
+    my $src_register = $data->{src_register}; delete $data->{src_register};
+    my $type = $self->{type};
+
+    if ($type == $INTEGER) {
+        return $self->{tokInt}->asParrot($backend, $general, $main, $data);
+    } elsif ($type == $BOOL) {
+        my $reg = $backend->register('P');
+
+        $general->writeln("$reg = new .Integer");
+        $general->writeln("$reg = " . ($self->{boolValue} ? 1 : 0));
+
+        return $reg;
+    } elsif ($type == $STRING) {
+        return $backend->construct_stringy($general, $main,
+            $self->{tokStr}->asParrot($backend, $general, $main, $data),
+            $self->{ctorclass}) if $self->{ctorclass};
+
+        return $self->{nodeString}->asParrot($backend, $general, $main, $data)
+            if defined $self->{nodeString};
+
+        return $self->{tokStr}->asParrot($backend, $general, $main, $data);
+    } elsif ($type == $SUBEXPR or $type == $ARRAY) {
+        $data->{src_register} = $src_register;
+        return $self->{subExpr}->asParrot($backend, $general, $main, $data);
+    } elsif ($type == $VARREF) {
+        $data->{src_register} = $src_register;
+        return $self->{var}->asParrot($backend, $general, $main, $data);
+    } elsif ($type == $NEW) {
+        return $backend->instantiate($general, $self->{newClass}->getIdent);
+    } elsif ($type == $NEWNULL) {
+        my $reg = $backend->register('P');
+        $general->writeln("$reg = new .Undef");
+        return $reg;
+    } elsif ($type == $SIZEFUNC) {
+        my ($int_reg, $out_reg) = ($backend->register('I'),
+            $backend->register('P'));
+
+        my $target_reg =
+            $self->{subExpr}->asParrot($backend, $general, $main, $data);
+
+        if ($self->{subType}->isArrayOf or $self->{subType}->isHashOf) {
+            $general->writeln("$int_reg = $target_reg"); 
+        } else {    # string
+            $general->writeln("$int_reg = elements $target_reg");
+        }
+
+        $general->writeln("$out_reg = new .Integer");
+        $general->writeln("$out_reg = $int_reg");
+
+        return $out_reg;
+    } elsif ($type == $DEFINEDTEST or $type == $ISNULLFUNC) {
+        my $expr_reg =
+            $self->{subExpr}->asParrot($backend, $general, $main, $data);
+        my $int_reg = $backend->register('I');
+        my $out_reg = $backend->register('P');
+
+        $general->writeln(qq/$int_reg = isa $expr_reg, "Undef"/);
+
+        $general->writeln("not $int_reg") if $type == $DEFINEDTEST;
+
+        $general->writeln("$out_reg = new .Integer");
+        $general->writeln("$out_reg = $int_reg");
+
+        return $out_reg;
+    } elsif ($type == $REVERSEFUNC) {
+        my $out_reg = $backend->register('P');
+        my $victim_reg =
+            $self->{subExpr}->asParrot($backend, $general, $main, $data);
+
+        if ($self->{subType}->isArrayOf) {
+            my ($iter_reg, $elem_reg) =
+                ($backend->register('P'), $backend->register('P'));
+            my ($loop_lbl, $last_lbl) =
+                ($backend->identifier, $backend->identifier);
+
+            $general->writeln("$out_reg = new .ResizablePMCArray");
+            $general->writeln("$iter_reg = iter $victim_reg");
+            $general->writeln("$loop_lbl: unless $iter_reg, $last_lbl");
+            $general->writeln("$elem_reg = shift $iter_reg");
+            $general->writeln("unshift $out_reg, $elem_reg");
+            $general->writeln("goto $loop_lbl");
+            $general->writeln("$last_lbl:");
+        } elsif ($self->{subType}->equals($S2::Type::STRING)) {
+            $general->writeln("$out_reg = clone $victim_reg");
+            $general->writeln("$out_reg = $out_reg.reverse($out_reg)");
+        }
+
+        return $out_reg;
+    } elsif ($type == $FUNCCALL or $type == $METHCALL or
+        $type == $OBJ_INTERPOLATE) {
+        my $interpolating = 0;
+        my ($interp_defined_label, $interp_last_label);
+        if ($type == $OBJ_INTERPOLATE) {
+            ($interp_defined_label, $interp_last_label) =
+                ($backend->identifier, $backend->identifier);            
+
+            $self->{funcID_noclass} = $self->{objint_method} . '()';
+            $self->{funcArgs} = S2::NodeArguments->new;
+
+            $type = $METHCALL;
+            $interpolating = 1;
+        } elsif ($self->{was_originally_interpolated}) {
+            ($interp_defined_label, $interp_last_label) =
+                ($backend->identifier, $backend->identifier);            
+            $interpolating = 1;
+        }
+
+        # Should these two guys be moved out of here? This seems like a
+        # cumbersome place to do function optimizations... --pcwalton
+        if ($self->{funcID} eq 'string(int)') {
+            my ($args_reg) = $self->{funcArgs}->asParrot($backend, $general,
+                $main, $data);
+            my $str_reg = $backend->register('P');
+            $general->writeln("$str_reg = new .String");
+            $general->writeln("$str_reg = $args_reg");
+            return $str_reg;
+        } elsif ($self->{funcID} eq 'int(string)') {
+            my ($args_reg) = $self->{funcArgs}->asParrot($backend, $general,
+                $main, $data);
+            my $int_reg = $backend->register('P');
+            $general->writeln("$int_reg = new .Integer");
+            $general->writeln("$int_reg = $args_reg");
+            return $int_reg;
+        } else {
+            my ($exception_label, $last_label);
+
+            my $mangled = $backend->mangle($self->{funcID_noclass});
+
+            my $out_reg = $backend->register('P');
+            my $func_reg = undef;
+
+            my @arg_regs;
+
+            if ($type == $METHCALL and $self->{funcClass} eq 'string' ||
+                $self->{funcClass} eq 'int' || $self->{funcClass} eq 'bool') {
+                # These become function calls.
+                $type = $FUNCCALL;
+
+                $func_reg = $backend->register('P');
+                $general->writeln($func_reg . ' = find_global "_s2::_' .
+                    $self->{funcClass} . '", ' . $backend->quote($mangled));
+            
+                push @arg_regs, $self->{var}->asParrot($backend, $general,
+                    $main, $data);
+            }
+
+            push @arg_regs, $self->{funcArgs}->asParrot($backend, $general,
+                $main, $data);
+
+            if ($type == $METHCALL) {
+                my $calling_super = $self->{var}->isSuper;
+                my $target_reg; 
+                ($target_reg) =
+                    $self->{var}->asParrot($backend, $general, $main, $data)
+                    unless $calling_super;
+
+                if ($interpolating) {
+                    my $reg = $backend->register('I');
+                    $general->writeln(
+                        qq/$reg = isa $target_reg, "Undef"/);
+                    $general->writeln(qq/ne $reg, 1, $interp_defined_label/);
+                    $general->writeln(qq/$out_reg = new .String, ""/);
+                    $general->writeln("goto $interp_last_label");
+                    $general->writeln("$interp_defined_label:");
+                }
+
+                my ($invocant, $target);
+                if (not $calling_super) {
+                    ($invocant, $target) = ($mangled, $target_reg);
+                } else {
+                    my $superclass_reg = $backend->register('P');
+                    $general->writeln("$superclass_reg = getclass " .
+                        $backend->quote('_s2::_' . $self->{funcClass}));
+                    $invocant = $backend->register('P');
+                    $general->writeln(qq/$invocant = / .
+                        qq/find_method $superclass_reg, "$mangled"/);
+                    $target = 'myself';
+                }
+
+                $general->writeln($out_reg . ' = ' . $target . '.' . $invocant
+                    . '(' . join(', ', @arg_regs) . ')');
+            } else {
+                if (not defined $func_reg) {
+                    $func_reg = $backend->register('P');
+                    $general->writeln($func_reg .
+                        ' = find_global "_s2", ' . $backend->quote($mangled));
+                }
+
+                $general->writeln($out_reg . ' = ' . $func_reg . '(' .
+                    join(', ', @arg_regs) . ')');
+            }
+
+            $general->writeln("$interp_last_label:") if $interpolating;
+
+            return $out_reg;
+        }
+    } else {
+        print STDERR "Warning: I don't know how to emit terms of type " .
+            $type . " in Parrot.\n";
+    }
 }
 
 sub isProperty {

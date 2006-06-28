@@ -68,3 +68,28 @@ sub asPerl {
     $this->{'rhs'}->asPerl($bp, $o);
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my ($fail_label, $last_label) = ($backend->identifier,
+        $backend->identifier);
+    my $out_reg = $backend->register('P');
+    my $cond_reg = $backend->register('I');
+
+    # Short-circuit evaluation
+    my $l_reg = $self->{lhs}->asParrot($backend, $general, $main, $data);
+    $general->writeln("$cond_reg = isfalse $l_reg");
+    $general->writeln("eq $cond_reg, 1, $fail_label");
+    my $r_reg = $self->{rhs}->asParrot($backend, $general, $main, $data);
+    $general->writeln("$out_reg = $r_reg");
+    $general->writeln("goto $last_label");
+    $general->writeln("$fail_label:");
+    $general->writeln("$out_reg = $l_reg");     # which will be false
+    $general->writeln("$last_label:");
+
+    return $out_reg;
+}
+
+1;
+

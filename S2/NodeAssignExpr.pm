@@ -4,6 +4,7 @@
 package S2::NodeAssignExpr;
 
 use strict;
+use warnings;
 use S2::Node;
 use S2::NodeCondExpr;
 use vars qw($VERSION @ISA);
@@ -103,6 +104,25 @@ sub asPerl {
     }
     $this->{'rhs'}->asPerl($bp, $o);
     $o->write(")") if $need_notags;
-
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+    delete $data->{src_register};
+
+    my $rhs = $self->{rhs}->asParrot($backend, $general, $main, $data);
+
+    unless ($self->{stringy}) {
+        $data->{src_register} = $rhs;
+        return $self->{lhs}->asParrot($backend, $general, $main, $data); 
+    } else {
+        # According to getType() above, we should use the constructor here.
+        $data->{src_register} = $backend->construct_stringy($general, $main,
+            $rhs, $self->{stringy});
+        return $self->{lhs}->asParrot($backend, $general, $main, $data);
+    }
+}
+
+1;
 

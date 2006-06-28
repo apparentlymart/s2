@@ -4,6 +4,8 @@
 package S2::NodeBranchStmt;
 
 use strict;
+use warnings;
+use Carp;
 use S2::Node;
 use S2::NodeExpr;
 use vars qw($VERSION @ISA);
@@ -58,4 +60,17 @@ sub asPerl {
         $o->tabwriteln("next;");
     }
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    if ($self->{type} == $S2::TokenKeyword::BREAK) {
+        $general->writeln("goto $data->{break_label}");
+    } else {
+        $general->writeln("goto $data->{continue_label}");
+    }
+}
+
+1;
 

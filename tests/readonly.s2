@@ -13,7 +13,7 @@ property Foo f;
 
 function main()
 {
-    var Foo f;
+    var Foo f = new Foo;
     $f.b = 1;
     println "Foo.b = $f.b";
 #    $f.a = 2;

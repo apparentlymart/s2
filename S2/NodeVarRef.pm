@@ -4,6 +4,8 @@
 package S2::NodeVarRef;
 
 use strict;
+use warnings;
+use Carp;
 use S2::Node;
 use S2::NodeExpr;
 use S2::Type;
@@ -144,7 +146,7 @@ sub isHashElement {
     return $d->{'type'} eq "{";
 }
 
-sub getType {
+sub _getType {
     my ($this, $ck, $wanted) = @_;
 
     if (defined $wanted) {
@@ -212,6 +214,13 @@ sub getType {
         $lev = shift @levs;
     }
     return $vart;
+}
+
+sub getType
+{
+    my ($self, $checker, $wanted) = @_;
+
+    return ($self->{my_type} = $self->_getType($checker, $wanted));
 }
 
 # private
@@ -296,6 +305,162 @@ sub asPerl {
     if ($this->{'useAsString'}) {
         $o->write("->{'as_string'}");
     }
+}
+
+#
+#   Returns the literal value of this variable reference (i.e. not an lvalue!)
+#   If you supply a source register, then this emits a store. Otherwise, it
+#   emits a load.
+#
+#   TODO: Autovivification!
+#
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+    my $src_register = $data->{src_register}; delete $data->{src_register};
+
+    my @levels = @{$self->{levels}};
+
+    # We sort this level stuff out by building up a list of ops.
+    my @ops;
+    my $first = 1;
+
+    foreach my $level (@levels) {
+        my $op = { type => 'get_member', key => $level->{var} };
+
+        if ($first) {
+            if ($self->{type} == $LOCAL) {
+                if ($op->{key} eq 'this') {
+                    $op->{type} = 'get_self';
+                } elsif ($op->{key} eq 'super') {
+                    $op->{type} = 'get_super';
+                } else {
+                    $op->{type} = 'get_local_var';
+                }
+            } elsif ($self->{type} == $OBJECT) {
+                # This one becomes an op unto itself.
+                push @ops, { type => 'get_self' };
+            } elsif ($self->{type} == $PROPERTY) {
+                $op->{type} = 'get_property';
+            }
+
+            $first = 0;
+        }
+
+        # if ($op->{type} eq 'get_member') {
+        #     use Data::Dumper qw/Dumper/;
+        #     print STDERR Dumper($level);
+        #     exit;
+        # }
+
+        push @ops, $op if defined $op->{key};
+
+        foreach my $array_or_hash_access (@{$level->{derefs}}) {
+            push @ops, {
+                type => 'get_keyed_item',
+                key_expr => $array_or_hash_access->{expr}
+            };
+        }
+    }
+
+    if ($self->{useAsString}) {
+        # If useAsString was specified, we get the "as_string" member, so tack
+        # that op onto the end.
+        push @ops, { type => 'get_member', key => 'as_string' };
+    }
+
+    # The very last op becomes a store if we're storing.
+    my $store_op = (defined $src_register ? pop @ops : undef);
+
+    my $reg;
+
+    # Now do all the requested load operations.
+    foreach my $load_op (@ops) {
+        my $ops = {
+            get_self => sub
+            {
+                $reg = 'myself';
+            },
+            get_super => sub
+            {
+                $reg = $backend->register('P');
+                $general->writeln("$reg = new .Super, myself");
+            },
+            get_local_var => sub
+            {
+                $reg = '_s2l_' . $load_op->{key};
+            },
+            get_property => sub
+            {
+                $reg = $backend->register('P');
+                $general->writeln(qq/$reg = find_global "_s2::properties", / .
+                    $backend->quote($load_op->{key}));
+            },
+            get_member => sub
+            {
+                my $new_reg = $backend->register('P');
+
+                $general->writeln("$new_reg = getattribute $reg, " .
+                    $backend->quote('_' . $load_op->{key}));
+
+                $reg = $new_reg;
+            },
+            get_keyed_item => sub
+            {
+                my $index_reg = $load_op->{key_expr}->asParrot($backend,
+                    $general, $main, $data);
+                my $new_reg = $backend->register('P');
+
+                $general->writeln("$new_reg = ${reg}[$index_reg]");
+
+                $reg = $new_reg;
+            } 
+        };
+
+        &{$ops->{$load_op->{type}}}();
+    }
+
+    # And now the store operation, if it was requested.
+    if (defined $store_op) {
+        my $ops = {
+            get_self => sub
+            {
+                croak "You can't change yourself like that";
+            },
+            get_local_var => sub
+            {
+                $general->writeln("_s2l_$store_op->{key} = $src_register");
+            },
+            get_property => sub
+            {
+                $general->writeln(qq/store_global "_s2::properties", / .
+                    $backend->quote($store_op->{key}) . ", $src_register");
+            },
+            get_member => sub
+            {
+                my $src_pmc = $backend->require_pmc($general, $main,
+                    $src_register);
+                $general->writeln("setattribute $reg, " . $backend->quote('_'
+                    . $store_op->{key}) . ", $src_pmc");
+            },
+            get_keyed_item => sub
+            {
+                my $index_reg = $store_op->{key_expr}->asParrot($backend,
+                    $general, $main, $data);
+
+                $general->writeln("${reg}[$index_reg] = $src_register");
+            } 
+        };
+
+        &{$ops->{$store_op->{type}}}();
+        $reg = $src_register;
+    }
+
+    $general->writeln("$reg = clone $reg") if
+        $self->{my_type}->toString =~ /^int|string|bool$/;
+
+    return $reg;
 }
 
 sub isProperty {

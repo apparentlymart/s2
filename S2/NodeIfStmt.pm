@@ -142,3 +142,39 @@ sub asPerl {
     }
     $o->newline();
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my ($next_label, $last_label) = ($backend->identifier,
+        $backend->identifier);
+    my $cond_reg = $self->{expr}->asParrot($backend, $general, $main, $data);
+
+    my $cmp_reg = $backend->register('I');
+    $general->writeln("$cmp_reg = istrue $cond_reg");
+    $general->writeln("eq $cmp_reg, 0, $next_label");
+    $self->{thenblock}->asParrot($backend, $general, $main, $data);
+    $general->writeln("goto $last_label");
+    $general->writeln("$next_label:");
+
+    for (my $i = 0; $i < @{$self->{elseifexprs}}; $i++) {
+        my $next_label = $backend->identifier;
+        my $cmp_reg = $backend->register('I');
+        my $cond_reg = $self->{elseifexprs}[$i]->asParrot($backend, $general,
+            $main, $data);
+
+        $general->writeln("$cmp_reg = istrue $cond_reg");
+        $general->writeln("eq $cmp_reg, 0, $next_label");
+        $self->{elseifblocks}[$i]->asParrot($backend, $general, $main, $data);
+        $general->writeln("goto $last_label");
+        $general->writeln("$next_label:");
+    } 
+
+    $self->{elseblock}->asParrot($backend, $general, $main, $data) if
+        $self->{elseblock};
+
+    $general->writeln("$last_label:");
+}
+
+1;

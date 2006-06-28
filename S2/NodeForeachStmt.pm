@@ -4,6 +4,7 @@
 package S2::NodeForeachStmt;
 
 use strict;
+use warnings;
 use S2::Node;
 use S2::NodeVarDecl;
 use S2::NodeVarRef;
@@ -138,4 +139,36 @@ sub asPerl {
     $this->{'stmts'}->asPerl($bp, $o);
     $o->newline();
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $element_reg;
+    if ($self->{vardecl}) {
+        $element_reg =
+            $self->{vardecl}->asParrot($backend, $general, $main, $data);
+    } elsif ($self->{varref}) {
+        $element_reg =
+            $self->{varref}->asParrot($backend, $general, $main, $data);
+    }
+
+    my $aggregate_reg =
+        $self->{listexpr}->asParrot($backend, $general, $main, $data);
+
+    my ($loop_lbl, $last_lbl) = ($backend->identifier, $backend->identifier);
+    my $iterator_reg = $backend->register('P');
+
+    $data->{break_label} = $last_lbl;
+    $data->{continue_label} = $loop_lbl;
+
+    $general->writeln("$iterator_reg = iter $aggregate_reg");
+    $general->writeln("$loop_lbl: unless $iterator_reg, $last_lbl");
+    $general->writeln("$element_reg = shift $iterator_reg");
+    $self->{stmts}->asParrot($backend, $general, $main, $data);
+    $general->writeln("goto $loop_lbl");
+    $general->writeln("$last_lbl:");
+}
+
+1;
 

@@ -53,4 +53,17 @@ sub asPerl {
     $o->write("my \$" . $this->{'nt'}->getName());
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $id = '_s2l_' . $self->getName;
+    $general->writeln(".local pmc $id");
+    $general->writeln($backend->initialize_s2_type($id,
+        $self->{nt}->getType->toString)); 
+
+    return $id;
+}
+
+1;
 

@@ -99,3 +99,24 @@ sub asPerl {
     $o->write(")") if $this->{'op'} == $S2::TokenPunct::DIV;     
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $l_reg = $self->{lhs}->asParrot($backend, $general, $main, $data);
+    my $r_reg = $self->{rhs}->asParrot($backend, $general, $main, $data);
+    my $out_reg = $backend->register('P');
+
+    if ($self->{op} == $S2::TokenPunct::MULT) {
+        $general->writeln("$out_reg = n_mul $l_reg, $r_reg");
+    } elsif ($self->{op} == $S2::TokenPunct::DIV) {
+        $general->writeln("$out_reg = n_fdiv $l_reg, $r_reg");
+    } elsif ($self->{op} == $S2::TokenPunct::MOD) {
+        $general->writeln("$out_reg = n_mod $l_reg, $r_reg");
+    }
+
+    return $out_reg;
+}
+
+1;
+

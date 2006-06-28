@@ -91,4 +91,19 @@ sub asPerl {
     $o->writeln(";");
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $reg = $self->{nvd}->asParrot($backend, $general, $main, $data);
+
+    my $initial = undef;
+    if ($self->{expr}) {
+        $initial = $self->{expr}->asParrot($backend, $general, $main, $data);
+    }
+
+    $general->writeln($reg . ' = ' . $initial) if defined $initial;
+}
+
+1;
 

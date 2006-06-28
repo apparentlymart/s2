@@ -103,3 +103,23 @@ sub asPerl {
     }
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $victim_reg = $self->{expr}->asParrot($backend, $general, $main, $data);
+
+    if ($self->{downcast}) {
+        my $cond_reg = $backend->register('I');
+        my $last_label = $backend->identifier;
+
+        $general->writeln(
+            qq/$cond_reg = isa $victim_reg, "_s2::_$self->{toClass}"/);
+        $general->writeln("ne $cond_reg, 0, $last_label");
+        $general->writeln("$victim_reg = new .Undef");
+        $general->writeln("$last_label:");
+    }
+
+    return $victim_reg;
+}
+

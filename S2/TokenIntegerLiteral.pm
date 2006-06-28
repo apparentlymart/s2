@@ -42,6 +42,16 @@ sub asPerl
     $o->write($this->{'chars'});
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $reg = $backend->register('P');
+    $general->writeln("$reg = new .Integer");
+    $general->writeln("$reg = $self->{chars}");
+    return $reg;
+}
+
 sub toString
 {
     my $this = shift;

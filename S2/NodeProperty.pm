@@ -128,6 +128,13 @@ sub check {
         S2::error($this, "Can't define a property of an unknown class");
     }
 
+    # Mark whether this property uses the as_string member when set.
+    if ($this->{nt}->getType->toString !~
+        /^(?:int|string|bool)(?:\[\]|\{\})*$/ and
+        $ck->classHasAsString($this->{nt}->getType->toString)) {
+        $this->{stringy} = 1;
+    }
+
     # all is well, so register this property with its type
     $ck->addProperty($name, $type, $this->{'builtin'});
 }
@@ -204,3 +211,43 @@ sub asPerl {
     $o->tabOut();
     $o->writeln("});");
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    if ($self->{'use'}) {
+        my $layer_id = $backend->getLayerID;
+        $main->writeln('$P0 = new .Integer, "' . $layer_id . '"');
+        $main->writeln('store_global "_s2::property_data::used", "' . 
+            $self->{uhName} . '", $P0');
+    } elsif ($self->{hide}) {
+        my $layer_id = $backend->getLayerID;
+        $main->writeln('$P0 = new .Integer, "' . $layer_id . '"');
+        $main->writeln('store_global "_s2::property_data::hidden", "' . 
+            $self->{uhName} . '", $P0');
+    } else {
+        my $layer_id = $backend->getLayerID;
+        $main->writeln('$P0 = new .Hash');
+        $main->writeln('$P0["_layer_id"] = "' . $layer_id . '"');
+        $main->writeln('$P0["_type"] = "' . $self->{nt}->getType->toString .
+            '"');
+        $main->writeln('$P0["_stringy"] = ' . ($self->{stringy} ? 1 : 0));
+        
+        foreach my $key_value_pair (@{$self->{pairs}}) {
+            $main->writeln('$P0[' . $backend->quote($key_value_pair->getKey) .
+                '] = ' . $backend->quote($key_value_pair->getVal));
+        }
+        
+        $main->writeln('store_global "_s2::property_data::declared", "' .
+            $self->{nt}->getName . '", $P0');
+
+        $main->writeln($backend->initialize_s2_type('$P0',
+            $self->{nt}->getType->toString, '$P1'));
+        $main->writeln('store_global "_s2::properties", "' .
+            $self->{nt}->getName . '", $P0');
+    }
+}
+
+1;
+

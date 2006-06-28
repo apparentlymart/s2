@@ -4,6 +4,7 @@
 package S2::NodeInstanceOf;
 
 use strict;
+use warnings;
 use S2::Node;
 use S2::NodeTypeCastOp;
 use S2::TokenPunct;
@@ -83,4 +84,30 @@ sub asPerl {
         $o->write(",".$bp->quoteString($this->{qClass}).")");
     }
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $obj_reg = $self->{expr}->asParrot($backend, $general, $main, $data);
+    my $cmp_reg = $backend->register('I');
+    my $out_reg = $backend->register('P');
+
+    if ($self->{exact}) {
+        my $str_reg = $backend->register('S');
+        $general->writeln("$str_reg = classname $obj_reg");
+        $general->writeln("$cmp_reg = iseq $str_reg, " .
+            $backend->quote('_s2::_' . $self->{qClass}));
+    } else {
+        $general->writeln("$cmp_reg = isa $obj_reg, " .
+            $backend->quote('_s2::_' . $self->{qClass}));
+    }
+
+    $general->writeln("$out_reg = new .Integer");
+    $general->writeln("$out_reg = $cmp_reg");
+
+    return $out_reg;
+}
+
+1;
 

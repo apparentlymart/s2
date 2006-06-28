@@ -139,4 +139,17 @@ sub asPerl {
     }
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $id = $backend->identifier;
+    $general->writeln('.namespace ' . $id);
+    
+    foreach my $statement (@{$self->{stmtlist}}) {
+        $statement->asParrot($backend, $general, $main, $data);
+    }
+
+    $general->writeln('.endnamespace ' . $id);
+}
 

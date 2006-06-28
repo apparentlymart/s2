@@ -49,4 +49,11 @@ sub asPerl {
     $o->writeln(";");
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    $self->{expr}->asParrot($backend, $general, $main, $data);
+}
+
 

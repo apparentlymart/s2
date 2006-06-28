@@ -87,3 +87,27 @@ sub asPerl {
     $this->{'rhs'}->asPerl($bp, $o);
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $cmp_reg = $backend->register('I');
+    my $out_reg = $backend->register('P');
+
+    my $l_reg = $self->{lhs}->asParrot($backend, $general, $main, $data);
+    my $r_reg = $self->{rhs}->asParrot($backend, $general, $main, $data);
+
+    if ($self->{myType}->equals($S2::Type::STRING)) {
+        $general->writeln("$cmp_reg = cmp_str $l_reg, $r_reg");
+    } else {
+        $general->writeln("$cmp_reg = cmp_num $l_reg, $r_reg");
+    }
+
+    $general->writeln("not $cmp_reg") if $self->{op} == $S2::TokenPunct::EQ; 
+
+    $general->writeln("$out_reg = new .Integer");
+    $general->writeln("$out_reg = $cmp_reg");
+
+    return $out_reg;
+}
+

@@ -10,6 +10,7 @@ use S2::Layer;
 use S2::Util;
 use S2::BackendPerl;
 use S2::BackendHTML;
+use S2::BackendParrot;
 use S2::OutputScalar;
 
 sub new # (fh) class method
@@ -42,6 +43,9 @@ sub compile_source {
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
+    } elsif ($opts->{format} eq 'parrot') {
+        $this->{checker}->checkLayer($s2l);
+        $be = S2::BackendParrot->new($s2l, undef, $opts->{untrusted});
     } else {
     S2::error("Unknown output type in S2::Compiler");
     }

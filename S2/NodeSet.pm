@@ -105,3 +105,37 @@ sub asPerl {
     $o->writeln(");");
     return;
 }
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    #
+    #   This needs to be done in a sub, because the value can be any S2 code
+    #   and the Parrot compiler is going to want to use the general stream
+    #   for that. It's also cleaner, I think.
+    #
+    #   In the case of an object, we have to set the as_string property. This
+    #   makes this code somewhat messy.
+    #
+    #   In the case of multiple set statements, later ones might clobber
+    #   previous ones. Is there any reason why this shouldn't be expected
+    #   behavior?
+    #
+
+    $general->writeln('.namespace [ "_s2" ]');
+    $general->writeln('.sub user_set_prop_' . $self->{key});
+
+    my $reg = $self->{value}->asParrot($backend, $general, $main, $data);
+
+    $general->writeln(
+        qq/store_global "_s2::properties", "$self->{key}", $reg/);
+    
+    $backend->reset_generators;
+    $general->writeln(".end\n");
+
+    $main->writeln('"user_set_prop_' . $self->{key} . '"()');
+}
+
+1;
+

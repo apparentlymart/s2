@@ -5,6 +5,7 @@ package S2::NodePrintStmt;
 
 use strict;
 use S2::Node;
+use S2::Parrot::Embedded;
 use vars qw($VERSION @ISA);
 
 $VERSION = '1.0';
@@ -88,4 +89,41 @@ sub asPerl {
     $o->write(" . \"\\n\"") if $this->{'doNewline'};
     $o->writeln(");");
 }
+
+sub pout_s
+{
+    $S2::pout_s->(@_);
+}
+
+sub pout
+{
+    $S2::pout->(@_);
+}
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $str_reg = $self->{expr}->asParrot($backend, $general, $main, $data);
+
+    my $arg_reg = $backend->register('P');
+    my $ret_reg = $backend->register('P');
+    $general->writeln($arg_reg . ' = new .String');
+    $general->writeln($arg_reg . " = $str_reg");
+
+    if ($self->{doNewline}) {
+        my $reg = $backend->register('P');
+        $general->writeln($reg . ' = new .String, "\n"');
+        $general->writeln("n_concat $arg_reg, $reg");
+    }
+
+    my $func_name = 'S2::NodePrintStmt::pout_s';
+    $func_name = 'S2::NodePrintStmt::pout' if not $backend->untrusted and
+        not $self->{safe};
+
+    $general->writeln(S2::Parrot::Embedded->assemble_perl_function_call(
+        $func_name, [ $arg_reg ], $ret_reg, sub { $backend->register('P') }));
+}
+
+1;
 

@@ -2,18 +2,28 @@
 #
 
 use strict;
+use Benchmark;
 use Getopt::Long;
 use S2;
 use S2::Compiler;
+use S2::Parrot::Embedded;
 
 my $opt_output;
+my $opt_icode;
 my $opt_perl = 1;
+my $opt_format = 'parrot';
 my $opt_force;
 my $opt_verbose;
+my $opt_benchmark = 0;
+my $opt_only = undef;
 GetOptions("output" => \$opt_output,
+           "icode" => \$opt_icode,
+           "format=s" => \$opt_format,
            "perl" => \$opt_perl,
            "force" => \$opt_force,
            "verbose" => \$opt_verbose,
+           "benchmark=i" => \$opt_benchmark,
+           "only=s" => \$opt_only,
            );
 
 my $runwhat = shift;
@@ -42,8 +52,18 @@ my ($to_stat, $to_run) = ("s2compile.jar", "./s2compile");
 my $jtime = (stat($to_stat))[9];
 my @errors;
 
+our $started = 0;
+
+my %only;
+%only = (map { $_ => 1 } split /,\s*/, $opt_only) if defined $opt_only; 
+
 foreach my $f (@files)
 {
+    if (defined $opt_only and not exists $only{$f}) {
+        print STDERR "Skipping: $f\n";
+        next;
+    }
+
     print STDERR "Testing: $f\n";
     my $pfile = "$TESTDIR/$f.pl";
     my $stime = (stat("$TESTDIR/$f"))[9];
@@ -58,7 +78,7 @@ foreach my $f (@files)
     }
 
     my $result;
-    my $cerr = undef;
+    my $error;
 
     if ($build) {
         my $error_file = "error-runtests.dat";
@@ -78,31 +98,73 @@ foreach my $f (@files)
                 'layerid' => 1,
                 'untrusted' => 0,
                 'builtinPackage' => "S2::Builtin",
-                'format' => 'perl',
+                'format' => $opt_format,
+                embedded => 
             });
         };
         if ($@) {
-            $cerr = $@;
-            push @errors, [ $f, "Failed to compile" ];
-            print "$cerr\n" if $opt_verbose;
+            $error = $@;
+            print STDERR "$@\n" if $opt_verbose;
+            # push @errors, [ $f, "Failed to compile" ];
+            # print "$cerr\n" if $opt_verbose;
         }
     }
 
     my $output = "";
-    my $error;
     if ($result =~ /^\#\!/) {
         S2::set_output(sub { $output .= $_[0]; });
         S2::set_run_timeout(0);
         S2::unregister_layer(1);
-          eval $result;
-          $error = $@ if $@;
-          my $ctx = S2::make_context([ 1 ]);
-          eval {
-              S2::run_code($ctx, "main()");
-          };
-          $error = $@ if $@;
-      } else {
-          $error = $cerr;
+
+        if ($opt_icode) {
+            open OUT, '>', "$TESTDIR/$f.icode";
+            print OUT $result;
+            close OUT;
+        }
+
+        my ($ctx, $parrot, $pbc_ref);
+        if ($opt_format eq 'parrot') {
+            eval "use S2::Parrot::System";
+
+            print STDERR "Compiling... " if $opt_verbose;
+            $parrot = S2::Parrot::Embedded->new;
+            $pbc_ref = $parrot->compile_pir(\$result);
+            print STDERR "done.\n" if $opt_verbose;
+        }
+
+        my $run_steps = sub { 
+            $output = '';
+
+            if ($opt_format eq 'perl') {
+                $result = "die; $result";
+                eval $result;
+                $error = $@ if $@;
+            } elsif ($opt_format eq 'parrot') {
+                $parrot->init_perl_nci;
+            }
+
+            $ctx = S2::make_context([ 1 ]);
+            eval {
+                if ($opt_format eq 'parrot') {
+                    $parrot->load_pbc($pbc_ref);
+                    $parrot->init_layer;
+                }
+            };
+
+            if ($@) {
+                print STDERR "Caught error: $@\n" if $opt_verbose;
+                $error = $@;
+            }
+        };
+
+        if ($opt_benchmark) {
+            timethis($opt_benchmark, $run_steps);
+        } else {
+            &$run_steps;
+        }
+
+        
+        eval { S2::run_code($ctx, "main()") };
       }
     
     if ($opt_output) {
@@ -202,6 +264,7 @@ sub Color__Color
     $this->{$_} = $this->{$_} % 256 foreach qw(r g b);
 
     Color__make_string($this);
+    
     return $this;
 }
 

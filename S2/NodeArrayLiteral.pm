@@ -151,6 +151,38 @@ sub asPerl {
     $o->tabwrite($this->{'isArray'} ? "]" : "}");
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $reg = $backend->register('P');
+    if ($self->{isArray}) {
+        $general->writeln("$reg = new .ResizablePMCArray");
+    } else {
+        $general->writeln("$reg = new .Hash");
+    }
+
+    for (my $i = 0; $i < @{$self->{vals}}; $i++) {
+        my ($key_reg, $val_reg);
+
+        $key_reg =
+            $self->{'keys'}[$i]->asParrot($backend, $general, $main, $data) if
+            $self->{isHash};
+        $val_reg =
+            $self->{vals}[$i]->asParrot($backend, $general, $main, $data);
+
+        if ($self->{isArray}) {
+            $general->writeln("${reg}[$i] = $val_reg");
+        } else {
+            $general->writeln("${reg}[$key_reg] = $val_reg");
+        }
+    }
+
+    return $reg;
+}
+
+1;
+
 __END__
 
     public void asS2 (Indenter o)

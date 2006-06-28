@@ -272,6 +272,134 @@ sub asPerl {
     $o->tabwriteln("});");
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    if (not $self->{parentName}) {
+        # Create the class anew.
+        $main->writeln('$P0 = newclass ' .
+            $backend->quote('_s2::_' . $self->getName));
+    } else { 
+        # Subclass it.
+        $main->writeln('$P1 = getclass ' .
+            $backend->quote('_s2::_' . $self->getParentName));
+        $main->writeln('subclass $P0, $P1, ' .
+            $backend->quote('_s2::_' . $self->getName));
+    }
+
+    # Store its layer ID and documentation (if applicable)
+    $main->writeln('$P1 = new .Integer, "' . $backend->getLayerID() . '"');
+    $main->writeln('store_global ' .
+        $backend->quote('_s2::_' . $self->getName()) . ', "_layer_id", $P1');
+    if ($self->{docstring}) {
+        $main->writeln('$P1 = new .String, ' .
+            $backend->quote($self->{docstring}));
+        $main->writeln('store_global ' .
+            $backend->quote('_s2::_' . $self->getName()) . ', "_docstring", ' .
+            '$P1');
+    }
+
+    # Provide a place to put any private variables that the builtin functions
+    # might want to make.
+    $main->writeln('addattribute $P0, "private"');
+
+    # Declare all instance variables as attributes in Parrot
+    $main->writeln('$P1 = new .Hash');  # metadata
+
+    foreach my $var (@{$self->{vars}}) {
+        my $var_name = $var->getName;
+
+        $main->writeln('addattribute $P0, ' . $backend->quote('_' .
+            $var_name));
+
+        # Add metadata
+        $main->writeln('$P2 = new .Hash');
+        $main->writeln('$P2["read_only"] = ' .
+            ($var->getType->isReadOnly ? '1' : '0'));
+        $main->writeln('$P2["doc_string"] = ' .
+            $backend->quote($var->getDocString)) if $var->getDocString;
+        $main->writeln('$P1[' . $backend->quote($var_name) . '] = $P2');
+    }
+
+    $main->writeln('store_global ' .
+        $backend->quote('_s2::_' . $self->getName()) .
+        ', "_variable_metadata", $P1');
+
+    #
+    #   Create the class constructor, which simply sets everything to Undef.
+    #   Note that this is different from the S2 constructor, which isn't really
+    #   a constructor as far as we're concerned because it still needs an
+    #   object.
+    #
+
+    $general->writeln('.namespace [ "_s2::_' . $self->getName . '" ]');
+    $general->writeln('.sub __init :method');
+
+    foreach my $var (@{$self->{vars}}) {
+        my $reg = $backend->register('P');
+        $general->writeln($backend->initialize_s2_type($reg,
+            $var->getType->toString));
+        $general->writeln('setattribute self, "_' . $var->getName .
+            qq/", $reg/);
+    }
+
+    # Set up a space that builtin functions can use if they'd like.
+    my $reg = $backend->register('P');
+    $general->writeln("$reg = new .Hash");
+    $general->writeln(qq/setattribute self, "private", $reg/);
+
+    $backend->reset_generators;
+    $general->writeln(".end\n");
+
+    # Methods don't need to be declared in Parrot, but we'll store metadata
+    # for them.
+
+    $main->writeln('$P1 = new .Hash');
+
+    foreach my $func (@{$self->{functions}}) {
+        my $func_name = $func->getName;
+        my $func_params = $func->getFormals;
+
+        my $mangled = $backend->mangle($func_name .
+            ($func_params ? '(' . $func_params->typeList . ')' : '()'));
+
+        $main->writeln('$P2 = new .Hash');
+
+        $main->writeln('$P2["type"] = ' .
+            $backend->quote($func->getReturnType->toString));
+        $main->writeln('$P2["doc_string"] = ' .
+            $backend->quote($func->getDocString)) if $func->getDocString;
+        $main->writeln('$P2["attributes"] = ' .
+            $backend->quote($func->attrsJoined)) if $func->attrsJoined;
+
+        $main->writeln('$P1[' . $backend->quote($mangled) . '] = $P2');
+    }
+
+    $main->writeln('store_global ' .
+        $backend->quote('_s2::_' . $self->getName()) .
+        ', "_method_metadata", $P1');
+
+    #
+    #   Create bindings for any built-in functions that are in the class, since
+    #   this is the only time we'll see them.
+    #
+
+    foreach my $func (@{$self->{functions}}) {
+        if ($func->{attr}{builtin}) {
+            $func->{classname} = $self->{name};
+            $func->asParrot($backend, $general, $main, $data);
+        }
+    }
+
+    # Create _get_bool so that if statements can correctly incorporate this
+    # object PMC.
+    $general->writeln(qq/.namespace [ "_s2::_/ . $self->getName . '" ]');
+    $general->writeln(".sub __get_bool :method");
+    $general->writeln(".return(1)");
+    $general->writeln(".end");
+}
+
 __END__
 
 

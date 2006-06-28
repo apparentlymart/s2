@@ -41,6 +41,13 @@ sub asPerl {
     $this->{'expr'}->asPerl($bp, $o);
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    $self->{expr}->asParrot($backend, $general, $main, $data);
+}
+
 sub getType {
     my ($this, $ck, $wanted) = @_;
     $this->{'expr'}->getType($ck, $wanted);

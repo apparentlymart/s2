@@ -4,6 +4,7 @@
 package S2::NodeSum;
 
 use strict;
+use warnings;
 use S2::Node;
 use S2::NodeProduct;
 use vars qw($VERSION @ISA);
@@ -120,5 +121,25 @@ sub asPerl {
     }
      
     $this->{'rhs'}->asPerl($bp, $o);
+}
+
+sub asParrot
+{
+    my ($self, $backend, $general, $main) = @_;
+
+    my $l_reg = $self->{lhs}->asParrot($backend, $general, $main);
+    my $r_reg = $self->{rhs}->asParrot($backend, $general, $main);
+
+    my $out_reg = $backend->register('P');
+
+    if ($self->{myType} == $S2::Type::STRING) {
+        $general->writeln("$out_reg = n_concat $l_reg, $r_reg");
+    } elsif ($self->{op} == $S2::TokenPunct::PLUS) {
+        $general->writeln("$out_reg = n_add $l_reg, $r_reg");
+    } elsif ($self->{op} == $S2::TokenPunct::MINUS) {
+        $general->writeln("$out_reg = n_sub $l_reg, $r_reg");
+    }
+
+    return $out_reg;
 }
 

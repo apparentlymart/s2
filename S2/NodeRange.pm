@@ -76,3 +76,24 @@ sub asPerl {
     $o->write("]");
 }
 
+sub asParrot
+{
+    my ($self, $backend, $general, $main, $data) = @_;
+
+    my $start_reg = $self->{lhs}->asParrot($backend, $general, $main, $data);
+    my $end_reg = $self->{rhs}->asParrot($backend, $general, $main, $data);
+
+    my $out_reg = $backend->register('P');
+    $general->writeln("$out_reg = new .ResizablePMCArray");
+
+    my ($loop_lbl, $last_lbl) = ($backend->identifier, $backend->identifier);
+    $general->writeln("$loop_lbl: gt $start_reg, $end_reg, $last_lbl");
+    $general->writeln("push $out_reg, $start_reg");
+    $general->writeln("$start_reg = clone $start_reg");
+    $general->writeln("inc $start_reg");
+    $general->writeln("goto $loop_lbl");
+    $general->writeln("$last_lbl:");
+
+    return $out_reg;
+}
+
