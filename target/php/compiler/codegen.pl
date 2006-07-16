@@ -50,15 +50,16 @@ sub asPHP_bool {
 package S2::NodeArguments;
 
 sub asPHP {
-    my ($this, $bp, $o) = @_;
+    my ($this, $bp, $o, $make_array) = @_;
+    $make_array = 1 unless defined($make_array);
 
-    $o->write("array(");
+    $o->write("array(") if $make_array;
     my $didFirst = 0;
     foreach my $n (@{$this->{'args'}}) {
         $o->write(", ") if $didFirst++;
         $n->asPHP($bp, $o);
     }
-    $o->write(")");
+    $o->write(")") if $make_array;
 
 }
 
