@@ -28,6 +28,8 @@ $VERSION = '1.0';
 #    private Hashtable funcDist;     // FuncID -> [ distance, NodeFunction ]
 #    private Hashtable funcIDs;      // NodeFunction -> Set<FuncID>
 #    private boolean hitFunction;    // true once a function has been declared/defined
+#    private Hashtable methodNoImpl  // Methods which have been declared but not yet implemented (FuncID => 1)
+#    private Hashtable propNoSet     // Properties that have been declared but not set
 
 #    // per function
 #    private int funcNum = 0;
@@ -218,6 +220,16 @@ sub localType {
     foreach my $nb (reverse @{$this->{'localblocks'}}) {
         my $t = $nb->getLocalVar($local);
         return $t if $t;
+    }
+    return undef;
+}
+
+sub getVarScope {
+    my ($this, $local) = @_;
+    return undef unless @{$this->{'localblocks'}};
+    foreach my $nb (reverse @{$this->{'localblocks'}}) {
+        my $t = $nb->getLocalVar($local);
+        return $nb if $t;
     }
     return undef;
 }

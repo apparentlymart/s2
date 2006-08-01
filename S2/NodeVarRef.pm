@@ -175,6 +175,8 @@ sub getType {
     # local variables.
     if ($this->{'type'} == $LOCAL) {
         $vart = $ck->localType($lev->{'var'});
+        # Tag the VarRef with the scope it appeared in
+        $this->{owningScope} = $ck->getVarScope($lev->{'var'});
         S2::error($this, "Unknown local variable \$$lev->{'var'}") unless $vart;
     }
 
@@ -189,7 +191,10 @@ sub getType {
         
         # if no more levels, return now.  otherwise deferencing
         # happens below.
-        return $vart unless @levs;
+        unless (@levs) {
+            $this->{'varReturnType'} = $vart;
+            return $vart;
+        }
         $lev = shift @levs;
     }
      
@@ -211,6 +216,8 @@ sub getType {
         $this->doDerefs($ck, $lev->{'derefs'}, $vart);
         $lev = shift @levs;
     }
+    
+    $this->{'varReturnType'} = $vart;
     return $vart;
 }
 

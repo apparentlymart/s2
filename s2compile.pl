@@ -19,6 +19,7 @@ use S2::Compiler;
 
 my $output;
 my $layerid;
+my $layervar;
 my $layertype;
 
 my $opt_untrusted = 0;
@@ -32,6 +33,7 @@ exit usage() unless
     GetOptions("output=s" => \$output,
                "layerid=i" => \$layerid,
                "layertype=s" => \$layertype,
+               "layervar=s" => \$layervar,
                "core=s" => \$opt_core,
                "layout=s" => \$opt_layout,
                "untrusted" => \$opt_untrusted,
@@ -125,7 +127,7 @@ eval {
         'type' => $layertype,
         'source' => getFileBody($filename),
         'output' => \$compiled,
-        'layerid' => $layerid,
+        'layerid' => $layerid || $layervar,
         'untrusted' => $opt_untrusted,
         'builtinPackage' => "S2::Builtin",
         'format' => $output,

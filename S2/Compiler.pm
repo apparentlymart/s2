@@ -36,14 +36,24 @@ sub compile_source {
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
-    } elsif ($opts->{'format'} eq "perloo") {
+    } elsif ($opts->{'format'} eq "lua") {
+        require S2::BackendLua;
         $this->{'checker'}->checkLayer($s2l);
-        $be = new S2::BackendPerl($s2l, undef, $opts->{'untrusted'}, 1, $opts->{'sourcename'});
+        $be = new S2::BackendLua($s2l, $opts->{'untrusted'});
+        if ($opts->{'builtinPackage'}) {
+            $be->setBuiltinPackage($opts->{'builtinPackage'});
+        }
+    } elsif ($opts->{'format'} eq "javascript") {
+        require S2::BackendJS;
+        $this->{'checker'}->checkLayer($s2l);
+        $be = new S2::BackendJS($s2l, $opts->{'layerid'}, $opts->{'untrusted'}, {
+            'propmeta' => 1, # FIXME: Don't hardcode this
+        });
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
     } else {
-    S2::error("Unknown output type in S2::Compiler");
+        S2::error("Unknown output type in S2::Compiler");
     }
     $be->output($o);
     undef $S2::CUR_COMPILER;
