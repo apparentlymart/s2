@@ -17,6 +17,7 @@ sub new {
     $node->{'stmtlist'} = [];
     $node->{'returnType'} = undef;
     $node->{'localvars'} = {}; # string -> Type
+    $node->{'localvarundecorated'} = {}; # string -> something defined
     bless $node, $class;
 }
 
@@ -55,13 +56,19 @@ sub parse {
 }
 
 sub addLocalVar {
-    my ($this, $v, $t) = @_;
+    my ($this, $v, $t, $undecorated) = @_;
     $this->{'localvars'}->{$v} = $t;
+    $this->{'localvarundecorated'}->{$v} = 1 if $undecorated;
 }
 
 sub getLocalVar {
     my ($this, $v) = @_;
     $this->{'localvars'}->{$v};
+}
+
+sub localVarMustBeDecorated {
+    my ($this, $v) = @_;
+    return ! defined($this->{'localvarundecorated'}->{$v});
 }
 
 sub setReturnType {

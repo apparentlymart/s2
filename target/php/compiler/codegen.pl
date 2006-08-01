@@ -40,7 +40,7 @@ sub asPHP_bool {
     if ($s2type->isArrayOf() || $s2type->isHashOf()) {
         $o->write("(!empty(");
         $this->asPHP($bp, $o);
-        $o->write(")");
+        $o->write("))");
         return;
     }
 
@@ -154,7 +154,7 @@ package S2::NodeEqExpr;
 sub asPHP {
     my ($this, $bp, $o) = @_;
 
-    $this->{'lhs'}->asHP($bp, $o);
+    $this->{'lhs'}->asPHP($bp, $o);
     if ($this->{'op'} == $S2::TokenPunct::EQ) {
         $o->write(" === ");
     } else {
@@ -215,6 +215,8 @@ package S2::NodeFunction;
 sub asPHP {
     my ($this, $bp, $o) = @_;
 
+    $o->tabwriteln("// ".S2::Checker::functionID($this->{classname} ? $this->{classname}->getIdent() : undef, $this->{name}->getIdent(), $this->{formals}));
+
     unless ($this->{'attr'}->{'builtin'}) {
 
         # We recieve our args in a PHP local variable called $funcargs.
@@ -229,7 +231,7 @@ sub asPHP {
         if ($this->{'formals'}) {
             my $nts = $this->{'formals'}->getFormals();
             foreach my $nt (@$nts) {
-                $o->tabwriteln("\$locals['".$nt->getName()."'] = \$funcargs[".($argnum++)."];");
+                $o->tabwriteln("\$locals['".$bp->decorateLocal($nt->getName(), $this->{'stmts'})."'] = \$funcargs[".($argnum++)."];");
             }
         }
 
@@ -710,7 +712,7 @@ sub asPHP {
     my ($this, $bp, $o) = @_;
 
     # PHP doesn't have declarations, so we compile this just like a VarRef
-    $o->write("\$locals[".$bp->quoteString($this->{'nt'}->getName())."]");
+    $o->write("\$locals[".$bp->quoteString($bp->decorateLocal($this->{'nt'}->getName(), $this->{owningScope}))."]");
 }
 
 package S2::NodeVarDeclStmt;
@@ -760,15 +762,24 @@ sub asPHP {
         $first = 0;
     }
 
+    my $first = 1;
+
     foreach my $lev (@{$this->{'levels'}}) {
-        $o->write("['$lev->{'var'}']");
+        if ($first && $this->{'type'} == $LOCAL) {
+            $o->write("['".$bp->decorateLocal($lev->{'var'}, $this->{owningScope})."']");
+        }
+        else {
+            $o->write("['".$lev->{'var'}."']");
+        }
 
         foreach my $d (@{$lev->{'derefs'}}) {
             $o->write("["); # [ or {
             $d->{'expr'}->asPHP($bp, $o);
             $o->write("]");
         }
-    } # end levels
+        
+        $first = 0;
+    }
 
     if ($this->{'useAsString'}) {
         $o->write("['as_string']");

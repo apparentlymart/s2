@@ -39,6 +39,7 @@ sub populateScope {
     my $name = $this->{'nt'}->getName;
     my $et = $nb->getLocalVar($name);
     S2::error("Can't mask local variable '$name'") if $et;
+    $this->{owningScope} = $nb;
     $nb->addLocalVar($name, $this->{'nt'}->getType());
 }
 

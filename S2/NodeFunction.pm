@@ -209,18 +209,18 @@ sub check {
         # make sure $this is accessible in a class method
         # FIXME: not in static functions, once we have static functions
         if ($cname) {
-            $this->{'stmts'}->addLocalVar("this", new S2::Type($cname));
+            $this->{'stmts'}->addLocalVar("this", new S2::Type($cname), "UNDECORATED");
         } else {
-            $this->{'stmts'}->addLocalVar("this", $S2::Type::VOID);  # prevent its use
+            $this->{'stmts'}->addLocalVar("this", $S2::Type::VOID, "UNDECORATED");  # prevent its use
         }
 
         # make sure $this is accessible in a class method
         # that has a parent.
         my $pname = $ck->getParentClassName($cname); # String
         if (defined $pname) {
-            $this->{'stmts'}->addLocalVar("super", new S2::Type($pname));
+            $this->{'stmts'}->addLocalVar("super", new S2::Type($pname), "UNDECORATED");
         } else {
-            $this->{'stmts'}->addLocalVar("super", $S2::Type::VOID);  # prevent its use
+            $this->{'stmts'}->addLocalVar("super", $S2::Type::VOID, "UNDECORATED");  # prevent its use
         }
 
         $this->{'formals'}->populateScope($this->{'stmts'}) if $this->{'formals'};

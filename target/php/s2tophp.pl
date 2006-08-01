@@ -16,6 +16,7 @@ use S2::Layer;
 use S2::OutputConsole;
 use S2::OutputScalar;
 use S2::BackendPerl;
+use S2::Compiler;
 
 # Load in our stuff to patch the compiler with asPHP functions
 require "$Bin/compiler/codegen.pl";
@@ -171,6 +172,9 @@ USAGE
 
 package S2::BackendPHP;
 
+use strict;
+use Carp;
+
 sub new {
     return bless {}, $_[0];
 }
@@ -187,4 +191,28 @@ sub quoteStringInner {
     $s =~ s/([\\\$\"\@])/\\$1/g;
     $s =~ s/\n/\\n/g;
     return $s;
+}
+
+# PHP has function-level scope while S2 has block-level
+# scope. Therefore we must decorate all local variables with
+# a scope identifier to ensure there are no collisions between
+# blocks.
+sub decorateLocal {
+    my ($this, $varname, $scope) = @_;
+    
+    return $varname unless $scope->localVarMustBeDecorated($varname);
+    
+    # HACK: Use part of Perl's stringification of the
+    # owning block to decorate the variable name. Should
+    # do something better later.
+    my $decorate;
+    my $block = $scope."";
+    if ($block =~ /HASH\(0x(\w+)\)/) {
+        $decorate = $1;
+    }
+    else {
+        croak "Unable to decorate $varname in $block";
+    }
+
+    return "__".$decorate."_".$varname;
 }
