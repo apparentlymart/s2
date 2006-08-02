@@ -36,6 +36,12 @@ sub compile_source {
         if ($opts->{'builtinPackage'}) {
             $be->setBuiltinPackage($opts->{'builtinPackage'});
         }
+    } elsif ($opts->{'format'} eq "perloo") {
+        $this->{'checker'}->checkLayer($s2l);
+        $be = new S2::BackendPerl($s2l, undef, $opts->{'untrusted'}, 1, $opts->{'sourcename'});
+        if ($opts->{'builtinPackage'}) {
+            $be->setBuiltinPackage($opts->{'builtinPackage'});
+        }
     } elsif ($opts->{'format'} eq "lua") {
         require S2::BackendLua;
         $this->{'checker'}->checkLayer($s2l);
