@@ -23,7 +23,7 @@ my $layervar;
 my $layertype;
 
 my $opt_untrusted = 0;
-my ($opt_core, $opt_layout);
+my ($opt_core, $opt_markup, $opt_layout);
 my $outfile;
 my $opt_listbuiltin;
 my $ckoutfile;
@@ -35,6 +35,7 @@ exit usage() unless
                "layertype=s" => \$layertype,
                "layervar=s" => \$layervar,
                "core=s" => \$opt_core,
+               "markup=s" => \$opt_markup,
                "layout=s" => \$opt_layout,
                "untrusted" => \$opt_untrusted,
                "outfile=s" => \$outfile,
@@ -86,10 +87,14 @@ if ($output ne 'html') {
         die "Unspecified layertype.\n";
     } elsif ($layertype eq "core") {
         # nothing.
-    } elsif ($layertype eq "i18nc" || $layertype eq "layout") {
+    } elsif ($layertype eq "i18nc" || $layertype eq "markup") {
         makeLayer($opt_core, "core", $ck);
+    } elsif ($layertype eq "layout") {
+        makeLayer($opt_core, "core", $ck);
+        makeLayer($opt_markup, "markup", $ck) if defined $opt_markup;
     } elsif ($layertype eq "theme" || $layertype eq "i18n" || $layertype eq "user") {
         makeLayer($opt_core, "core", $ck);
+        makeLayer($opt_markup, "markup", $ck) if defined $opt_markup;
         makeLayer($opt_layout, "layout", $ck);
     } else {
         die "Invalid layertype.\n";
@@ -194,6 +199,7 @@ Options:
    --output <format>     One of: perl, html, s2, tokens
    --layertype <type>    One of: core, i18nc, layout, theme, i18n, user
    --core <filename>     Core S2 file, if layertype after core
+   --markup <filename>   Markup layer S2 file, if layertype after markup (optional)
    --layout <filename>   Layout S2 file, if compiling layer after layout
    --outfile <filename>  Optional file to write result to instead of stdout
    --listbuiltin         If compile is successful, will produce a list of

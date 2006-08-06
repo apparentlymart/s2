@@ -106,9 +106,10 @@ sub getNodes {
     return shift->{'nodes'};
 }
 
-sub isCoreOrLayout {
+sub isCoreOrLayout { # or markup!
     my $this = shift;
     return $this->{'type'} eq "core" ||
+        $this->{'type'} eq "markup" ||
         $this->{'type'} eq "layout";
 }
 

@@ -190,7 +190,7 @@ sub check {
 
             unless ($l->isCoreOrLayout() || $ck->functionType($derFuncID)) {
                 # only core and layout layers can define new functions
-                S2::error($this, "Only core and layout layers can define new functions.");
+                S2::error($this, "Only core, markup and layout layers can define new functions.");
             }
 
             $ck->addFunction($derFuncID, $t, $this->{'attr'});
