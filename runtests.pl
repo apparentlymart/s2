@@ -136,6 +136,20 @@ foreach my $f (@files)
         push @errors, [ $f, "Error occurred, but not anticipated." ];
         print "$f: $error\n" if $opt_verbose;
     }
+
+    my $lfile = "$TESTDIR/$f.layerinfo";
+    if (-e $lfile) {
+        my $layerinfo = eval { do $lfile };
+        die "Couldn't execute $lfile: $@" if $@;
+        die "$lfile didn't return a hashref" unless ref $layerinfo eq 'HASH';
+
+        my %info = S2::get_layer_info(1);
+
+        while (my ($key, $val) = each %$layerinfo) {
+            push @errors, [ $f, "Layerinfo '$key' contained '$info{$key}' when it should have contained '$val'." ]
+                unless ($val eq $info{$key});
+        }
+    }
 }
 
 unless (@errors) {
