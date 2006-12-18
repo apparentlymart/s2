@@ -10,10 +10,12 @@ my $opt_output;
 my $opt_perl = 1;
 my $opt_force;
 my $opt_verbose;
+my $opt_besource;
 GetOptions("output" => \$opt_output,
            "perl" => \$opt_perl,
            "force" => \$opt_force,
            "verbose" => \$opt_verbose,
+           "backend-source" => \$opt_besource,
            );
 
 my $runwhat = shift;
@@ -86,6 +88,13 @@ foreach my $f (@files)
             push @errors, [ $f, "Failed to compile" ];
             print "$cerr\n" if $opt_verbose;
         }
+
+        
+    }
+
+    if ($opt_besource) {
+        print $result;
+        print "\n";
     }
 
     my $output = "";
