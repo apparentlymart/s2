@@ -275,6 +275,29 @@ sub asJS {
     $o->newline();
 }
 
+package S2::NodeForStmt;
+
+sub asJS {
+    my ($this, $bp, $o) = @_;
+
+    $o->tabwrite("for (");
+    $this->{'vardecl'}->asJS($bp, $o, { as_expr => 1 }) if $this->{'vardecl'};
+    $this->{'initexpr'}->asJS($bp, $o) if $this->{'initexpr'};
+
+    $o->write("; ");
+
+    $this->{'condexpr'}->asJS($bp, $o);
+
+    $o->write("; ");
+
+    $this->{'iterexpr'}->asJS($bp, $o);
+    
+    $o->write(") ");
+
+    $this->{'stmts'}->asJS($bp, $o);
+    $o->newline();
+}
+
 package S2::NodeFunction;
 
 sub asJS {
@@ -826,8 +849,8 @@ sub asJS {
 package S2::NodeVarDeclStmt;
 
 sub asJS {
-    my ($this, $bp, $o) = @_;
-    $o->tabwrite("");
+    my ($this, $bp, $o, $opts) = @_;
+    $o->tabwrite("") unless ($opts && $opts->{as_expr});
     $this->{'nvd'}->asJS($bp, $o);
     if ($this->{'expr'}) {
         $o->write(" = ");
@@ -849,7 +872,7 @@ sub asJS {
             $o->write(" = {}");
         }
     }
-    $o->writeln(";");
+    $o->writeln(";") unless ($opts && $opts->{as_expr});
 }
 
 package S2::NodeVarRef;
@@ -922,6 +945,18 @@ sub asJS {
     }
 }
 
+package S2::NodeWhileStmt;
+
+sub asJS {
+    my ($this, $bp, $o) = @_;
+
+    $o->tabwrite("while (");
+    $this->{'expr'}->asJS($bp, $o);
+    $o->write(") ");
+
+    $this->{'stmts'}->asJS($bp, $o);
+    $o->newline();
+}
 
 package S2::TokenStringLiteral;
 

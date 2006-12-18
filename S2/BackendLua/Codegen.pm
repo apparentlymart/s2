@@ -263,6 +263,45 @@ sub asLua {
     $o->newline();
 }
 
+package S2::NodeForStmt;
+
+# Lua doesn't have a for loop in the same vein as C-like languages,
+# so we just simplify it to the equivalent while loop.
+
+sub asLua {
+    my ($this, $bp, $o) = @_;
+
+    $o->tabwriteln("do");
+    $o->tabIn();
+
+    if ($this->{'vardecl'}) {
+        $this->{'vardecl'}->asLua($bp, $o);
+    }
+    else {
+        $o->tabwrite("");
+        $this->{'initexpr'}->asLua($bp, $o);
+        $o->writeln(";");
+    }
+
+    $o->tabwrite("while (");
+    $this->{'condexpr'}->asPerl($bp, $o);
+    $o->writeln(") do");
+    $o->tabIn();
+
+    $this->{'stmts'}->asLua($bp, $o, 0);
+    $o->newline();
+
+    $o->tabwrite();
+    $this->{'iterexpr'}->asPerl($bp, $o);
+    $o->writeln(";");
+
+    $o->tabOut();
+    $o->tabwriteln("end");
+    $o->tabOut();
+    $o->tabwriteln("end");
+
+}
+
 package S2::NodeFunction;
 
 sub asLua {
@@ -854,6 +893,18 @@ sub asLua {
     }
 }
 
+package S2::NodeWhileStmt;
+
+sub asLua {
+    my ($this, $bp, $o) = @_;
+
+    $o->tabwrite("while (");
+    $this->{'expr'}->asLua($bp, $o);
+    $o->write(") ");
+
+    $this->{'stmts'}->asLua($bp, $o, 1);
+    $o->newline();
+}
 
 package S2::TokenStringLiteral;
 
