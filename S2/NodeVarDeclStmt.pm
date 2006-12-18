@@ -73,8 +73,8 @@ sub asS2 {
 }
 
 sub asPerl {
-    my ($this, $bp, $o) = @_;
-    $o->tabwrite("");
+    my ($this, $bp, $o, $opts) = @_;
+    $o->tabwrite("") unless ($opts && $opts->{as_expr});
     $this->{'nvd'}->asPerl($bp, $o);
     if ($this->{'expr'}) {
         $o->write(" = ");
@@ -88,7 +88,7 @@ sub asPerl {
             $o->write(" = 0");
         }
     }
-    $o->writeln(";");
+    $o->writeln(";") unless ($opts && $opts->{as_expr});
 }
 
 

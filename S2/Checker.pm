@@ -23,6 +23,7 @@ $VERSION = '1.0';
 #    private String funcClass;       // current function class
 #    private Hashtable derclass;     // classname  -> LinkedList<classname>
 #    private boolean inFunction;     // checking in a function now?
+#    private boolean crippledFlowControl; // If set, we don't allow "for" or "while" loops
 
 #    // per-layer
 #    private Hashtable funcDist;     // FuncID -> [ distance, NodeFunction ]
@@ -62,6 +63,7 @@ sub cleanForFreeze {
     delete $this->{'returnType'};
     delete $this->{'funcClass'};
     delete $this->{'inFunction'};
+    delete $this->{'crippledFlowControl'};
     foreach my $nc (values %{$this->{'classes'}}) {
         $nc->cleanForFreeze();
     }
@@ -74,6 +76,13 @@ sub clone {
 
     # HACK: Throw it through Storable and back to get a deep copy of the object.
     return Storable::thaw(Storable::freeze($this));
+}
+
+sub crippledFlowControl {
+    my ($this, $set) = @_;
+    
+    return $this->{crippledFlowControl} = ($set ? 1 : 0) if defined($set);
+    return $this->{crippledFlowControl};
 }
 
 sub addClass {

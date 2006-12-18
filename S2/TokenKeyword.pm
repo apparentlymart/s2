@@ -12,7 +12,7 @@ $VERSION = '1.0';
 
 %keywords = ();
 foreach my $kw (qw(class else elseif function if builtin
-                   property propgroup set static var while foreach print
+                   property propgroup set static var while foreach while for print
                    println not and or xor layerinfo extends
                    return delete defined new true false reverse
                    size isnull null readonly instanceof as isa break continue)) {

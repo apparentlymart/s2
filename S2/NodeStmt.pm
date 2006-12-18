@@ -11,6 +11,8 @@ use S2::NodeReturnStmt;
 use S2::NodeBranchStmt;
 use S2::NodeDeleteStmt;
 use S2::NodeForeachStmt;
+use S2::NodeWhileStmt;
+use S2::NodeForStmt;
 use S2::NodeVarDeclStmt;
 use S2::NodeExprStmt;
 use vars qw($VERSION @ISA);
@@ -50,6 +52,12 @@ sub parse {
 
     return S2::NodeForeachStmt->parse($toker)
         if S2::NodeForeachStmt->canStart($toker);
+
+    return S2::NodeWhileStmt->parse($toker)
+        if S2::NodeWhileStmt->canStart($toker);
+
+    return S2::NodeForStmt->parse($toker)
+        if S2::NodeForStmt->canStart($toker);
 
     return S2::NodeVarDeclStmt->parse($toker)
         if S2::NodeVarDeclStmt->canStart($toker);
