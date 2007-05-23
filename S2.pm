@@ -534,7 +534,7 @@ sub get_characters
 
 sub check_defined {
     my $obj = shift;
-    return UNIVERSAL::isa($obj, 'S2::Object') || (ref $obj eq 'HASH' && defined($obj->{_type}));
+    return UNIVERSAL::isa($obj, 'S2::Object') || (ref $obj eq 'HASH' && defined($obj->{_type}) && ! $obj->{_isnull});
 }
 
 sub check_elements {
