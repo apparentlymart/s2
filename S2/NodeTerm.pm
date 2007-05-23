@@ -144,15 +144,27 @@ sub _getType {
     }
 
     if ($type == $NEW || $type == $NEWNULL) {
-        my $clas = $this->{'newClass'}->getIdent();
-        if ($clas eq "int" || $clas eq "string") {
-            S2::error($this, "Can't use 'new' with primitive type '$clas'");
+        # A classname is optional for 'null', but not for 'new'.
+        # The parsing code enforces the presence of the type for 'new'.
+        if ($this->{'newClass'}) {
+            my $clas = $this->{'newClass'}->getIdent();
+            if ($clas eq "int" || $clas eq "string") {
+                S2::error($this, "Can't use 'new' with primitive type '$clas'");
+            }
+            my $nc = $ck->getClass($clas);
+            unless ($nc) {
+                S2::error($this, "Can't instantiate unknown class.");
+            }
+            return new S2::Type $clas;
         }
-        my $nc = $ck->getClass($clas);
-        unless ($nc) {
-            S2::error($this, "Can't instantiate unknown class.");
+        else {
+            if (defined($wanted) && !$wanted->isPrimitive()) {
+                return $wanted;
+            }
+            else {
+                return $S2::Type::NULL;
+            }
         }
-        return new S2::Type $clas;
     }
 
     if ($type == $VARREF) {
@@ -422,7 +434,16 @@ sub parse {
         $t == $S2::TokenKeyword::NULL) {
         $nt->{'type'} = $t == $S2::TokenKeyword::NEW ? $NEW : $NEWNULL;
         $nt->eatToken($toker);
-        $nt->{'newClass'} = $nt->getIdent($toker);
+        # For backward compatibility, we still allow a type to follow
+        # the 'null' keyword, but it is no longer required and it is ignored.
+        my $nextToken = $toker->peek;
+        if (UNIVERSAL::isa($nextToken, 'S2::TokenIdent')) {
+            $nt->{'newClass'} = $nt->getIdent($toker);
+        }
+        elsif ($t == $S2::TokenKeyword::NEW) {
+            # A type is *required* for new, but not for null
+            S2::error($toker->peek, "new operator requires a type");
+        }
         return $nt;
     }
 
@@ -512,16 +533,14 @@ sub asPerl {
     }
 
     if ($type == $NEW) {
-        $o->write("{'_type'=>" .
+        $o->write("S2::Object->new(" .
                   $bp->quoteString($this->{'newClass'}->getIdent()) .
-                  "}");
+                  ")");
         return;
     }
 
     if ($type == $NEWNULL) {
-        $o->write("{'_type'=>" .
-                  $bp->quoteString($this->{'newClass'}->getIdent()) .
-                  ", '_isnull'=>1}");
+        $o->write("undef");
         return;
     }
 
@@ -555,7 +574,10 @@ sub asPerl {
         return;
     }
 
-    if ($type == $DEFINEDTEST) {
+    if ($type == $DEFINEDTEST || $type == $ISNULLFUNC) {
+        if ($type == $ISNULLFUNC) {
+            $o->write("(!");
+        }
         if ($bp->oo) {
             $o->write("\$_ctx->_is_defined(");
         }
@@ -564,17 +586,9 @@ sub asPerl {
         }
         $this->{'subExpr'}->asPerl($bp, $o);
         $o->write(")");
-        return;
-    }
-
-    if ($type == $ISNULLFUNC) {
-        $o->write("(ref ");
-        $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write(" ne \"HASH\" || !(defined ");
-        $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write("->{'_type'}) || ");
-        $this->{'subExpr'}->asPerl($bp, $o);
-        $o->write("->{'_isnull'})");
+        if ($type == $ISNULLFUNC) {
+            $o->write(")");
+        }
         return;
     }
 

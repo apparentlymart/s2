@@ -25,6 +25,10 @@ sub parse {
     my $base = $n->getIdent($toker, 1, 0);
     $base->setType($S2::TokenIdent::TYPE);
 
+    if ($base->getIdent() eq "null") {
+        S2::error($n, "Cannot declare items of type 'null'");
+    }
+
     $n->{'type'} = S2::Type->new($base->getIdent());
     while ($toker->peek() == $S2::TokenPunct::LBRACK ||
            $toker->peek() == $S2::TokenPunct::LBRACE) {

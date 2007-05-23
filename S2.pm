@@ -534,7 +534,7 @@ sub get_characters
 
 sub check_defined {
     my $obj = shift;
-    return ref $obj eq "HASH" && defined $obj->{'_type'} && ! $obj->{'_isnull'};
+    return UNIVERSAL::isa($obj, 'S2::Object');
 }
 
 sub check_elements {
@@ -615,6 +615,21 @@ sub notags {
 package S2::Builtin;
 
 # generic S2 has no built-in functionality
+
+package S2::Object;
+
+# Represents an object in S2 land, which is a
+# hash with a special _type member.
+
+sub new {
+    my ($perlclass, $s2class) = @_;
+    return bless { '_type' => $s2class }, $perlclass;
+}
+
+sub type {
+    my ($self) = @_;
+    return $self->{_type};
+}
 
 1;
 

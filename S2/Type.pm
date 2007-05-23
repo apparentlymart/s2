@@ -6,12 +6,13 @@ package S2::Type;
 use strict;
 use S2::Node;
 use S2::Type;
-use vars qw($VOID $STRING $INT $BOOL);
+use vars qw($VOID $STRING $INT $BOOL $NULL);
 
 $VOID   = new S2::Type("void", 1);
 $STRING = new S2::Type("string", 1);
 $INT    = new S2::Type("int", 1);
 $BOOL   = new S2::Type("bool", 1);
+$NULL   = new S2::Type("null", 1);
 
 sub new {
     my ($class, $base, $final) = @_;
@@ -35,7 +36,7 @@ sub clone {
 sub isBoolable {
     my $this = shift;
 
-    # everything is boolable but void
+    # everything is boolable but void and null
     #    int:  != 0
     #    bool:  obvious
     #    string:  != ""
@@ -43,7 +44,7 @@ sub isBoolable {
     #    array:  elements > 0
     #    hash:  elements > 0
 
-    return ! $this->equals($VOID);
+    return ! $this->equals($VOID) && ! $this->equals($NULL);
 }
 
 sub subTypes {
@@ -85,13 +86,25 @@ sub sameMods {
 sub makeArrayOf {
     my ($this) = @_;
     S2::error('', "Internal error") if $this->{'final'};
+    S2::error('', "Cannot have an array of ".$this->toString()) unless $this->canBeArray();
     $this->{'typeMods'} .= "[]";
 }
 
 sub makeHashOf {
     my ($this) = @_;
     S2::error('', "Internal error") if $this->{'final'};
+    S2::error('', "Cannot have an hash of ".$this->toString()) unless $this->canBeHash();
     $this->{'typeMods'} .= "{}";
+}
+
+sub canBeHash {
+    my ($this) = @_;
+    return $this->{'baseType'} ne 'null';
+}
+
+sub canBeArray {
+    my ($this) = @_;
+    return $this->{'baseType'} ne 'null';
 }
 
 sub removeMod {
@@ -133,6 +146,7 @@ sub isPrimitive {
     }
     return $t->equals($STRING) ||
         $t->equals($INT) ||
+        $t->equals($NULL) ||
         $t->equals($BOOL);
 }
 
@@ -141,6 +155,7 @@ sub baseIsPrimitive {
     return $self->isPrimitive() ||
            $self->{baseType} eq 'string' ||
            $self->{baseType} eq 'int' ||
+           $self->{baseType} eq 'null' ||
            $self->{baseType} eq 'bool';
 }
 

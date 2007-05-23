@@ -35,7 +35,7 @@ sub check {
 
     my $exptype = $ck->getReturnType();
     my $rettype = $this->{'expr'} ?
-        $this->{'expr'}->getType($ck) : 
+        $this->{'expr'}->getType($ck, $exptype) : 
         $S2::Type::VOID;
 
     if ($ck->checkFuncAttr($ck->getInFunction(), "notags")) {
