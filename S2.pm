@@ -622,8 +622,10 @@ package S2::Object;
 # hash with a special _type member.
 
 sub new {
-    my ($perlclass, $s2class) = @_;
-    return bless { '_type' => $s2class }, $perlclass;
+    my ($perlclass, $s2class, %data) = @_;
+    my $self = \%data;
+    $self->{_type} = $s2class;
+    return bless $self, $perlclass;
 }
 
 sub type {
