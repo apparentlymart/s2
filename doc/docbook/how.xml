@@ -10,13 +10,13 @@ resource it's for.</para>
   loads each layer for that style, unless it's already loaded.  (layers are selectively
   cached)</para>
 
-<para>The S2 system builds a <emphasis role="bold">context</emphasis> which
+<para>The S2 system builds a <emphasis role="strong">context</emphasis> which
 contains the property values set by the top-most layer for each property, as
 well as a function vtable computed the same way.</para>
 
 <para>Next the web application invokes the global <function>prop_init()</function>
 function which the layout layer might've implemented.  The job of this function is to initialize
-the <emphasis role="bold">constructional properties</emphasis>. Constructional properties
+the <emphasis role="strong">constructional properties</emphasis>. Constructional properties
 are properties which the web app looks at to influence its subsequent data structure population.
 For example, FotoBilder examines the value
 of <varname>$*gallery_max_page_size</varname> to determine how many thumbnails

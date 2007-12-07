@@ -5,7 +5,7 @@
     <question><simpara>Why didn't you just use XML and let style authors use
     XSLT?</simpara></question>
     <answer><simpara>
-    <ulink url="http://www.livejournal.com/users/evan/601685.html">Because XSLT
+    <ulink url="http://evan.livejournal.com/601685.html">Because XSLT
     is ugly and difficult.</ulink></simpara></answer>
   </qandaentry>
   <qandaentry id='&s2.idroot;faq.newlang'>

@@ -1,12 +1,12 @@
 <title>S2 Client Protocol</title>
 <para>
   This protocol, initially implemented for
-  <ulink url="http://www.livejournal.com/">LiveJournal</ulink> but applicable
+  <ulink url="http://www.livejournal.com/">LiveJournal.com</ulink> but applicable
   elsewhere, provides a machine-friendly interface to an S2 system on a
   remote server.
 </para>
 <para>
-  The protocol is just HTTP, so you can implement it using any suitable HTTP
+  The protocol is just HTTP. You can implement it using any suitable HTTP
   library, including the Perl LWP library.
 </para>
 <section id="&s2.idroot;csp.general">
@@ -20,56 +20,56 @@
     <title>Requests</title>
     <para>
       When making a request to the S2 interface, you can authenticate with the
-      remote server using either HTTP Digest authentication<footnote id="&s2.idroot;csp.general.ftn.digest_auth">
-        <simpara>
-          Refer to <ulink url="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617</ulink>
-          for more information.
-        </simpara>
+      remote server using HTTP Digest authentication<footnote id="&s2.idroot;csp.general.ftn.digest_auth">
+         <simpara>
+           Refer to <ulink url="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617</ulink>
+           for more information.
+         </simpara>
       </footnote>
-      or some site-specific authentication method. On LiveJournal, session
+      or some site-specific authentication method. On LiveJournal.com, session
       cookies are supported.
     </para><para>
       The request URL will vary between applications. On LiveJournal it can be
       found at <systemitem class="systemname">/interface/s2</systemitem>.
-    </para><para>
-      The same URL is used for both retrieval and updating; the method used
-      defines the action the server will take. On LiveJournal, that URL wil be
+      </para>
+      <para>An example uploading client named <filename>s2up.pl</filename> for
+      the protocol, written in perl using LWP, is in the
+      SVN <ulink url="http://code.sixapart.com/svn/s2/trunk/tools/s2up.pl">repository</ulink>.</para>
+    <para>The same URL is used for both retrieval and updating; the method used
+      defines the action the server will take. On LiveJournal, that URL will be
       <systemitem class="systemname">/interface/s2/<replaceable>layerid</replaceable></systemitem>.
-      How you find the correct layerid is outside the scope of this specification.
-    </para>
+      How you find the correct layerid is outside the scope of this specification.</para>
   </section>
   <section id="&s2.idroot;csp.general.response">
     <title>Responses</title>
     <para>
       When parsing response bodies, consider only ASCII character 10 (newline, \n)
-      to indicate a newline. Disregard any occurances of ASCII 13 (carriage return, \r).
+      to indicate a newline. Disregard any occurrences of ASCII 13 (carriage return, \r).
     </para><para>
-      Error responses will have an HTTP error code and have a plain text
+      Error responses have a HTTP error code and a plain text
       response body. This will contain a short error message, then a newline,
       then a longer error message also followed by a newline, and optionally
       other data which you may wish to display.
     </para><para>
-      If the response is not in the expected format (ie, content-type does not
+      If the response is not in the expected format (i.e. content-type does not
       indicate a plain text response) clients should simply explain that the
-      server has returned an invalid response and that this might be temporary
-      or due to an incorrect URL. Even in the case of an unparsable body, the
-      HTTP response code can be used to infer the nature of the error.
+      server has returned an invalid response and that this may be temporary
+      or might be due to an incorrect URL. Even in the case of an unparsable body,
+      the HTTP response code can be used to infer the nature of the error.
     </para><para>
       You should be prepared to accept any HTTP response code and treat it as
-      the HTTP spec describes. This includes the redirection codes. You are
+      the HTTP spec advises. This includes the redirection codes. You are
       advised to use a full HTTP library, which is available for most
       languages, to make your requests rather than hacking up flakey HTTP code
       which assumes everything will always work in a particular way.
     </para><para>
       An exception to this rule is that the <returnvalue>403 Forbidden</returnvalue>
-      response is defined in HTTP to indicate that "authentication will not help",
-      but this protocol also allows for it to describe the condition where authentication
-      credentials are given but the given account has no access to whatever was
-      being retrieved. This slight quirk is made under the assumption that many
-      clients for this protocol will be non-interactive and launched as tools
-      from text editors, and prompting for alternative credentials would be
-      impossible.
-    </para>
+      response is defined in HTTP to indicate that "authentication will not help".
+      This protocol also allows for it to describe the condition where
+      authentication credentials are given but the given account has no access
+      to whatever was requested. This slight quirk is made under the assumption
+      many clients for this protocol will be non-interactive and launched as tools
+      from text editors, and prompting for alternative credentials would be impossible.</para>
   </section>
 </section>
 <section id="&s2.idroot;csp.download">
@@ -79,33 +79,35 @@
     request is sufficient:
   </para>
     
-<programlisting>GET /interface/s2/1 HTTP/1.0
+<programlisting>GET /interface/s2/1 HTTP/1.1
 Host: www.livejournal.com
 Accept: application/x-danga-s2-layer</programlisting>
 
   <para>
-    In addition to the basic headers shown above, some form of authentication
-    can be used. See the HTTP specification for documentation on Basic
-    authentication. Anonymous requests are allowed, but the server may respond
-    with <returnvalue>401 Unauthorized</returnvalue>, describing the standard HTTP
+    In addition to the basic header shown above, digest authentication
+    can be used. <footnote id="&s2.idroot;csp.general.ftn.digest_auth">
+         <simpara>Refer to <ulink url="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617</ulink>
+           for more information.</simpara> </footnote>
+           Anonymous requests are allowed, but the server may respond with 
+           <returnvalue>401 Unauthorized</returnvalue>, describing the standard HTTP
     authentication methods supported. Some servers, as described above, may
-    implement "special" authentication methods, such as LiveJournal supporting
-    website session cookies. These are not described (in a machine-readable way,
-    at least) in the Unauthorized response.
+    implement <quote>special</quote> authentication methods,
+    such as LiveJournal supporting website session cookies. These are not
+    described (in a machine-readable way, at least) in the Unauthorized response.
   </para>
   <para>
     Client authors are <emphasis>strongly advised</emphasis> to send the
     <parameter>Accept</parameter> header, as in the future other formats
     may be supported and the server will be able to see which
-    format you are expecting and either honour your request or return the
-    response <returnvalue>Unnacceptable</returnvalue> if S2 layer source
+    format you are expecting and either honor your request or return the
+    response <returnvalue>Unacceptable</returnvalue> if S2 layer source
     as we know it now is unavailable.
   </para>
   <para>
     If the response is an error, the response body will contain a short error
-    and then a longer error separated by a newline character, plus optionally
-    further error lines which you may wish to display if they are present. The
-    HTTP response code will give you some idea of the nature of the error.
+    followed by details of the error, plus optionally further error lines 
+    which you may wish to display if they are present. The HTTP response code 
+    will give you some idea of the nature of the error.
   </para>
   <para>
     If the response is successful (response code is 200 OK), and the
@@ -129,7 +131,7 @@ Accept: application/x-danga-s2-layer</programlisting>
     retrieve the given layer.
   </para>
   
-<programlisting>PUT /interface/s2/1 HTTP/1.0
+<programlisting>PUT /interface/s2/1 HTTP/1.1
 Host: www.livejournal.com
 Content-Length: 65
 Content-Type: application/x-danga-s2-layer
@@ -158,11 +160,9 @@ layerinfo "name" = "Upload Example";
     <title>Optional Client Features</title>
     <simpara>
       A client with access to a local S2 compiler may wish to perform a
-      syntax check on the layer to be uploaded to avoid a round-trip to
-      the server for a syntax problem which could be resolved locally.
-      However, an option to override this should be provided to allow
-      for future changes to S2 syntax which may cause parse errors in
-      older versions of the compiler.
+      syntax check on the layer to be uploaded first. An option to override 
+      this should be provided to allow for future changes to S2 syntax 
+      which may cause parse errors in older versions of the compiler.
     </simpara><simpara>
       It is not advisable for the local client to attempt the checker
       phase of compilation, as this is slow and local copies of parent
@@ -170,3 +170,4 @@ layerinfo "name" = "Upload Example";
     </simpara>
   </note>
 </section>
+

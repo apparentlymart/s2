@@ -4,16 +4,17 @@ S2 Manual Notes:
 
 Build:
 ------
-  The source to this manual is straight DocBook, with no extra compilation
-  required beforehand, unlike the LiveJournal and FotoBilder manuals. For our
-  projects we use libxslt to parse, validate, and compile the manuals, and
-  Debian as our OS of choice.
-To compile the docs for yourself on Debian, you need the following packages:
+  The source to this manual is straight DocBook, with no extra compilation required
+  beforehand, unlike the LiveJournal and FotoBilder manuals. For our projects we use
+  libxslt to parse, validate, and compile the manuals, and Debian as our OS of choice.
+
+  To compile the docs for yourself on Debian, you need the following packages:
   * xsltproc
   * docbook-xml
-  * docbook-xsl-stylesheets
-The command we use is 'xsltproc', like so:
-  xsltproc --nonet --catalogs docbook-xsl-stylesheets/html/chunk.xsl index.xml
+  * docbook-xsl
+
+  The command we use is 'xsltproc', like so:
+  xsltproc --nonet xsl-docbook/html/chunk.xsl index.xml
 
 Semantics:
 ----------
@@ -28,3 +29,4 @@ Semantics:
     inline, names of misc variables
 
 TODO: explain the merging process for the LJ and FB manuals
+
