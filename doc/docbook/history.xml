@@ -18,7 +18,7 @@ easily re-style their journal but had a number of shortcomings:</para>
         theme should be able to plug into any style. The available colors to
         set (by the themes) and use (by the styles) were named things like
         background", "foreground", "weak accent", "text on weak accent",
-        "strong accent", etc.. Unfortunately, no color theme worked well with
+        "strong accent", etc. Unfortunately, no color theme worked well with
         every layout and no layout worked well with all color theme. In S2,
         color themes are specific to the layout.</simpara></listitem>
         <listitem><simpara>Colors were the only things that were easily
@@ -34,8 +34,4 @@ easily re-style their journal but had a number of shortcomings:</para>
     whatever they want.</simpara></listitem>
 </itemizedlist>
 
-<para>S2 addresses all these problems. But fear not: S1 will stick around for
-those who prefer it and/or those who don't want to make the jump to S2 just
-yet. But we believe we'll win everybody over eventually once they give it a
-shot.</para>
 

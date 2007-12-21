@@ -3,10 +3,10 @@
 <section id='&s2.idroot;howworks'>
 <title>How it all works, in a nutshell</title>
 
-<para>The web app get a request and decides what user it's for, and what type of
-resource it's for.</para>
+<para>The web application gets a request and decides what user it is for, and the type of
+resource it is for.</para>
 
-<para>The web application loads the user's style for that resource and then
+<para>The web application loads the user's style for that resource, and then
   loads each layer for that style, unless it's already loaded.  (layers are selectively
   cached)</para>
 
@@ -28,16 +28,16 @@ compute <varname>$*gallery_max_page_size</varname> in
 <function>prop_init()</function> by multiplying <varname>$*rows</varname> and
 <varname>$*cols</varname>.</para>
 
-<para> The web app looks at the current context and determines both the version
-number of the core layer and the values of all the constructional properties,
-then builds an appropriate data-structure for the resource requested.  This
-instantiated object is likely pretty deep, containing dozens of instantiated
+<para> The web <abbrev>app</abbrev> looks at the current context and determines
+both the version number of the core layer, and values of all constructional properties.
+Next, it builds an appropriate data-structure for the resource requested.  This
+instantiated object is probably pretty deep, containing many instantiated
 objects all hanging off it.</para>
 
-<para>The web app invokes the entry point method (probably
+<para>The web <abbrev>app</abbrev> invokes the entry point method (probably
 called <function>-&gt;print()</function>) on the object it just instantiated.
 From here, S2 code runs, printing what it wants, and invoking methods on other
-objects in its huge data structure which may also print.</para>
+objects in its huge data structure (which may also print).</para>
 
 </section>
 

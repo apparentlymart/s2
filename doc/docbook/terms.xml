@@ -1,12 +1,12 @@
 <title>Terminology</title>
 
-<para>S2 uses different terminology than S1. Here's a quick overview:</para>
+<para>S2 uses different terminology from S1. Here is an overview:</para>
 
 <variablelist>
   <varlistentry>
     <term>layer</term>
-    <listitem><simpara>There are 6 layer types in S2, each providing and/or
-    overriding certain types of functions &amp; properties. These include: core
+    <listitem><simpara>There are 6 layer types in S2. Each type provides and/or
+    overrides particular types of functions &amp; properties. These include: core
     (the base), i18nc (internationalization for the core), layout, i18n, theme,
     and user.</simpara></listitem>
   </varlistentry>

@@ -48,11 +48,10 @@ be written to any version of the core.</para>
     short, medium, and long date and time formats and functions which do things
     like return ordinal numbers from cardinal numbers and map item counts onto
     their plural form.</para>
-    <para>The core layer should have properties for every textual string which
-    will likely be used by more than one layout to minimize the amount of
-    work required by translators. Because the i18nc layer overrides the
-    core, and not specific layouts, all layouts can take advantage of things
-    defined in the core and i18nc layers.</para>
+    <para>The core layer should have properties for every textual string
+    likely to be used by more than one layout, to reduce work for translators.
+    Because the i18nc layer overrides the core, and not specific layouts,
+    all layouts can take advantage of things defined in the core and i18nc layers.</para>
     </listitem>
   </varlistentry>
   <varlistentry>

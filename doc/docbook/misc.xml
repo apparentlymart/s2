@@ -15,7 +15,5 @@ Which comes first?"</emphasis></para>
 end, when layers are combined to make a vtable for a style, that's when layer
 inheritance happens.</para>
 
-<para>If none of this makes sense, don't worry about it.</para>
-
 </section>
 
