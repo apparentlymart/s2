@@ -468,7 +468,7 @@ have perhaps non-obvious functions.</para>
       with all members empty or zero</simpara></listitem>
     </varlistentry>
     <varlistentry>
-      <term><function>newnull</function> <varname>ClassName</varname></term>
+      <term><function>null</function> <varname>ClassName</varname></term>
       <listitem><simpara>returns an undefined value of type
       <varname>ClassName</varname></simpara></listitem>
     </varlistentry>
@@ -714,10 +714,10 @@ set fgcolor = "#ffc000";]]></programlisting>
         <informaltable frame='none'>
           <tgroup cols='2'>
             <tbody>
-            <row><entry><literal>type</literal></entry><entry>The layer type identifier</entry></row>
-            <row><entry><literal>majorversion</literal></entry><entry>Required for core layers only</entry></row>
+            <row><entry><literal>type</literal></entry><entry>The layer type identifier.</entry></row>
+            <row><entry><literal>majorversion</literal></entry><entry>Required for core layers only.</entry></row>
             <row><entry><literal>langcode</literal></entry><entry>Language being configured.
-            I18n and i18nc layers only.</entry></row>
+            i18n and i18nc layers only.</entry></row>
             </tbody>
           </tgroup>
         </informaltable>

@@ -84,10 +84,9 @@ Host: www.livejournal.com
 Accept: application/x-danga-s2-layer</programlisting>
 
   <para>
-    In addition to the basic header shown above, digest authentication
-    can be used. <footnote id="&s2.idroot;csp.general.ftn.digest_auth">
-         <simpara>Refer to <ulink url="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617</ulink>
-           for more information.</simpara> </footnote>
+    In addition to the basic header shown above, digest
+    authentication<footnoteref linkend='&s2.idroot;csp.general.ftn.digest_auth'/> can
+    be used.
            Anonymous requests are allowed, but the server may respond with 
            <returnvalue>401 Unauthorized</returnvalue>, describing the standard HTTP
     authentication methods supported. Some servers, as described above, may
